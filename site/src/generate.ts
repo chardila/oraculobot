@@ -1,0 +1,191 @@
+import * as fs from 'fs';
+import * as path from 'path';
+
+const SUPABASE_URL = process.env.SUPABASE_URL!;
+const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
+const OUT_DIR = process.env.OUT_DIR ?? 'dist';
+
+if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY');
+  process.exit(1);
+}
+
+interface Match {
+  id: string;
+  home_team: string;
+  away_team: string;
+  kickoff_at: string;
+  phase: string;
+  group_name: string | null;
+  home_score: number | null;
+  away_score: number | null;
+  status: string;
+}
+
+interface LeaderboardRow {
+  user_id: string;
+  username: string | null;
+  total_points: number;
+}
+
+interface Prediction {
+  points: number | null;
+}
+
+async function query<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${endpoint}`);
+  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+  const res = await fetch(url.toString(), {
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+    },
+  });
+  if (!res.ok) throw new Error(`Supabase ${endpoint}: ${res.status} ${await res.text()}`);
+  return res.json() as Promise<T>;
+}
+
+async function rpc<T>(fn: string): Promise<T> {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_SERVICE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: '{}',
+  });
+  if (!res.ok) throw new Error(`Supabase rpc/${fn}: ${res.status} ${await res.text()}`);
+  return res.json() as Promise<T>;
+}
+
+function formatDate(iso: string): string {
+  return new Date(iso).toLocaleString('es-CO', {
+    day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+    timeZone: 'America/Bogota',
+  });
+}
+
+function layout(title: string, body: string): string {
+  const updated = new Date().toLocaleString('es-CO', {
+    timeZone: 'America/Bogota', day: 'numeric', month: 'short',
+    hour: '2-digit', minute: '2-digit',
+  });
+  return `<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>${title} — OraculoBot 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 1rem; color: #1a1a1a; }
+    nav { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    nav a { text-decoration: none; color: #0070f3; font-weight: 500; }
+    nav a:hover { text-decoration: underline; }
+    h1 { font-size: 1.5rem; margin: 0.5rem 0 1rem; }
+    h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+    table { border-collapse: collapse; width: 100%; font-size: 0.9rem; }
+    th, td { text-align: left; padding: 0.5rem 0.75rem; border-bottom: 1px solid #e5e5e5; }
+    th { background: #f8f8f8; font-weight: 600; }
+    tr:last-child td { border-bottom: none; }
+    .badge { font-size: 0.75rem; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
+    .result { font-weight: 700; }
+    footer { margin-top: 2rem; font-size: 0.75rem; color: #888; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">🏆 Ranking</a>
+    <a href="partidos.html">📅 Partidos</a>
+    <a href="stats.html">📊 Stats</a>
+  </nav>
+  ${body}
+  <footer>Actualizado: ${updated}</footer>
+</body>
+</html>`;
+}
+
+function generateIndex(leaderboard: LeaderboardRow[]): string {
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  const rows = leaderboard.length === 0
+    ? '<tr><td colspan="3">Sin puntos registrados aún.</td></tr>'
+    : leaderboard.map((r, i) =>
+        `<tr><td>${MEDALS[i] ?? i + 1}</td><td>${r.username ?? 'Anónimo'}</td><td><b>${r.total_points}</b></td></tr>`
+      ).join('');
+
+  return layout('Ranking', `
+    <h1>🏆 Ranking — Mundial 2026</h1>
+    <table>
+      <thead><tr><th>#</th><th>Participante</th><th>Puntos</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `);
+}
+
+function generatePartidos(matches: Match[]): string {
+  const rows = matches.length === 0
+    ? '<tr><td colspan="5">Sin partidos registrados.</td></tr>'
+    : matches.map(m => {
+        const result = m.status === 'finished'
+          ? `<span class="result">${m.home_score} - ${m.away_score}</span>`
+          : `<span class="badge">Pendiente</span>`;
+        const phase = m.group_name ? `Grupo ${m.group_name}` : m.phase;
+        return `<tr><td>${m.home_team}</td><td>${result}</td><td>${m.away_team}</td><td>${formatDate(m.kickoff_at)}</td><td>${phase}</td></tr>`;
+      }).join('');
+
+  return layout('Partidos', `
+    <h1>📅 Partidos — Mundial 2026</h1>
+    <table>
+      <thead><tr><th>Local</th><th>Resultado</th><th>Visitante</th><th>Fecha</th><th>Fase</th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `);
+}
+
+function generateStats(leaderboard: LeaderboardRow[], predictions: Prediction[]): string {
+  const resolved = predictions.filter(p => p.points !== null);
+  const total = resolved.length;
+  const exact = resolved.filter(p => p.points === 5).length;
+  const correct = resolved.filter(p => p.points !== null && p.points >= 3 && p.points < 5).length;
+  const bonus = resolved.filter(p => p.points === 4).length;
+  const zero = resolved.filter(p => p.points === 0).length;
+  const pct = (n: number) => total ? `${Math.round(n / total * 100)}%` : '—';
+
+  const leader = leaderboard[0];
+
+  return layout('Estadísticas', `
+    <h1>📊 Estadísticas</h1>
+    <h2>Líder actual</h2>
+    <p>${leader ? `<b>${leader.username ?? 'Anónimo'}</b> con <b>${leader.total_points} pts</b>` : 'Sin datos aún.'}</p>
+    <h2>Predicciones resueltas: ${total}</h2>
+    <table>
+      <thead><tr><th>Resultado</th><th>Cantidad</th><th>%</th></tr></thead>
+      <tbody>
+        <tr><td>🎯 Marcador exacto (5pts)</td><td>${exact}</td><td>${pct(exact)}</td></tr>
+        <tr><td>✔️ Resultado + diferencia (4pts)</td><td>${bonus}</td><td>${pct(bonus)}</td></tr>
+        <tr><td>✔️ Solo resultado (3pts)</td><td>${correct - bonus}</td><td>${pct(correct - bonus)}</td></tr>
+        <tr><td>❌ Sin puntos (0pts)</td><td>${zero}</td><td>${pct(zero)}</td></tr>
+      </tbody>
+    </table>
+  `);
+}
+
+async function main() {
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+
+  console.log('Querying Supabase...');
+  const [leaderboard, matches, predictions] = await Promise.all([
+    rpc<LeaderboardRow[]>('leaderboard'),
+    query<Match[]>('matches', { order: 'kickoff_at.asc' }),
+    query<Prediction[]>('predictions', { select: 'points' }),
+  ]);
+
+  fs.writeFileSync(path.join(OUT_DIR, 'index.html'), generateIndex(leaderboard));
+  fs.writeFileSync(path.join(OUT_DIR, 'partidos.html'), generatePartidos(matches));
+  fs.writeFileSync(path.join(OUT_DIR, 'stats.html'), generateStats(leaderboard, predictions));
+
+  console.log(`✅ Site generated in ${OUT_DIR}/ (${matches.length} matches, ${leaderboard.length} users)`);
+}
+
+main().catch(err => { console.error(err); process.exit(1); });
