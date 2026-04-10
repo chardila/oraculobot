@@ -81,6 +81,23 @@ describe('generatePartidos() data-label', () => {
   });
 });
 
+describe('generateStats() data-label', () => {
+  const leaderboard = [{ user_id: '1', username: 'Alice', total_points: 10 }];
+  const predictions = [{ points: 5 }, { points: 3 }, { points: 0 }];
+
+  it('incluye data-label="Resultado"', () => {
+    expect(generateStats(leaderboard, predictions)).toContain('data-label="Resultado"');
+  });
+
+  it('incluye data-label="Cantidad"', () => {
+    expect(generateStats(leaderboard, predictions)).toContain('data-label="Cantidad"');
+  });
+
+  it('incluye data-label="%"', () => {
+    expect(generateStats(leaderboard, predictions)).toContain('data-label="%"');
+  });
+});
+
 describe('layout() responsive', () => {
   it('incluye media query para móvil', () => {
     const html = layout('Test', '<p>body</p>');

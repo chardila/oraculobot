@@ -172,10 +172,10 @@ export function generateStats(leaderboard: LeaderboardRow[], predictions: Predic
     <table>
       <thead><tr><th>Resultado</th><th>Cantidad</th><th>%</th></tr></thead>
       <tbody>
-        <tr><td>🎯 Marcador exacto (5pts)</td><td>${exact}</td><td>${pct(exact)}</td></tr>
-        <tr><td>✔️ Resultado + diferencia (4pts)</td><td>${bonus}</td><td>${pct(bonus)}</td></tr>
-        <tr><td>✔️ Solo resultado (3pts)</td><td>${correct - bonus}</td><td>${pct(correct - bonus)}</td></tr>
-        <tr><td>❌ Sin puntos (0pts)</td><td>${zero}</td><td>${pct(zero)}</td></tr>
+        <tr><td data-label="Resultado">🎯 Marcador exacto (5pts)</td><td data-label="Cantidad">${exact}</td><td data-label="%">${pct(exact)}</td></tr>
+        <tr><td data-label="Resultado">✔️ Resultado + diferencia (4pts)</td><td data-label="Cantidad">${bonus}</td><td data-label="%">${pct(bonus)}</td></tr>
+        <tr><td data-label="Resultado">✔️ Solo resultado (3pts)</td><td data-label="Cantidad">${correct - bonus}</td><td data-label="%">${pct(correct - bonus)}</td></tr>
+        <tr><td data-label="Resultado">❌ Sin puntos (0pts)</td><td data-label="Cantidad">${zero}</td><td data-label="%">${pct(zero)}</td></tr>
       </tbody>
     </table>
   `);
