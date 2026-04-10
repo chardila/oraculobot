@@ -34,8 +34,9 @@ export class SupabaseClient {
       },
     });
 
-    if (!res.ok && res.status !== 404) {
+    if (!res.ok) {
       const text = await res.text();
+      console.error(`Supabase ${path} ${res.status}: ${text}`);
       throw new Error(`Supabase ${path}: ${res.status} ${text}`);
     }
 
