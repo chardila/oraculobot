@@ -4,7 +4,7 @@ create extension if not exists "pgcrypto";
 -- Invite codes (created before users, so no FK yet)
 create table invite_codes (
   code        text primary key,
-  created_by  uuid,  -- FK added after users table
+  created_by  uuid,  -- FK added after users table; NULL = system-generated code
   max_uses    int not null default 1,
   use_count   int not null default 0,
   created_at  timestamptz not null default now()
@@ -38,6 +38,8 @@ create table matches (
   created_at  timestamptz not null default now()
 );
 
+create index idx_matches_status on matches(status);
+
 -- Predictions
 create table predictions (
   id          uuid primary key default gen_random_uuid(),
@@ -47,9 +49,12 @@ create table predictions (
   away_score  int not null,
   points      int,
   created_at  timestamptz not null default now(),
-  updated_at  timestamptz not null default now(),
+  predicted_at timestamptz not null default now(),
   unique (user_id, match_id)
 );
+
+create index idx_predictions_user_id  on predictions(user_id);
+create index idx_predictions_match_id on predictions(match_id);
 
 -- Conversation state (ephemeral, one row per telegram user)
 create table conversation_state (

@@ -2,6 +2,7 @@
 create or replace function leaderboard()
 returns table (user_id uuid, username text, total_points bigint)
 language sql
+security definer
 as $$
   select u.id as user_id, u.username, coalesce(sum(p.points), 0) as total_points
   from users u
