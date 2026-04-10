@@ -53,6 +53,34 @@ describe('generateIndex() data-label', () => {
   });
 });
 
+describe('generatePartidos() data-label', () => {
+  const matches = [{
+    id: '1', home_team: 'Colombia', away_team: 'Brasil',
+    kickoff_at: '2026-06-15T20:00:00Z', phase: 'group',
+    group_name: 'A', home_score: null, away_score: null, status: 'scheduled'
+  }];
+
+  it('incluye data-label="Local"', () => {
+    expect(generatePartidos(matches)).toContain('data-label="Local"');
+  });
+
+  it('incluye data-label="Resultado"', () => {
+    expect(generatePartidos(matches)).toContain('data-label="Resultado"');
+  });
+
+  it('incluye data-label="Visitante"', () => {
+    expect(generatePartidos(matches)).toContain('data-label="Visitante"');
+  });
+
+  it('incluye data-label="Fecha"', () => {
+    expect(generatePartidos(matches)).toContain('data-label="Fecha"');
+  });
+
+  it('incluye data-label="Fase"', () => {
+    expect(generatePartidos(matches)).toContain('data-label="Fase"');
+  });
+});
+
 describe('layout() responsive', () => {
   it('incluye media query para móvil', () => {
     const html = layout('Test', '<p>body</p>');

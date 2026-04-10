@@ -135,7 +135,13 @@ export function generatePartidos(matches: Match[]): string {
           ? `<span class="result">${m.home_score} - ${m.away_score}</span>`
           : `<span class="badge">Pendiente</span>`;
         const phase = m.group_name ? `Grupo ${m.group_name}` : m.phase;
-        return `<tr><td>${m.home_team}</td><td>${result}</td><td>${m.away_team}</td><td>${formatDate(m.kickoff_at)}</td><td>${phase}</td></tr>`;
+        return `<tr>
+  <td data-label="Local">${m.home_team}</td>
+  <td data-label="Resultado">${result}</td>
+  <td data-label="Visitante">${m.away_team}</td>
+  <td data-label="Fecha">${formatDate(m.kickoff_at)}</td>
+  <td data-label="Fase">${phase}</td>
+</tr>`;
       }).join('');
 
   return layout('Partidos', `
