@@ -1,6 +1,6 @@
 import type { TelegramMessage, Env, DbUser, ConversationState } from '../types';
 import type { SupabaseClient } from '../supabase';
-import { sendMessage } from '../telegram';
+import { sendMessage, sendMenu } from '../telegram';
 import { askDeepSeek } from '../services/deepseek';
 
 export async function startQuestion(
@@ -13,6 +13,8 @@ export async function startQuestion(
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     '❓ Escribe tu pregunta sobre el torneo, los partidos o los resultados:');
 }
+
+const BACK_BUTTON = [[{ text: '🔙 Menú', callback_data: 'menu:main' }]];
 
 export async function handleQuestionText(
   msg: TelegramMessage,
@@ -65,11 +67,11 @@ export async function handleQuestionText(
       `Resultados recientes:\n${recentText || 'Sin resultados aún.'}`;
 
     const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt, question);
-    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, answer);
+    await sendMenu(env.TELEGRAM_BOT_TOKEN, chatId, answer, BACK_BUTTON);
   } catch (e) {
     console.error('question handler error:', e);
-    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-      'No pude procesar tu pregunta en este momento, intenta de nuevo.');
+    await sendMenu(env.TELEGRAM_BOT_TOKEN, chatId,
+      'No pude procesar tu pregunta en este momento, intenta de nuevo.', BACK_BUTTON);
   } finally {
     await db.clearConversationState(user.telegram_id);
   }
