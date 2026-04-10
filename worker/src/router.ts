@@ -8,6 +8,12 @@ import { handleQuestionText } from './handlers/question';
 import { handleAdminResultText } from './handlers/admin/result';
 import { handleAdminMatchText } from './handlers/admin/match';
 
+const CONVERSATION_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
+
+export function isStateStale(updatedAt: string, ttlMs = CONVERSATION_TTL_MS): boolean {
+  return Date.now() - new Date(updatedAt).getTime() > ttlMs;
+}
+
 export async function route(update: TelegramUpdate, env: Env): Promise<void> {
   const db = new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
 
@@ -34,6 +40,7 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
   const telegramId = msg.from.id;
   const chatId = msg.chat.id;
 
+  const isAdminUser = String(telegramId) === env.ADMIN_TELEGRAM_ID;
   const user = await db.getUserByTelegramId(telegramId);
 
   if (!user) {
@@ -45,6 +52,15 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
 
   // Check for active conversation state
   const state = await db.getConversationState(telegramId);
+
+  // TTL check: clear stale state instead of resuming it
+  if (state && isStateStale(state.updated_at)) {
+    await db.clearConversationState(telegramId);
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, '⏱ Tu sesión anterior expiró.');
+    await showMainMenu(chatId, isAdminUser, env);
+    return;
+  }
+
   if (state) {
     switch (state.step) {
       case 'awaiting_prediction_score':
@@ -67,6 +83,5 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
   }
 
   // Default: show main menu
-  const isAdminUser = String(telegramId) === env.ADMIN_TELEGRAM_ID;
   await showMainMenu(chatId, isAdminUser, env);
 }
