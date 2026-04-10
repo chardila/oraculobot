@@ -56,7 +56,8 @@ export async function handleQuestionText(
     const systemPrompt =
       `Eres el asistente del torneo de predicciones del Mundial 2026 de un grupo de amigos.\n` +
       `Responde siempre en español, de forma breve y directa. No uses markdown.\n` +
-      `IMPORTANTE: Solo puedes responder preguntas sobre el Mundial 2026 (partidos, equipos, grupos, resultados) y sobre la polla (puntos, predicciones, ranking). Si te preguntan algo diferente, responde exactamente: "Solo puedo responder preguntas sobre el Mundial 2026 y la polla."\n\n` +
+      `IMPORTANTE: Solo puedes responder preguntas sobre el Mundial 2026 (partidos, equipos, grupos, resultados) y sobre la polla (puntos, predicciones, ranking). Si te preguntan algo diferente, responde exactamente: "Solo puedo responder preguntas sobre el Mundial 2026 y la polla."\n` +
+      `Todas las horas son en horario de Colombia (UTC-5). Cuando respondas preguntas sobre horarios de partidos, siempre indica la hora en horario colombiano.\n\n` +
       `CONTEXTO ACTUAL:\n` +
       `Fecha: ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })}\n\n` +
       `Leaderboard:\n${leaderboardText || 'Sin puntos aún.'}\n\n` +
