@@ -50,6 +50,13 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
     return;
   }
 
+  // Cancel command: clear any active state and show menu
+  if (msg.text === '/cancel') {
+    await db.clearConversationState(telegramId);
+    await showMainMenu(chatId, isAdminUser, env);
+    return;
+  }
+
   // Check for active conversation state
   const state = await db.getConversationState(telegramId);
 
