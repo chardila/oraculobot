@@ -10,8 +10,9 @@ A World Cup prediction bot for friends and family. Users make match predictions 
 - Inline keyboard navigation — no slash commands needed
 - Predict match scores before kickoff (closes 5 min before kick)
 - Automatic point calculation when admin enters results
-- Leaderboard, match results, and stats on a static website
+- Leaderboard, match results, and stats on a static website (linked from the menu)
 - Natural language questions answered by DeepSeek AI
+- Back-to-menu button after every action; `/cancel` to exit any active flow
 - Admin controls: enter results, generate invite codes, create matches
 
 ## Scoring
@@ -155,7 +156,7 @@ Use [ngrok](https://ngrok.com) or a Cloudflare tunnel to expose the local port, 
 ```bash
 # Worker
 cd worker
-npm test              # run scoring tests (9 tests)
+npm test              # run tests (24 tests)
 npm run dev           # local dev server
 npm run deploy        # deploy to Cloudflare
 
