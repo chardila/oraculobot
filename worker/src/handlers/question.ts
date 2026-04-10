@@ -3,6 +3,8 @@ import type { SupabaseClient } from '../supabase';
 import { sendMessage, sendMenu } from '../telegram';
 import { askDeepSeek } from '../services/deepseek';
 
+const BACK_BUTTON = [[{ text: '🔙 Menú', callback_data: 'menu:main' }]];
+
 export async function startQuestion(
   chatId: number,
   user: DbUser,
@@ -13,8 +15,6 @@ export async function startQuestion(
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     '❓ Escribe tu pregunta sobre el torneo, los partidos o los resultados:');
 }
-
-const BACK_BUTTON = [[{ text: '🔙 Menú', callback_data: 'menu:main' }]];
 
 export async function handleQuestionText(
   msg: TelegramMessage,
