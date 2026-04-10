@@ -27,9 +27,9 @@ export async function handleQuestionText(
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, '⏳ Consultando...');
 
   try {
-    const [leaderboard, upcoming, recent] = await Promise.all([
+    const [leaderboard, allMatches, recent] = await Promise.all([
       db.getLeaderboard(),
-      db.getUpcomingMatches(0),
+      db.getAllMatches(),
       db.getRecentFinished(5),
     ]);
 
@@ -37,13 +37,16 @@ export async function handleQuestionText(
       .map((r, i) => `${i + 1}. ${r.username}: ${r.total_points} pts`)
       .join('\n');
 
-    const upcomingText = upcoming.slice(0, 5)
+    const scheduleText = allMatches
       .map(m => {
         const d = new Date(m.kickoff_at).toLocaleString('es-CO', {
           day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
           timeZone: 'America/Bogota',
         });
-        return `${m.home_team} vs ${m.away_team} (${d})`;
+        if (m.status === 'finished') {
+          return `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team} (${d}) [finalizado]`;
+        }
+        return `${m.home_team} vs ${m.away_team} (${d}) [${m.phase}${m.group_name ? ' Grupo ' + m.group_name : ''}]`;
       }).join('\n');
 
     const recentText = recent
@@ -56,7 +59,7 @@ export async function handleQuestionText(
       `CONTEXTO ACTUAL:\n` +
       `Fecha: ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })}\n\n` +
       `Leaderboard:\n${leaderboardText || 'Sin puntos aún.'}\n\n` +
-      `Próximos partidos:\n${upcomingText || 'Sin partidos próximos.'}\n\n` +
+      `Calendario completo del Mundial 2026:\n${scheduleText || 'Sin partidos.'}\n\n` +
       `Resultados recientes:\n${recentText || 'Sin resultados aún.'}`;
 
     const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt, question);
