@@ -1,14 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
-const SUPABASE_URL = process.env.SUPABASE_URL!;
-const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
 const OUT_DIR = process.env.OUT_DIR ?? 'dist';
-
-if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
-  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY');
-  process.exit(1);
-}
 
 interface Match {
   id: string;
@@ -33,12 +26,14 @@ interface Prediction {
 }
 
 async function query<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
-  const url = new URL(`${SUPABASE_URL}/rest/v1/${endpoint}`);
+  const supabaseUrl = process.env.SUPABASE_URL!;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
+  const url = new URL(`${supabaseUrl}/rest/v1/${endpoint}`);
   Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
   const res = await fetch(url.toString(), {
     headers: {
-      apikey: SUPABASE_SERVICE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
     },
   });
   if (!res.ok) throw new Error(`Supabase ${endpoint}: ${res.status} ${await res.text()}`);
@@ -46,11 +41,13 @@ async function query<T>(endpoint: string, params: Record<string, string> = {}): 
 }
 
 async function rpc<T>(fn: string): Promise<T> {
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+  const supabaseUrl = process.env.SUPABASE_URL!;
+  const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
+  const res = await fetch(`${supabaseUrl}/rest/v1/rpc/${fn}`, {
     method: 'POST',
     headers: {
-      apikey: SUPABASE_SERVICE_KEY,
-      Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
+      apikey: supabaseKey,
+      Authorization: `Bearer ${supabaseKey}`,
       'Content-Type': 'application/json',
     },
     body: '{}',
@@ -66,7 +63,7 @@ function formatDate(iso: string): string {
   });
 }
 
-function layout(title: string, body: string): string {
+export function layout(title: string, body: string): string {
   const updated = new Date().toLocaleString('es-CO', {
     timeZone: 'America/Bogota', day: 'numeric', month: 'short',
     hour: '2-digit', minute: '2-digit',
@@ -106,7 +103,7 @@ function layout(title: string, body: string): string {
 </html>`;
 }
 
-function generateIndex(leaderboard: LeaderboardRow[]): string {
+export function generateIndex(leaderboard: LeaderboardRow[]): string {
   const MEDALS = ['🥇', '🥈', '🥉'];
   const rows = leaderboard.length === 0
     ? '<tr><td colspan="3">Sin puntos registrados aún.</td></tr>'
@@ -123,7 +120,7 @@ function generateIndex(leaderboard: LeaderboardRow[]): string {
   `);
 }
 
-function generatePartidos(matches: Match[]): string {
+export function generatePartidos(matches: Match[]): string {
   const rows = matches.length === 0
     ? '<tr><td colspan="5">Sin partidos registrados.</td></tr>'
     : matches.map(m => {
@@ -143,7 +140,7 @@ function generatePartidos(matches: Match[]): string {
   `);
 }
 
-function generateStats(leaderboard: LeaderboardRow[], predictions: Prediction[]): string {
+export function generateStats(leaderboard: LeaderboardRow[], predictions: Prediction[]): string {
   const resolved = predictions.filter(p => p.points !== null);
   const total = resolved.length;
   const exact = resolved.filter(p => p.points === 5).length;
@@ -172,6 +169,14 @@ function generateStats(leaderboard: LeaderboardRow[], predictions: Prediction[])
 }
 
 async function main() {
+  const SUPABASE_URL = process.env.SUPABASE_URL!;
+  const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY!;
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_KEY');
+    process.exit(1);
+  }
+
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   console.log('Querying Supabase...');
@@ -188,4 +193,7 @@ async function main() {
   console.log(`✅ Site generated in ${OUT_DIR}/ (${matches.length} matches, ${leaderboard.length} users)`);
 }
 
-main().catch(err => { console.error(err); process.exit(1); });
+// Only run when executed directly (not when imported by tests)
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch(err => { console.error(err); process.exit(1); });
+}
