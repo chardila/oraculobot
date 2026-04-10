@@ -5,6 +5,10 @@ import { sendMessage } from '../telegram';
 // Forward declaration to avoid circular import — menu imports registration, registration shows menu
 type ShowMainMenuFn = (chatId: number, isAdmin: boolean, env: Env) => Promise<void>;
 
+export function extractInviteCode(text: string): string {
+  return text.startsWith('/start ') ? text.slice(7).trim() : text;
+}
+
 export async function handleRegistration(
   msg: TelegramMessage,
   db: SupabaseClient,
@@ -13,7 +17,8 @@ export async function handleRegistration(
 ): Promise<void> {
   const chatId = msg.chat.id;
   const telegramId = msg.from.id;
-  const text = msg.text?.trim() ?? '';
+  const raw = msg.text?.trim() ?? '';
+  const text = extractInviteCode(raw);
 
   if (!text || text.length < 4) {
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
