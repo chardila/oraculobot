@@ -34,6 +34,6 @@ export async function generateInviteCode(
     `Código: <code>${code}</code>\n` +
     `Link: ${link}\n\n` +
     `(Uso único)`,
-    [[{ text: '🏠 Menú principal', callback_data: 'menu:main' }]]
+    [[{ text: '🔙 Menú', callback_data: 'menu:main' }]]
   );
 }
