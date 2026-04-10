@@ -64,7 +64,8 @@ export async function handleQuestionText(
 
     const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt, question);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, answer);
-  } catch {
+  } catch (e) {
+    console.error('question handler error:', e);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
       'No pude procesar tu pregunta en este momento, intenta de nuevo.');
   } finally {

@@ -139,6 +139,13 @@ export class SupabaseClient {
     });
   }
 
+  async getAllMatches(): Promise<DbMatch[]> {
+    return this.req<DbMatch[]>('matches', {}, {
+      order: 'kickoff_at.asc',
+      limit: '200',
+    });
+  }
+
   // Predictions
   async getPredictionsByMatch(matchId: string): Promise<DbPrediction[]> {
     return this.req<DbPrediction[]>('predictions', {}, {
