@@ -1,4 +1,4 @@
-import type { Env } from '../types';
+import type { Env, DbMatch } from '../types';
 import type { SupabaseClient } from '../supabase';
 import { editMenu } from '../telegram';
 
@@ -7,6 +7,15 @@ function formatDate(iso: string): string {
     day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
     timeZone: 'America/Bogota',
   });
+}
+
+function formatMatchPhase(match: DbMatch): string {
+  const labels: Record<string, string> = {
+    grupos: 'Grupos', octavos: 'Octavos',
+    cuartos: 'Cuartos', semis: 'Semis', final: 'Final',
+  };
+  const label = labels[match.phase] ?? match.phase;
+  return match.group_name ? `${label} • Grupo ${match.group_name}` : label;
 }
 
 export async function showMatches(
@@ -33,7 +42,7 @@ export async function showMatches(
   if (upcoming.length > 0) {
     text += '<b>Próximos partidos:</b>\n';
     upcoming.slice(0, 5).forEach(m => {
-      text += `${m.home_team} vs ${m.away_team} — ${formatDate(m.kickoff_at)}\n`;
+      text += `${formatMatchPhase(m)} | ${m.home_team} vs ${m.away_team} — ${formatDate(m.kickoff_at)}\n`;
     });
   }
 
