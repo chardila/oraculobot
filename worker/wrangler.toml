@@ -1,0 +1,7 @@
+name = "oraculobot-worker"
+main = "src/index.ts"
+compatibility_date = "2024-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+# Non-secret vars go here. Secrets are set via `wrangler secret put`.
