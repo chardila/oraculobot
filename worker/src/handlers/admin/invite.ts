@@ -1,6 +1,6 @@
 import type { Env, DbUser } from '../../types';
 import type { SupabaseClient } from '../../supabase';
-import { sendMessage } from '../../telegram';
+import { editMenu } from '../../telegram';
 
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -11,6 +11,7 @@ function generateCode(): string {
 
 export async function generateInviteCode(
   chatId: number,
+  msgId: number,
   user: DbUser,
   db: SupabaseClient,
   env: Env
@@ -25,10 +26,14 @@ export async function generateInviteCode(
 
   const link = `https://t.me/${env.TELEGRAM_BOT_USERNAME}?start=${code}`;
 
-  await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
+  await editMenu(
+    env.TELEGRAM_BOT_TOKEN,
+    chatId,
+    msgId,
     `🎟 <b>Código de invitación generado:</b>\n\n` +
     `Código: <code>${code}</code>\n` +
     `Link: ${link}\n\n` +
-    `(Uso único)`
+    `(Uso único)`,
+    [[{ text: '🏠 Menú principal', callback_data: 'menu:main' }]]
   );
 }

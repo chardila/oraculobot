@@ -107,7 +107,7 @@ export async function handleMenuCallback(
       if (admin) await startAdminResult(chatId, msgId, db, env);
       break;
     case 'admin_invite':
-      if (admin) await generateInviteCode(chatId, user, db, env);
+      if (admin) await generateInviteCode(chatId, msgId, user, db, env);
       break;
     case 'admin_match':
       if (admin) await startAdminMatch(chatId, user, db, env);
