@@ -153,6 +153,15 @@ export class SupabaseClient {
     });
   }
 
+  async getPredictionByUserAndMatch(userId: string, matchId: string): Promise<DbPrediction | null> {
+    const rows = await this.req<DbPrediction[]>('predictions', {}, {
+      user_id: `eq.${userId}`,
+      match_id: `eq.${matchId}`,
+      limit: '1',
+    });
+    return rows?.[0] ?? null;
+  }
+
   async upsertPrediction(data: Pick<DbPrediction, 'user_id' | 'match_id' | 'home_score' | 'away_score'>): Promise<void> {
     await this.req('predictions', {
       method: 'POST',
