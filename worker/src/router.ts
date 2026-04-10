@@ -63,7 +63,7 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
   // TTL check: clear stale state instead of resuming it
   if (state && isStateStale(state.updated_at)) {
     await db.clearConversationState(telegramId);
-    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, '⏱ Tu sesión anterior expiró.');
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, 'No encontré lo que estabas haciendo antes. Te muestro el menú principal.');
     await showMainMenu(chatId, isAdminUser, env);
     return;
   }
