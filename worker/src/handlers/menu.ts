@@ -7,7 +7,7 @@ import { showMatches } from './matches';
 import { startQuestion } from './question';
 import { startAdminResult, handleAdminResultSelect } from './admin/result';
 import { generateInviteCode } from './admin/invite';
-import { startAdminMatch } from './admin/match';
+import { startAdminMatch, handleAdminMatchPhaseCallback } from './admin/match';
 
 function isAdmin(user: DbUser, env: Env): boolean {
   return String(user.telegram_id) === env.ADMIN_TELEGRAM_ID;
@@ -61,6 +61,13 @@ export async function handleMenuCallback(
   const chatId = cq.message!.chat.id;
   const msgId = cq.message!.message_id;
   const admin = isAdmin(user, env);
+
+  // Admin match phase button selection
+  if (data.startsWith('match:phase:')) {
+    if (!admin) return;
+    await handleAdminMatchPhaseCallback(data, chatId, user, db, env);
+    return;
+  }
 
   // Admin result match selection
   if (data.startsWith('admin:result:')) {

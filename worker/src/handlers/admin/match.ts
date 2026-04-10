@@ -1,6 +1,6 @@
 import type { TelegramMessage, Env, DbUser, ConversationState } from '../../types';
 import type { SupabaseClient } from '../../supabase';
-import { sendMessage } from '../../telegram';
+import { sendMessage, sendMenu } from '../../telegram';
 
 export async function startAdminMatch(
   chatId: number,
@@ -13,7 +13,19 @@ export async function startAdminMatch(
     '➕ <b>Nuevo partido</b>\n\nEscribe el nombre del equipo <b>local</b>:');
 }
 
-const VALID_PHASES = ['grupos', 'octavos', 'cuartos', 'semis', 'final'];
+const PHASE_BUTTONS = [
+  [
+    { text: 'Grupos', callback_data: 'match:phase:grupos' },
+    { text: 'Octavos', callback_data: 'match:phase:octavos' },
+  ],
+  [
+    { text: 'Cuartos', callback_data: 'match:phase:cuartos' },
+    { text: 'Semis', callback_data: 'match:phase:semis' },
+  ],
+  [
+    { text: 'Final', callback_data: 'match:phase:final' },
+  ],
+];
 
 export async function handleAdminMatchText(
   msg: TelegramMessage,
@@ -50,31 +62,42 @@ export async function handleAdminMatchText(
       }
       await db.setConversationState(user.telegram_id, 'awaiting_match_phase',
         { ...ctx, kickoff_at: kickoff.toISOString() });
-      await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-        'Fase del partido:\n<code>grupos</code> / <code>octavos</code> / <code>cuartos</code> / <code>semis</code> / <code>final</code>');
+      await sendMenu(env.TELEGRAM_BOT_TOKEN, chatId,
+        '➕ <b>Fase del partido:</b>', PHASE_BUTTONS);
       break;
     }
 
-    case 'awaiting_match_phase': {
-      const phase = text.toLowerCase();
-      if (!VALID_PHASES.includes(phase)) {
-        await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-          '❌ Fase inválida. Opciones: grupos, octavos, cuartos, semis, final');
-        return;
-      }
-      if (phase === 'grupos') {
-        await db.setConversationState(user.telegram_id, 'awaiting_match_group',
-          { ...ctx, phase });
-        await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, 'Grupo (A-L):');
-      } else {
-        await createMatch({ ...ctx, phase, group_name: null }, user, db, env, chatId);
-      }
+    // awaiting_match_phase is handled by handleAdminMatchPhaseCallback (button tap)
+    // Text fallback re-shows buttons in case the admin types instead of tapping
+    case 'awaiting_match_phase':
+      await sendMenu(env.TELEGRAM_BOT_TOKEN, chatId,
+        'Usa los botones para elegir la fase:', PHASE_BUTTONS);
       break;
-    }
 
     case 'awaiting_match_group':
       await createMatch({ ...ctx, group_name: text.toUpperCase() }, user, db, env, chatId);
       break;
+  }
+}
+
+export async function handleAdminMatchPhaseCallback(
+  data: string,
+  chatId: number,
+  user: DbUser,
+  db: SupabaseClient,
+  env: Env
+): Promise<void> {
+  const phase = data.replace('match:phase:', '');
+  const state = await db.getConversationState(user.telegram_id);
+  if (!state || state.step !== 'awaiting_match_phase') return;
+
+  const ctx = state.context as Record<string, string | null>;
+
+  if (phase === 'grupos') {
+    await db.setConversationState(user.telegram_id, 'awaiting_match_group', { ...ctx, phase });
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, 'Grupo (A-L):');
+  } else {
+    await createMatch({ ...ctx, phase, group_name: null }, user, db, env, chatId);
   }
 }
 
