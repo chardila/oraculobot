@@ -116,6 +116,7 @@ export async function handleMenuCallback(
       if (admin) await startAdminMatch(chatId, user, db, env);
       break;
     case 'main':
+      await db.clearConversationState(user.telegram_id);
       await editMenu(
         env.TELEGRAM_BOT_TOKEN, chatId, msgId,
         '🌍 <b>OraculoBot — Mundial 2026</b>\n\n¿Qué quieres hacer?',
