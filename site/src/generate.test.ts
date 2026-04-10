@@ -33,3 +33,25 @@ describe('generate', () => {
     expect(html).toContain('10 pts');
   });
 });
+
+describe('layout() responsive', () => {
+  it('incluye media query para móvil', () => {
+    const html = layout('Test', '<p>body</p>');
+    expect(html).toContain('@media (max-width: 480px)');
+  });
+
+  it('oculta thead en móvil', () => {
+    const html = layout('Test', '<p>body</p>');
+    expect(html).toContain('thead { display: none }');
+  });
+
+  it('estila tr como tarjeta en móvil', () => {
+    const html = layout('Test', '<p>body</p>');
+    expect(html).toContain('border-radius');
+  });
+
+  it('usa data-label en td::before', () => {
+    const html = layout('Test', '<p>body</p>');
+    expect(html).toContain('content: attr(data-label)');
+  });
+});

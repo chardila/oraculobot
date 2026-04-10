@@ -89,6 +89,13 @@ export function layout(title: string, body: string): string {
     .badge { font-size: 0.75rem; background: #f0f0f0; padding: 2px 8px; border-radius: 12px; }
     .result { font-weight: 700; }
     footer { margin-top: 2rem; font-size: 0.75rem; color: #888; }
+    @media (max-width: 480px) {
+      thead { display: none }
+      table, tbody, tr, td { display: block; width: 100%; }
+      tr { border: 1px solid #e5e5e5; border-radius: 8px; margin-bottom: 0.75rem; padding: 0.5rem; }
+      td { border-bottom: none; padding: 0.25rem 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+      td::before { content: attr(data-label); font-weight: 600; color: #555; margin-right: 0.5rem; flex-shrink: 0; }
+    }
   </style>
 </head>
 <body>
