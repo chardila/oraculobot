@@ -34,6 +34,25 @@ describe('generate', () => {
   });
 });
 
+describe('generateIndex() data-label', () => {
+  const rows = [{ user_id: '1', username: 'Alice', total_points: 10 }];
+
+  it('incluye data-label="#" en la primera celda', () => {
+    const html = generateIndex(rows);
+    expect(html).toContain('data-label="#"');
+  });
+
+  it('incluye data-label="Participante"', () => {
+    const html = generateIndex(rows);
+    expect(html).toContain('data-label="Participante"');
+  });
+
+  it('incluye data-label="Puntos"', () => {
+    const html = generateIndex(rows);
+    expect(html).toContain('data-label="Puntos"');
+  });
+});
+
 describe('layout() responsive', () => {
   it('incluye media query para móvil', () => {
     const html = layout('Test', '<p>body</p>');

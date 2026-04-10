@@ -115,7 +115,7 @@ export function generateIndex(leaderboard: LeaderboardRow[]): string {
   const rows = leaderboard.length === 0
     ? '<tr><td colspan="3">Sin puntos registrados aún.</td></tr>'
     : leaderboard.map((r, i) =>
-        `<tr><td>${MEDALS[i] ?? i + 1}</td><td>${r.username ?? 'Anónimo'}</td><td><b>${r.total_points}</b></td></tr>`
+        `<tr><td data-label="#">${MEDALS[i] ?? i + 1}</td><td data-label="Participante">${r.username ?? 'Anónimo'}</td><td data-label="Puntos"><b>${r.total_points}</b></td></tr>`
       ).join('');
 
   return layout('Ranking', `
