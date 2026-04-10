@@ -20,7 +20,7 @@ export function sendMenu(
   token: string,
   chatId: number,
   text: string,
-  buttons: Array<Array<{ text: string; callback_data: string }>>
+  buttons: Array<Array<{ text: string; callback_data?: string; url?: string }>>
 ): Promise<void> {
   return call(token, 'sendMessage', {
     chat_id: chatId,
@@ -35,7 +35,7 @@ export function editMenu(
   chatId: number,
   messageId: number,
   text: string,
-  buttons: Array<Array<{ text: string; callback_data: string }>>
+  buttons: Array<Array<{ text: string; callback_data?: string; url?: string }>>
 ): Promise<void> {
   return call(token, 'editMessageText', {
     chat_id: chatId,

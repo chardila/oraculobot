@@ -13,7 +13,7 @@ function isAdmin(user: DbUser, env: Env): boolean {
   return String(user.telegram_id) === env.ADMIN_TELEGRAM_ID;
 }
 
-function buildButtons(admin: boolean): Array<Array<{ text: string; callback_data: string }>> {
+function buildButtons(admin: boolean): Array<Array<{ text: string; callback_data?: string; url?: string }>> {
   const base = [
     [
       { text: '🔮 Predecir', callback_data: 'menu:predict' },
@@ -22,6 +22,9 @@ function buildButtons(admin: boolean): Array<Array<{ text: string; callback_data
     [
       { text: '📅 Partidos', callback_data: 'menu:matches' },
       { text: '❓ Pregunta', callback_data: 'menu:question' },
+    ],
+    [
+      { text: '🌐 Sitio', url: 'https://chardila.github.io/oraculobot/' },
     ],
   ];
 
