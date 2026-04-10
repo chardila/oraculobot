@@ -1,7 +1,7 @@
 import type { TelegramCallbackQuery, Env, DbUser } from '../types';
 import type { SupabaseClient } from '../supabase';
 import { sendMenu, editMenu } from '../telegram';
-import { showPredictionMatches, handlePredictionCallback } from './prediction';
+import { showPredictionMatches, handlePredictionCallback, handlePredictionScoreCallback } from './prediction';
 import { showRanking } from './ranking';
 import { showMatches } from './matches';
 import { startQuestion } from './question';
@@ -70,9 +70,13 @@ export async function handleMenuCallback(
     return;
   }
 
-  // Prediction match selection
+  // Prediction match selection or score button
   if (data.startsWith('predict:')) {
-    await handlePredictionCallback(cq, user, db, env);
+    if (data.startsWith('predict:score:')) {
+      await handlePredictionScoreCallback(cq, user, db, env);
+    } else {
+      await handlePredictionCallback(cq, user, db, env);
+    }
     return;
   }
 
