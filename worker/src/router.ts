@@ -44,8 +44,8 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
   const user = await db.getUserByTelegramId(telegramId);
 
   if (!user) {
-    await handleRegistration(msg, db, env, (cId, adminFlag, e) =>
-      showMainMenu(cId, adminFlag, e)
+    await handleRegistration(msg, db, env, (cId, adminFlag, e, name) =>
+      showMainMenu(cId, adminFlag, e, name)
     );
     return;
   }
@@ -53,7 +53,7 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
   // Cancel command: clear any active state and show menu
   if (msg.text === '/cancel') {
     await db.clearConversationState(telegramId);
-    await showMainMenu(chatId, isAdminUser, env);
+    await showMainMenu(chatId, isAdminUser, env, user.username ?? undefined);
     return;
   }
 
@@ -64,7 +64,7 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
   if (state && isStateStale(state.updated_at)) {
     await db.clearConversationState(telegramId);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, 'No encontré lo que estabas haciendo antes. Te muestro el menú principal.');
-    await showMainMenu(chatId, isAdminUser, env);
+    await showMainMenu(chatId, isAdminUser, env, user.username ?? undefined);
     return;
   }
 
@@ -90,5 +90,5 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
   }
 
   // Default: show main menu
-  await showMainMenu(chatId, isAdminUser, env);
+  await showMainMenu(chatId, isAdminUser, env, user.username ?? undefined);
 }

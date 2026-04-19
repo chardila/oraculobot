@@ -2,6 +2,7 @@ import type { TelegramMessage, Env, DbUser, ConversationState } from '../types';
 import type { SupabaseClient } from '../supabase';
 import { sendMessage, sendMenu } from '../telegram';
 import { askDeepSeek } from '../services/deepseek';
+import { VENUE_CONTEXT } from '../services/worldcup-venues';
 
 const BACK_BUTTON = [[{ text: '🔙 Menú', callback_data: 'menu:main' }]];
 
@@ -59,10 +60,15 @@ export async function handleQuestionText(
     const systemPrompt =
       `Eres el asistente del torneo de predicciones del Mundial 2026 de un grupo de amigos.\n` +
       `Responde siempre en español, de forma breve y directa. No uses markdown.\n` +
-      `IMPORTANTE: Solo puedes responder preguntas sobre el Mundial 2026 (partidos, equipos, grupos, resultados) y sobre la polla (puntos, predicciones, ranking). Si te preguntan algo diferente, responde exactamente: "Solo puedo responder preguntas sobre el Mundial 2026 y la polla."\n` +
+      `REGLAS ESTRICTAS:\n` +
+      `1. Solo responde preguntas sobre el Mundial 2026 (partidos, equipos, grupos, resultados, estadios, ciudades sede) y sobre la polla (puntos, predicciones, ranking). Si te preguntan algo diferente, responde exactamente: "Solo puedo responder preguntas sobre el Mundial 2026 y la polla."\n` +
+      `2. Usa ÚNICAMENTE la información del contexto que se te proporciona a continuación. NO uses conocimiento propio ni inventes datos.\n` +
+      `3. Si la respuesta no está en el contexto, responde exactamente: "No tengo esa información en el contexto disponible."\n` +
+      `4. Nunca asumas ni extrapoles datos que no aparezcan explícitamente en el contexto.\n` +
       `Todas las horas son en horario de Colombia (UTC-5). Cuando respondas preguntas sobre horarios de partidos, siempre indica la hora en horario colombiano.\n\n` +
       `CONTEXTO ACTUAL:\n` +
       `Fecha: ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })}\n\n` +
+      `${VENUE_CONTEXT}\n\n` +
       `Leaderboard:\n${leaderboardText || 'Sin puntos aún.'}\n\n` +
       `Calendario completo del Mundial 2026:\n${scheduleText || 'Sin partidos.'}\n\n` +
       `Resultados recientes:\n${recentText || 'Sin resultados aún.'}`;

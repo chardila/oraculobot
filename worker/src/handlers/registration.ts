@@ -3,7 +3,7 @@ import type { SupabaseClient } from '../supabase';
 import { sendMessage } from '../telegram';
 
 // Forward declaration to avoid circular import — menu imports registration, registration shows menu
-type ShowMainMenuFn = (chatId: number, isAdmin: boolean, env: Env) => Promise<void>;
+type ShowMainMenuFn = (chatId: number, isAdmin: boolean, env: Env, name?: string) => Promise<void>;
 
 export function extractInviteCode(text: string): string {
   return text.startsWith('/start ') ? text.slice(7).trim() : text;
@@ -17,6 +17,7 @@ export async function handleRegistration(
 ): Promise<void> {
   const chatId = msg.chat.id;
   const telegramId = msg.from.id;
+  const fullName = [msg.from.first_name, msg.from.last_name].filter(Boolean).join(' ');
   const raw = msg.text?.trim() ?? '';
   const text = extractInviteCode(raw);
 
@@ -42,7 +43,7 @@ export async function handleRegistration(
 
   await db.createUser({
     telegram_id: telegramId,
-    username: msg.from.username ?? msg.from.first_name,
+    username: msg.from.username ?? fullName,
     is_admin: false,
     invite_code: code.code,
     questions_today: 0,
@@ -51,8 +52,8 @@ export async function handleRegistration(
   await db.incrementInviteCodeUse(code.code);
 
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-    `✅ ¡Registrado! Bienvenido al torneo, <b>${msg.from.first_name}</b>.`);
+    `✅ ¡Registrado! Bienvenido al torneo, <b>${fullName}</b>.`);
 
   const isAdmin = String(telegramId) === env.ADMIN_TELEGRAM_ID;
-  await showMainMenu(chatId, isAdmin, env);
+  await showMainMenu(chatId, isAdmin, env, fullName);
 }
