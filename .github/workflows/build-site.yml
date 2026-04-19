@@ -36,6 +36,9 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           OUT_DIR: dist
 
+      - name: Copy interactive pages
+        run: cp site/jugar.html site/dist/jugar.html
+
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:

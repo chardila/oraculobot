@@ -40,15 +40,35 @@ export interface Env {
   GITHUB_REPO: string;
   INVITE_CODE_SECRET: string;
   TELEGRAM_BOT_USERNAME: string;
+  WEB_ORIGIN: string;  // GitHub Pages URL, e.g. https://owner.github.io/repo
 }
 
 export interface DbUser {
   id: string;
-  telegram_id: number;
+  telegram_id: number | null;
   username: string | null;
   is_admin: boolean;
   invite_code: string | null;
+  auth_user_id?: string | null;
+  questions_today: number;
+  questions_reset_at?: string | null;
   created_at: string;
+}
+
+// Web API request types
+export interface WebRegisterRequest {
+  email: string;
+  invite_code: string;
+}
+
+export interface WebPredictRequest {
+  match_id: string;
+  home_score: number;
+  away_score: number;
+}
+
+export interface WebQuestionRequest {
+  question: string;
 }
 
 export interface DbMatch {

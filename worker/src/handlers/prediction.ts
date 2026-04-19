@@ -88,7 +88,7 @@ export async function handlePredictionCallback(
   // Check for existing prediction to show user their current pick
   const existing = await db.getPredictionByUserAndMatch(user.id, match.id);
 
-  await db.setConversationState(user.telegram_id, 'awaiting_prediction_score', {
+  await db.setConversationState(user.telegram_id!, 'awaiting_prediction_score', {
     match_id: match.id,
     home_team: match.home_team,
     away_team: match.away_team,
@@ -137,7 +137,7 @@ export async function handlePredictionScoreCallback(
 
   const cutoff = new Date(match.kickoff_at).getTime() - CUTOFF_MS;
   if (Date.now() >= cutoff) {
-    await db.clearConversationState(user.telegram_id);
+    await db.clearConversationState(user.telegram_id!);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
       '⏱ Las predicciones para este partido ya cerraron.');
     return;
@@ -153,7 +153,7 @@ export async function handlePredictionScoreCallback(
   const awayScore = parseInt(scoreMatch[2]);
 
   await db.upsertPrediction({ user_id: user.id, match_id: matchId, home_score: homeScore, away_score: awayScore });
-  await db.clearConversationState(user.telegram_id);
+  await db.clearConversationState(user.telegram_id!);
 
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     `✅ Predicción guardada: <b>${match.home_team} ${homeScore} - ${awayScore} ${match.away_team}</b>`
@@ -186,7 +186,7 @@ export async function handlePredictionText(
   // Re-check cutoff (user might have taken too long to reply)
   const cutoff = new Date(ctx.kickoff_at).getTime() - CUTOFF_MS;
   if (Date.now() >= cutoff) {
-    await db.clearConversationState(user.telegram_id);
+    await db.clearConversationState(user.telegram_id!);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
       '⏱ Las predicciones para este partido ya cerraron.');
     return;
@@ -199,7 +199,7 @@ export async function handlePredictionText(
     away_score: awayScore,
   });
 
-  await db.clearConversationState(user.telegram_id);
+  await db.clearConversationState(user.telegram_id!);
 
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     `✅ Predicción guardada: <b>${ctx.home_team} ${homeScore} - ${awayScore} ${ctx.away_team}</b>`
