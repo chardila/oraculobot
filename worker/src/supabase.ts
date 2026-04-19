@@ -225,7 +225,7 @@ export class SupabaseClient {
     return rows[0];
   }
 
-  async generateMagicLink(email: string, redirectTo: string): Promise<{ user: { id: string } }> {
+  async generateMagicLink(email: string, redirectTo: string): Promise<{ action_link: string; user: { id: string } }> {
     const res = await fetch(`${this.url}/auth/v1/admin/generate_link`, {
       method: 'POST',
       headers: {

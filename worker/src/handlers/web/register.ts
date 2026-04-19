@@ -22,9 +22,11 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
   }
 
   let authUserId: string;
+  let actionLink: string;
   try {
     const result = await db.generateMagicLink(email, `${env.WEB_ORIGIN}/jugar.html`);
     authUserId = result.user.id;
+    actionLink = result.action_link;
   } catch (e) {
     console.error('Magic link error:', e);
     return Response.json({ error: 'No se pudo enviar el enlace mágico' }, { status: 500 });
@@ -37,5 +39,6 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
     await db.incrementInviteCodeUse(invite_code);
   }
 
-  return Response.json({ ok: true, message: 'Revisa tu correo para el enlace de acceso' });
+  // DEBUG: return action_link directly so login works without email delivery
+  return Response.json({ ok: true, message: 'Revisa tu correo para el enlace de acceso', debug_link: actionLink });
 }
