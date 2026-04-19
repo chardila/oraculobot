@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jugar — OraculoBot 2026</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 1rem; color: #1a1a1a; }
+    nav { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    nav a { text-decoration: none; color: #0070f3; font-weight: 500; }
+    nav a:hover { text-decoration: underline; }
+    nav a.active { color: #1a1a1a; font-weight: 700; }
+
+    /* Login */
+    #login-screen { max-width: 360px; margin: 2rem auto; }
+    #login-screen h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    #login-screen p { color: #555; margin-bottom: 1.5rem; font-size: 0.95rem; }
+    .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
+    .field label { font-size: 0.85rem; font-weight: 600; color: #333; }
+    .field input { padding: 0.6rem 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; width: 100%; }
+    .field input:focus { outline: none; border-color: #0070f3; }
+    #btn-submit { width: 100%; padding: 0.75rem; background: #0070f3; color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
+    #btn-submit:hover { background: #005ecb; }
+    #btn-submit:disabled { background: #aaa; cursor: default; }
+    #login-msg { margin-top: 1rem; font-size: 0.9rem; padding: 0.6rem 0.75rem; border-radius: 8px; display: none; }
+    #login-msg.ok  { background: #e6f4ea; color: #1e7e34; }
+    #login-msg.err { background: #fdecea; color: #c0392b; }
+    .toggle-link { margin-top: 0.75rem; font-size: 0.85rem; color: #0070f3; cursor: pointer; text-align: center; }
+    .toggle-link:hover { text-decoration: underline; }
+
+    /* Chat */
+    #chat-screen { display: none; flex-direction: column; height: calc(100vh - 120px); min-height: 400px; }
+    #chat-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0 1rem; border-bottom: 1px solid #e5e5e5; }
+    #chat-header span { font-weight: 600; }
+    #btn-logout { font-size: 0.8rem; color: #888; background: none; border: none; cursor: pointer; padding: 0.25rem 0.5rem; }
+    #btn-logout:hover { color: #c0392b; }
+    #messages { flex: 1; overflow-y: auto; padding: 1rem 0; display: flex; flex-direction: column; gap: 0.75rem; }
+    .bubble { max-width: 85%; padding: 0.6rem 0.9rem; border-radius: 16px; font-size: 0.95rem; line-height: 1.4; white-space: pre-wrap; }
+    .bubble.bot { background: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 4px; }
+    .bubble.user { background: #0070f3; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+    #btn-area { padding: 0.75rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .chat-btn { padding: 0.6rem 1rem; border: 1px solid #0070f3; border-radius: 20px; background: #fff; color: #0070f3; font-size: 0.9rem; cursor: pointer; font-weight: 500; }
+    .chat-btn:hover { background: #e8f0fe; }
+    .chat-btn.secondary { border-color: #ccc; color: #555; }
+    .chat-btn.secondary:hover { background: #f5f5f5; }
+    #text-input-area { display: none; flex-direction: column; gap: 0.5rem; }
+    #text-input-area textarea { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; resize: none; height: 72px; }
+    #text-input-area textarea:focus { outline: none; border-color: #0070f3; }
+    #btn-send { align-self: flex-end; padding: 0.5rem 1.25rem; background: #0070f3; color: #fff; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+    #btn-send:hover { background: #005ecb; }
+    #btn-send:disabled { background: #aaa; cursor: default; }
+    .score-inputs { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
+    .score-inputs input { width: 56px; padding: 0.5rem; text-align: center; font-size: 1.1rem; border: 1px solid #ccc; border-radius: 8px; }
+    .score-inputs span { font-size: 1.2rem; font-weight: 700; color: #555; }
+    #btn-confirm-score { padding: 0.5rem 1.25rem; background: #0070f3; color: #fff; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
+    #btn-confirm-score:hover { background: #005ecb; }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="index.html">🏆 Ranking</a>
+    <a href="partidos.html">📅 Partidos</a>
+    <a href="stats.html">📊 Stats</a>
+    <a class="active" href="jugar.html">🎯 Jugar</a>
+  </nav>
+
+  <!-- Login -->
+  <div id="login-screen">
+    <h1>🎯 Oraculobot</h1>
+    <p id="login-subtitle">Ingresa tu correo y código de invitación para registrarte.</p>
+    <div class="field">
+      <label for="email">Correo</label>
+      <input type="email" id="email" placeholder="tu@correo.com" autocomplete="email">
+    </div>
+    <div class="field" id="invite-field">
+      <label for="invite-code">Código de invitación</label>
+      <input type="text" id="invite-code" placeholder="Ej: ABC123" autocomplete="off">
+    </div>
+    <button id="btn-submit">Entrar →</button>
+    <div id="login-msg"></div>
+    <p class="toggle-link" id="toggle-mode">¿Ya tienes cuenta? Entra solo con tu correo</p>
+  </div>
+
+  <!-- Chat -->
+  <div id="chat-screen">
+    <div id="chat-header">
+      <span>🤖 Oraculobot</span>
+      <button id="btn-logout">Cerrar sesión</button>
+    </div>
+    <div id="messages"></div>
+    <div id="btn-area"></div>
+    <div id="text-input-area">
+      <textarea id="question-input" placeholder="Escribe tu pregunta..."></textarea>
+      <button id="btn-send">Enviar</button>
+    </div>
+    <div id="score-input-area" style="display:none; padding: 0.5rem 0;">
+      <div class="score-inputs">
+        <input type="number" id="score-home" min="0" max="20" value="0">
+        <span>-</span>
+        <input type="number" id="score-away" min="0" max="20" value="0">
+        <button id="btn-confirm-score">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ─── CONFIG (fill in your values) ────────────────────────────────────────
+    const SUPABASE_URL  = 'https://rhclzawbdxsitwtzdies.supabase.co';   // https://xxx.supabase.co
+    const SUPABASE_ANON = 'sb_publishable_ia5yM6iARW7xUasAVGFFxA_nu6REkoU';
+    const WORKER_URL    = 'https://oraculobot-worker.carlos-ardila-account.workers.dev';     // https://xxx.workers.dev
+    // ─────────────────────────────────────────────────────────────────────────
+
+    const { createClient } = window.supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+    let jwt = null;
+    let chatState = { step: 'menu', context: {} };
+    let isNewUser = true; // toggle between register and login mode
+
+    // ── DOM refs ──
+    const loginScreen   = document.getElementById('login-screen');
+    const chatScreen    = document.getElementById('chat-screen');
+    const emailInput    = document.getElementById('email');
+    const inviteInput   = document.getElementById('invite-code');
+    const inviteField   = document.getElementById('invite-field');
+    const btnSubmit     = document.getElementById('btn-submit');
+    const loginMsg      = document.getElementById('login-msg');
+    const loginSubtitle = document.getElementById('login-subtitle');
+    const toggleMode    = document.getElementById('toggle-mode');
+    const messages      = document.getElementById('messages');
+    const btnArea       = document.getElementById('btn-area');
+    const textInputArea = document.getElementById('text-input-area');
+    const scoreInputArea= document.getElementById('score-input-area');
+    const questionInput = document.getElementById('question-input');
+    const btnSend       = document.getElementById('btn-send');
+    const btnConfirmScore = document.getElementById('btn-confirm-score');
+    const btnLogout     = document.getElementById('btn-logout');
+
+    // ── Auth ──
+    sb.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        jwt = session.access_token;
+        showChat();
+      }
+    });
+
+    async function initAuth() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) {
+        jwt = session.access_token;
+        showChat();
+      }
+    }
+
+    // ── Login UI ──
+    toggleMode.addEventListener('click', () => {
+      isNewUser = !isNewUser;
+      if (isNewUser) {
+        inviteField.style.display = '';
+        loginSubtitle.textContent = 'Ingresa tu correo y código de invitación para registrarte.';
+        toggleMode.textContent = '¿Ya tienes cuenta? Entra solo con tu correo';
+        btnSubmit.textContent = 'Registrarme →';
+      } else {
+        inviteField.style.display = 'none';
+        loginSubtitle.textContent = 'Ingresa tu correo para recibir un enlace de acceso.';
+        toggleMode.textContent = '¿Primera vez? Regístrate con tu código de invitación';
+        btnSubmit.textContent = 'Enviar enlace →';
+      }
+      showLoginMsg('', '');
+    });
+
+    btnSubmit.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const code  = inviteInput.value.trim();
+      if (!email) { showLoginMsg('Ingresa tu correo.', 'err'); return; }
+      if (isNewUser && !code) { showLoginMsg('Ingresa el código de invitación.', 'err'); return; }
+
+      btnSubmit.disabled = true;
+      btnSubmit.textContent = 'Enviando...';
+      showLoginMsg('', '');
+
+      try {
+        const endpoint = isNewUser ? '/api/register' : '/api/login';
+        const body = isNewUser ? { email, invite_code: code } : { email };
+        const res = await fetch(WORKER_URL + endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showLoginMsg(data.error ?? 'Error al enviar.', 'err');
+        } else {
+          showLoginMsg('✅ Revisa tu correo — te enviamos un enlace de acceso.', 'ok');
+        }
+      } catch {
+        showLoginMsg('Error de conexión. Intenta de nuevo.', 'err');
+      } finally {
+        btnSubmit.disabled = false;
+        btnSubmit.textContent = isNewUser ? 'Registrarme →' : 'Enviar enlace →';
+      }
+    });
+
+    function showLoginMsg(text, type) {
+      loginMsg.textContent = text;
+      loginMsg.className = type;
+      loginMsg.style.display = text ? 'block' : 'none';
+    }
+
+    // ── Chat UI ──
+    function showChat() {
+      loginScreen.style.display = 'none';
+      chatScreen.style.display  = 'flex';
+      if (messages.children.length === 0) startConversation();
+    }
+
+    function addBotMsg(text) {
+      const el = document.createElement('div');
+      el.className = 'bubble bot';
+      el.textContent = text;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+      return el;
+    }
+
+    function addUserMsg(text) {
+      const el = document.createElement('div');
+      el.className = 'bubble user';
+      el.textContent = text;
+      messages.appendChild(el);
+      messages.scrollTop = messages.scrollHeight;
+    }
+
+    function showButtons(groups) {
+      // groups = [ [{ label, action }], [{ label, action }], ... ]
+      btnArea.innerHTML = '';
+      textInputArea.style.display = 'none';
+      scoreInputArea.style.display = 'none';
+      groups.forEach(row => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'btn-row';
+        row.forEach(({ label, action, secondary }) => {
+          const btn = document.createElement('button');
+          btn.className = 'chat-btn' + (secondary ? ' secondary' : '');
+          btn.textContent = label;
+          btn.addEventListener('click', () => action());
+          rowEl.appendChild(btn);
+        });
+        btnArea.appendChild(rowEl);
+      });
+    }
+
+    function clearInputs() {
+      btnArea.innerHTML = '';
+      textInputArea.style.display = 'none';
+      scoreInputArea.style.display = 'none';
+    }
+
+    function showQuestionInput() {
+      btnArea.innerHTML = '';
+      scoreInputArea.style.display = 'none';
+      textInputArea.style.display  = 'flex';
+      questionInput.value = '';
+      questionInput.focus();
+    }
+
+    function showScoreInput(onConfirm) {
+      btnArea.innerHTML = '';
+      textInputArea.style.display  = 'none';
+      scoreInputArea.style.display = 'block';
+      document.getElementById('score-home').value = 0;
+      document.getElementById('score-away').value = 0;
+      btnConfirmScore.onclick = onConfirm;
+    }
+
+    // ── API helper ──
+    async function api(path, options = {}) {
+      // Refresh session if needed
+      const { data: { session } } = await sb.auth.getSession();
+      if (session) jwt = session.access_token;
+
+      const res = await fetch(WORKER_URL + path, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${jwt}`,
+          ...(options.headers ?? {}),
+        },
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Error');
+      return data;
+    }
+
+    // ── Flows ──
+    function startConversation() {
+      chatState = { step: 'menu', context: {} };
+      addBotMsg('¡Hola! ¿Qué quieres hacer?');
+      showMainMenu();
+    }
+
+    function showMainMenu() {
+      chatState.step = 'menu';
+      showButtons([
+        [
+          { label: '🔮 Predecir', action: startPredict },
+          { label: '📊 Ranking',  action: showRanking },
+        ],
+        [
+          { label: '📅 Partidos', action: showPartidos },
+          { label: '❓ Preguntar', action: startQuestion },
+        ],
+      ]);
+    }
+
+    function backButton() {
+      return { label: '🏠 Menú principal', action: () => { addUserMsg('🏠 Menú principal'); startConversation(); }, secondary: true };
+    }
+
+    // ── Predecir ──
+    async function startPredict() {
+      addUserMsg('🔮 Predecir');
+      clearInputs();
+      const loading = addBotMsg('⏳ Cargando partidos...');
+      try {
+        const matches = await fetch(WORKER_URL + '/api/matches').then(r => r.json());
+        const cutoff = 5 * 60 * 1000;
+        const upcoming = matches.filter(m =>
+          m.status === 'scheduled' &&
+          new Date(m.kickoff_at).getTime() - Date.now() > cutoff
+        );
+        loading.remove();
+        if (upcoming.length === 0) {
+          addBotMsg('No hay partidos disponibles para predecir en este momento.');
+          showButtons([[backButton()]]);
+          return;
+        }
+        addBotMsg('¿Para qué partido quieres predecir?');
+        const rows = upcoming.map(m => [{
+          label: `${m.home_team} vs ${m.away_team} · ${formatDate(m.kickoff_at)}`,
+          action: () => selectMatch(m),
+        }]);
+        rows.push([backButton()]);
+        showButtons(rows);
+        chatState.step = 'selecting_match';
+      } catch (e) {
+        loading.remove();
+        addBotMsg('No pude cargar los partidos. Intenta de nuevo.');
+        showButtons([[backButton()]]);
+      }
+    }
+
+    function selectMatch(match) {
+      addUserMsg(`${match.home_team} vs ${match.away_team}`);
+      chatState.context.match = match;
+      addBotMsg(`¿Cuál es tu predicción para ${match.home_team} vs ${match.away_team}?\nIngresa el marcador:`);
+      showScoreInput(() => confirmScore(match));
+      chatState.step = 'selecting_score';
+    }
+
+    async function confirmScore(match) {
+      const home = parseInt(document.getElementById('score-home').value) || 0;
+      const away = parseInt(document.getElementById('score-away').value) || 0;
+      addUserMsg(`${home} - ${away}`);
+      clearInputs();
+      const loading = addBotMsg('⏳ Guardando predicción...');
+      try {
+        await api('/api/predict', {
+          method: 'POST',
+          body: JSON.stringify({ match_id: match.id, home_score: home, away_score: away }),
+        });
+        loading.remove();
+        addBotMsg(`✅ Predicción guardada: ${match.home_team} ${home} - ${away} ${match.away_team}`);
+      } catch (e) {
+        loading.remove();
+        addBotMsg(`❌ ${e.message}`);
+      }
+      showButtons([[backButton()]]);
+    }
+
+    // ── Ranking ──
+    async function showRanking() {
+      addUserMsg('📊 Ranking');
+      clearInputs();
+      const loading = addBotMsg('⏳ Cargando ranking...');
+      try {
+        const rows = await fetch(WORKER_URL + '/api/ranking').then(r => r.json());
+        loading.remove();
+        const MEDALS = ['🥇', '🥈', '🥉'];
+        if (rows.length === 0) {
+          addBotMsg('Sin puntos registrados aún.');
+        } else {
+          const text = rows.map((r, i) =>
+            `${MEDALS[i] ?? (i + 1) + '.'} ${r.username ?? 'Anónimo'} — ${r.total_points} pts`
+          ).join('\n');
+          addBotMsg(text);
+        }
+      } catch {
+        loading.remove();
+        addBotMsg('No pude cargar el ranking.');
+      }
+      showButtons([[backButton()]]);
+    }
+
+    // ── Partidos ──
+    async function showPartidos() {
+      addUserMsg('📅 Partidos');
+      clearInputs();
+      const loading = addBotMsg('⏳ Cargando partidos...');
+      try {
+        const matches = await fetch(WORKER_URL + '/api/matches').then(r => r.json());
+        loading.remove();
+        if (matches.length === 0) {
+          addBotMsg('No hay partidos registrados aún.');
+        } else {
+          const lines = matches.map(m => {
+            const date = formatDate(m.kickoff_at);
+            if (m.status === 'finished') {
+              return `✅ ${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team}  (${date})`;
+            }
+            return `🕐 ${m.home_team} vs ${m.away_team}  (${date})`;
+          });
+          // Split into chunks of 10 to avoid huge bubbles
+          for (let i = 0; i < lines.length; i += 10) {
+            addBotMsg(lines.slice(i, i + 10).join('\n'));
+          }
+        }
+      } catch {
+        loading.remove();
+        addBotMsg('No pude cargar los partidos.');
+      }
+      showButtons([[backButton()]]);
+    }
+
+    // ── Preguntar ──
+    function startQuestion() {
+      addUserMsg('❓ Preguntar');
+      addBotMsg('Escribe tu pregunta sobre el torneo o el ranking:');
+      chatState.step = 'asking_question';
+      showQuestionInput();
+      showButtons([[backButton()]]);
+    }
+
+    btnSend.addEventListener('click', sendQuestion);
+    questionInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendQuestion(); }
+    });
+
+    async function sendQuestion() {
+      const q = questionInput.value.trim();
+      if (!q) return;
+      addUserMsg(q);
+      questionInput.value = '';
+      btnSend.disabled = true;
+      clearInputs();
+      const loading = addBotMsg('⏳ Consultando...');
+      try {
+        const data = await api('/api/question', {
+          method: 'POST',
+          body: JSON.stringify({ question: q }),
+        });
+        loading.remove();
+        addBotMsg(data.answer);
+        // Allow follow-up questions
+        addBotMsg('¿Tienes otra pregunta?');
+        showQuestionInput();
+        showButtons([[backButton()]]);
+      } catch (e) {
+        loading.remove();
+        addBotMsg(`❌ ${e.message}`);
+        showButtons([[backButton()]]);
+      } finally {
+        btnSend.disabled = false;
+      }
+    }
+
+    // ── Logout ──
+    btnLogout.addEventListener('click', async () => {
+      await sb.auth.signOut();
+      jwt = null;
+      chatScreen.style.display = 'none';
+      loginScreen.style.display = 'block';
+      messages.innerHTML = '';
+      showLoginMsg('', '');
+    });
+
+    // ── Helpers ──
+    function formatDate(iso) {
+      return new Date(iso).toLocaleString('es-CO', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+        timeZone: 'America/Bogota',
+      });
+    }
+
+    // ── Init ──
+    initAuth();
+  </script>
+</body>
+</html>

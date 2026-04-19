@@ -10,7 +10,7 @@ import { generateInviteCode } from './admin/invite';
 import { startAdminMatch, handleAdminMatchPhaseCallback } from './admin/match';
 
 function isAdmin(user: DbUser, env: Env): boolean {
-  return String(user.telegram_id) === env.ADMIN_TELEGRAM_ID;
+  return String(user.telegram_id!) === env.ADMIN_TELEGRAM_ID;
 }
 
 function buildButtons(admin: boolean): Array<Array<{ text: string; callback_data?: string; url?: string }>> {
@@ -116,7 +116,7 @@ export async function handleMenuCallback(
       if (admin) await startAdminMatch(chatId, user, db, env);
       break;
     case 'main':
-      await db.clearConversationState(user.telegram_id);
+      await db.clearConversationState(user.telegram_id!);
       await editMenu(
         env.TELEGRAM_BOT_TOKEN, chatId, msgId,
         '🌍 <b>OraculoBot — Mundial 2026</b>\n\n¿Qué quieres hacer?',

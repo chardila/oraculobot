@@ -8,7 +8,7 @@ export async function startAdminMatch(
   db: SupabaseClient,
   env: Env
 ): Promise<void> {
-  await db.setConversationState(user.telegram_id, 'awaiting_match_home_team', {});
+  await db.setConversationState(user.telegram_id!, 'awaiting_match_home_team', {});
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     '➕ <b>Nuevo partido</b>\n\nEscribe el nombre del equipo <b>local</b>:');
 }
@@ -40,13 +40,13 @@ export async function handleAdminMatchText(
 
   switch (state.step) {
     case 'awaiting_match_home_team':
-      await db.setConversationState(user.telegram_id, 'awaiting_match_away_team',
+      await db.setConversationState(user.telegram_id!, 'awaiting_match_away_team',
         { home_team: text });
       await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, 'Equipo <b>visitante</b>:');
       break;
 
     case 'awaiting_match_away_team':
-      await db.setConversationState(user.telegram_id, 'awaiting_match_kickoff',
+      await db.setConversationState(user.telegram_id!, 'awaiting_match_kickoff',
         { ...ctx, away_team: text });
       await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
         'Fecha y hora del partido (hora Colombia, UTC-5):\n' +
@@ -60,7 +60,7 @@ export async function handleAdminMatchText(
           '❌ Fecha inválida. Usa formato ISO, ej: <code>2026-06-15T18:00:00-05:00</code>');
         return;
       }
-      await db.setConversationState(user.telegram_id, 'awaiting_match_phase',
+      await db.setConversationState(user.telegram_id!, 'awaiting_match_phase',
         { ...ctx, kickoff_at: kickoff.toISOString() });
       await sendMenu(env.TELEGRAM_BOT_TOKEN, chatId,
         '➕ <b>Fase del partido:</b>', PHASE_BUTTONS);
@@ -88,13 +88,13 @@ export async function handleAdminMatchPhaseCallback(
   env: Env
 ): Promise<void> {
   const phase = data.replace('match:phase:', '');
-  const state = await db.getConversationState(user.telegram_id);
+  const state = await db.getConversationState(user.telegram_id!);
   if (!state || state.step !== 'awaiting_match_phase') return;
 
   const ctx = state.context as Record<string, string | null>;
 
   if (phase === 'grupos') {
-    await db.setConversationState(user.telegram_id, 'awaiting_match_group', { ...ctx, phase });
+    await db.setConversationState(user.telegram_id!, 'awaiting_match_group', { ...ctx, phase });
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, 'Grupo (A-L):');
   } else {
     await createMatch({ ...ctx, phase, group_name: null }, user, db, env, chatId);
@@ -116,7 +116,7 @@ async function createMatch(
     group_name: ctx.group_name ?? null,
   });
 
-  await db.clearConversationState(user.telegram_id);
+  await db.clearConversationState(user.telegram_id!);
 
   const date = new Date(ctx.kickoff_at as string).toLocaleString('es-CO', {
     timeZone: 'America/Bogota', day: 'numeric', month: 'short',

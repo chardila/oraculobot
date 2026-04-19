@@ -207,4 +207,54 @@ export class SupabaseClient {
       headers: { 'Prefer': 'return=minimal' },
     }, { telegram_id: `eq.${telegramId}` });
   }
+
+  // Web auth
+  async getUserByAuthId(authUserId: string): Promise<DbUser | null> {
+    const rows = await this.req<DbUser[]>('users', {}, {
+      auth_user_id: `eq.${authUserId}`,
+      limit: '1',
+    });
+    return rows?.[0] ?? null;
+  }
+
+  async createWebUser(authUserId: string, inviteCode: string): Promise<DbUser> {
+    const rows = await this.req<DbUser[]>('users', {
+      method: 'POST',
+      body: JSON.stringify({ auth_user_id: authUserId, invite_code: inviteCode }),
+    });
+    return rows[0];
+  }
+
+  async generateMagicLink(email: string, redirectTo: string): Promise<{ user: { id: string } }> {
+    const res = await fetch(`${this.url}/auth/v1/admin/generate_link`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': this.key,
+        'Authorization': `Bearer ${this.key}`,
+      },
+      body: JSON.stringify({
+        type: 'magiclink',
+        email,
+        options: { redirect_to: redirectTo },
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Supabase generate_link: ${res.status} ${text}`);
+    }
+
+    return res.json() as Promise<{ user: { id: string } }>;
+  }
+
+  async setQuestionsToday(userId: string, count: number, resetAt?: string): Promise<void> {
+    const patch: Record<string, unknown> = { questions_today: count };
+    if (resetAt !== undefined) patch.questions_reset_at = resetAt;
+    await this.req('users', {
+      method: 'PATCH',
+      body: JSON.stringify(patch),
+      headers: { 'Prefer': 'return=minimal' },
+    }, { id: `eq.${userId}` });
+  }
 }

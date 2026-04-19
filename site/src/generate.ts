@@ -103,6 +103,7 @@ export function layout(title: string, body: string): string {
     <a href="index.html">🏆 Ranking</a>
     <a href="partidos.html">📅 Partidos</a>
     <a href="stats.html">📊 Stats</a>
+    <a href="jugar.html">🎯 Jugar</a>
   </nav>
   ${body}
   <footer>Actualizado: ${updated}</footer>

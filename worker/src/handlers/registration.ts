@@ -45,6 +45,7 @@ export async function handleRegistration(
     username: msg.from.username ?? msg.from.first_name,
     is_admin: false,
     invite_code: code.code,
+    questions_today: 0,
   });
 
   await db.incrementInviteCodeUse(code.code);

@@ -45,7 +45,7 @@ export async function handleAdminResultSelect(
     return;
   }
 
-  await db.setConversationState(user.telegram_id, 'awaiting_result_score', {
+  await db.setConversationState(user.telegram_id!, 'awaiting_result_score', {
     match_id: match.id,
     home_team: match.home_team,
     away_team: match.away_team,
@@ -83,7 +83,7 @@ export async function handleAdminResultText(
 
   const match = await db.getMatchById(ctx.match_id);
   if (!match || match.status === 'finished') {
-    await db.clearConversationState(user.telegram_id);
+    await db.clearConversationState(user.telegram_id!);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
       '⚠️ Este partido ya tiene resultado cargado.');
     return;
@@ -105,7 +105,7 @@ export async function handleAdminResultText(
     else if (points >= 3) resultCount++;
   }));
 
-  await db.clearConversationState(user.telegram_id);
+  await db.clearConversationState(user.telegram_id!);
 
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     `✅ <b>${ctx.home_team} ${homeScore} - ${awayScore} ${ctx.away_team}</b>\n\n` +
