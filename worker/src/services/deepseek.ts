@@ -12,7 +12,7 @@ export async function askDeepSeek(apiKey: string, systemPrompt: string, userQues
         { role: 'user', content: userQuestion },
       ],
       max_tokens: 300,
-      temperature: 0.7,
+      temperature: 0.1,
     }),
   });
 

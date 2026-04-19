@@ -44,12 +44,14 @@ function buildButtons(admin: boolean): Array<Array<{ text: string; callback_data
 export async function showMainMenu(
   chatId: number,
   isAdminUser: boolean,
-  env: Env
+  env: Env,
+  name?: string
 ): Promise<void> {
+  const greeting = name ? `Hola, <b>${name}</b>! ` : '';
   await sendMenu(
     env.TELEGRAM_BOT_TOKEN,
     chatId,
-    '🌍 <b>OraculoBot — Mundial 2026</b>\n\n¿Qué quieres hacer?',
+    `🌍 <b>OraculoBot — Mundial 2026</b>\n\n${greeting}¿Qué quieres hacer?`,
     buildButtons(isAdminUser)
   );
 }
@@ -115,13 +117,16 @@ export async function handleMenuCallback(
     case 'admin_match':
       if (admin) await startAdminMatch(chatId, user, db, env);
       break;
-    case 'main':
-      await db.clearConversationState(user.telegram_id!);
+    case 'main': {
+      await db.clearConversationState(user.telegram_id);
+      const name = user.username ?? undefined;
+      const greeting = name ? `Hola, <b>${name}</b>! ` : '';
       await editMenu(
         env.TELEGRAM_BOT_TOKEN, chatId, msgId,
-        '🌍 <b>OraculoBot — Mundial 2026</b>\n\n¿Qué quieres hacer?',
+        `🌍 <b>OraculoBot — Mundial 2026</b>\n\n${greeting}¿Qué quieres hacer?`,
         buildButtons(admin)
       );
       break;
+    }
   }
 }
