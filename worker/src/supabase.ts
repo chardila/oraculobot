@@ -225,7 +225,7 @@ export class SupabaseClient {
     return rows[0];
   }
 
-  async generateMagicLink(email: string, redirectTo: string): Promise<{ user: { id: string } }> {
+  async generateMagicLink(email: string, redirectTo: string): Promise<{ action_link: string; user: { id: string } }> {
     const res = await fetch(`${this.url}/auth/v1/admin/generate_link`, {
       method: 'POST',
       headers: {
@@ -245,7 +245,18 @@ export class SupabaseClient {
       throw new Error(`Supabase generate_link: ${res.status} ${text}`);
     }
 
-    return res.json() as Promise<{ user: { id: string } }>;
+    // Supabase Admin API returns user fields at root level alongside action_link
+    const body = await res.json() as Record<string, unknown>;
+    console.log('generate_link response keys:', Object.keys(body).join(', '));
+
+    // Support both shapes: { user: { id }, action_link } and { id, action_link }
+    const userId = (body.user as { id?: string } | undefined)?.id ?? body.id as string;
+    const actionLink = body.action_link as string;
+
+    if (!userId) throw new Error('generate_link: no user id in response');
+    if (!actionLink) throw new Error('generate_link: no action_link in response');
+
+    return { action_link: actionLink, user: { id: userId } };
   }
 
   async setQuestionsToday(userId: string, count: number, resetAt?: string): Promise<void> {

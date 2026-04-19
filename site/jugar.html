@@ -193,6 +193,11 @@
         const data = await res.json();
         if (!res.ok) {
           showLoginMsg(data.error ?? 'Error al enviar.', 'err');
+        } else if (data.debug_link) {
+          // DEBUG: show link directly when email delivery is not configured
+          loginMsg.innerHTML = '🔗 <a href="' + data.debug_link + '">Haz clic aquí para entrar</a>';
+          loginMsg.className = 'ok';
+          loginMsg.style.display = 'block';
         } else {
           showLoginMsg('✅ Revisa tu correo — te enviamos un enlace de acceso.', 'ok');
         }
