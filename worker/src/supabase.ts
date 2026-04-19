@@ -259,6 +259,26 @@ export class SupabaseClient {
     return { action_link: actionLink, user: { id: userId } };
   }
 
+  async sendMagicLinkOtp(email: string, redirectTo: string): Promise<void> {
+    const res = await fetch(`${this.url}/auth/v1/otp`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': this.key,
+        'Authorization': `Bearer ${this.key}`,
+      },
+      body: JSON.stringify({
+        email,
+        options: { redirect_to: redirectTo },
+      }),
+    });
+
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Supabase otp: ${res.status} ${text}`);
+    }
+  }
+
   async setQuestionsToday(userId: string, count: number, resetAt?: string): Promise<void> {
     const patch: Record<string, unknown> = { questions_today: count };
     if (resetAt !== undefined) patch.questions_reset_at = resetAt;
