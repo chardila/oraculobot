@@ -5,4 +5,4 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 # Non-secret vars go here. Secrets are set via `wrangler secret put`.
-WEB_ORIGIN = "https://chardila.github.io/oraculobot"
+WEB_ORIGIN = "https://chardila.github.io"
