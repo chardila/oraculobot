@@ -1,0 +1,1461 @@
+{
+  "meta": {
+    "name": "World Cup 2026 optimized QA indexes",
+    "based_on": "worldcup.all-in-one.json",
+    "notes": [
+      "matches_by_team permite responder rápido dónde juega un equipo",
+      "matches_by_city permite listar partidos por ciudad",
+      "matches_by_stadium usa venue_id como clave",
+      "teams_by_city_base permite ubicar concentraciones conocidas por ciudad base"
+    ],
+    "cleaned": true,
+    "depends_on": [
+      "worldcup.all-in-one.json"
+    ]
+  },
+  "matches_by_team": {
+    "team_41937b20fb": [
+      "match_b96e00052f",
+      "match_7cc8f7792b",
+      "match_c22019a76c"
+    ],
+    "team_35fda17ff0": [
+      "match_b96e00052f",
+      "match_caa371befe",
+      "match_d8f6489024"
+    ],
+    "team_04653e6502": [
+      "match_2d09888cc9",
+      "match_7cc8f7792b",
+      "match_d8f6489024"
+    ],
+    "team_1fef429092": [
+      "match_2d09888cc9",
+      "match_caa371befe",
+      "match_c22019a76c"
+    ],
+    "team_cd6a7b8768": [
+      "match_879cf735ac",
+      "match_b4d776c4e7",
+      "match_a9462b9bc0"
+    ],
+    "team_5b0bebdce6": [
+      "match_879cf735ac",
+      "match_76da6f0ac4",
+      "match_3d69b99704"
+    ],
+    "team_83ef3e6cee": [
+      "match_9cb70c931e",
+      "match_b4d776c4e7",
+      "match_3d69b99704"
+    ],
+    "team_77dcd849e5": [
+      "match_9cb70c931e",
+      "match_76da6f0ac4",
+      "match_a9462b9bc0"
+    ],
+    "team_37497aa5a2": [
+      "match_2f9821e76d",
+      "match_6243e05874",
+      "match_d135f5c9cb"
+    ],
+    "team_32e087f099": [
+      "match_2f9821e76d",
+      "match_0e4172a5e3",
+      "match_1fe2aef079"
+    ],
+    "team_a4842f0234": [
+      "match_2df46cda6c",
+      "match_6243e05874",
+      "match_1fe2aef079"
+    ],
+    "team_e2ff49d520": [
+      "match_2df46cda6c",
+      "match_0e4172a5e3",
+      "match_d135f5c9cb"
+    ],
+    "team_18bc5956db": [
+      "match_a30d2b7f57",
+      "match_03ec5bfa1d",
+      "match_2340f4f66a"
+    ],
+    "team_71a4529647": [
+      "match_a30d2b7f57",
+      "match_3264574124",
+      "match_4bb594eae9"
+    ],
+    "team_ceafb51e2b": [
+      "match_2f97529c6f",
+      "match_03ec5bfa1d",
+      "match_4bb594eae9"
+    ],
+    "team_d7153e6702": [
+      "match_2f97529c6f",
+      "match_3264574124",
+      "match_2340f4f66a"
+    ],
+    "team_17d53e0e6a": [
+      "match_8f0fa6aaed",
+      "match_8bd0ca7c35",
+      "match_881c63b81c"
+    ],
+    "team_9461dd94eb": [
+      "match_8f0fa6aaed",
+      "match_15fc343555",
+      "match_9eb5f1554a"
+    ],
+    "team_ffb0eaf998": [
+      "match_c35441b12f",
+      "match_8bd0ca7c35",
+      "match_9eb5f1554a"
+    ],
+    "team_09f199d251": [
+      "match_c35441b12f",
+      "match_15fc343555",
+      "match_881c63b81c"
+    ],
+    "team_fb61c8a8eb": [
+      "match_b7f08e48ef",
+      "match_f4fd2e4a45",
+      "match_131f052480"
+    ],
+    "team_fcf29f6cad": [
+      "match_b7f08e48ef",
+      "match_18d5c2933e",
+      "match_5c7bd623e3"
+    ],
+    "team_72ddd2b619": [
+      "match_1a915174d8",
+      "match_f4fd2e4a45",
+      "match_5c7bd623e3"
+    ],
+    "team_edf404d0db": [
+      "match_1a915174d8",
+      "match_18d5c2933e",
+      "match_131f052480"
+    ],
+    "team_5cb4c9d828": [
+      "match_2b40ac50f4",
+      "match_811c8e0948",
+      "match_6440d2901c"
+    ],
+    "team_1c39abf68e": [
+      "match_2b40ac50f4",
+      "match_9d64cc15c0",
+      "match_74c42ca02b"
+    ],
+    "team_889224e3fc": [
+      "match_001fe2da7f",
+      "match_811c8e0948",
+      "match_74c42ca02b"
+    ],
+    "team_a2238e9190": [
+      "match_001fe2da7f",
+      "match_9d64cc15c0",
+      "match_6440d2901c"
+    ],
+    "team_20a8df9b76": [
+      "match_96b497b13f",
+      "match_c49fb9f86f",
+      "match_84b1e2d537"
+    ],
+    "team_8e40809e47": [
+      "match_96b497b13f",
+      "match_de41cdfc43",
+      "match_cc7145fd5f"
+    ],
+    "team_6f49c31192": [
+      "match_06bcdd63a8",
+      "match_c49fb9f86f",
+      "match_cc7145fd5f"
+    ],
+    "team_66b98924b3": [
+      "match_06bcdd63a8",
+      "match_de41cdfc43",
+      "match_84b1e2d537"
+    ],
+    "team_e3772ac4b4": [
+      "match_7e94b13e95",
+      "match_00a473ae23",
+      "match_af4bae7bc3"
+    ],
+    "team_d8973b8edf": [
+      "match_7e94b13e95",
+      "match_d21731f35b",
+      "match_1cb9a44eb5"
+    ],
+    "team_1aed9ecc6e": [
+      "match_672a8b586b",
+      "match_00a473ae23",
+      "match_1cb9a44eb5"
+    ],
+    "team_988455e67d": [
+      "match_672a8b586b",
+      "match_d21731f35b",
+      "match_af4bae7bc3"
+    ],
+    "team_354bf98925": [
+      "match_9257252b24",
+      "match_eb5585a2fe",
+      "match_51738b71d3"
+    ],
+    "team_bd6acc8626": [
+      "match_9257252b24",
+      "match_d2f7c8a1eb",
+      "match_8c7bc39d01"
+    ],
+    "team_593905b319": [
+      "match_3b9aa3747d",
+      "match_eb5585a2fe",
+      "match_8c7bc39d01"
+    ],
+    "team_674027e17b": [
+      "match_3b9aa3747d",
+      "match_d2f7c8a1eb",
+      "match_51738b71d3"
+    ],
+    "team_a495190bcc": [
+      "match_2923231429",
+      "match_f8e4e86bde",
+      "match_70cc729be2"
+    ],
+    "team_c63f9b2213": [
+      "match_2923231429",
+      "match_cf87301ce3",
+      "match_ec39f532bb"
+    ],
+    "team_db800e86e9": [
+      "match_1460a8751f",
+      "match_f8e4e86bde",
+      "match_ec39f532bb"
+    ],
+    "team_2f73739960": [
+      "match_1460a8751f",
+      "match_cf87301ce3",
+      "match_70cc729be2"
+    ],
+    "team_707fe00aa1": [
+      "match_c9c9dd5030",
+      "match_74635fd8a2",
+      "match_ccb1e6221d"
+    ],
+    "team_d7e0453bb4": [
+      "match_c9c9dd5030",
+      "match_3fa46da29e",
+      "match_839bef5996"
+    ],
+    "team_317dbac907": [
+      "match_dd36c5b143",
+      "match_74635fd8a2",
+      "match_839bef5996"
+    ],
+    "team_1e36b31e78": [
+      "match_dd36c5b143",
+      "match_3fa46da29e",
+      "match_ccb1e6221d"
+    ],
+    "team_7ab9d5b8b4": [
+      "match_7f3e639e93"
+    ],
+    "team_249eb546bf": [
+      "match_7f3e639e93"
+    ],
+    "team_9b0b9978ef": [
+      "match_92611a8ed4"
+    ],
+    "team_39ba14fd84": [
+      "match_92611a8ed4"
+    ],
+    "team_e2e11f3bee": [
+      "match_43ed7be964"
+    ],
+    "team_d1c9fde8ef": [
+      "match_43ed7be964"
+    ],
+    "team_3d68576841": [
+      "match_6506671514"
+    ],
+    "team_44cc8040ac": [
+      "match_6506671514"
+    ],
+    "team_943e30030f": [
+      "match_6549d4f332"
+    ],
+    "team_2e12ec3a06": [
+      "match_6549d4f332"
+    ],
+    "team_7151c7f469": [
+      "match_4467646916"
+    ],
+    "team_e045b3e0cb": [
+      "match_4467646916"
+    ],
+    "team_049efd0827": [
+      "match_b34245ecc0"
+    ],
+    "team_3ba0965b3b": [
+      "match_b34245ecc0"
+    ],
+    "team_165218823c": [
+      "match_f7841887b0"
+    ],
+    "team_cfd21df0f7": [
+      "match_f7841887b0"
+    ],
+    "team_dba20f120b": [
+      "match_0b79b73183"
+    ],
+    "team_b296243db2": [
+      "match_0b79b73183"
+    ],
+    "team_df8e383803": [
+      "match_72a8ca6ba1"
+    ],
+    "team_049117baae": [
+      "match_72a8ca6ba1"
+    ],
+    "team_a494247296": [
+      "match_90937ba13d"
+    ],
+    "team_8dde335455": [
+      "match_90937ba13d"
+    ],
+    "team_883297ce08": [
+      "match_30ed8dadc0"
+    ],
+    "team_a1b20cc692": [
+      "match_30ed8dadc0"
+    ],
+    "team_36190e2986": [
+      "match_d2164450d0"
+    ],
+    "team_051b4c6799": [
+      "match_d2164450d0"
+    ],
+    "team_18236632d0": [
+      "match_db794658a5"
+    ],
+    "team_ace1293f8a": [
+      "match_db794658a5"
+    ],
+    "team_2d0e677274": [
+      "match_9ce7ff5493"
+    ],
+    "team_98525f7e7c": [
+      "match_9ce7ff5493"
+    ],
+    "team_3698fe0420": [
+      "match_41d32af4a4"
+    ],
+    "team_c55341ada2": [
+      "match_41d32af4a4"
+    ],
+    "team_6b4615c8a0": [
+      "match_05b2847fe3"
+    ],
+    "team_58db8f925d": [
+      "match_05b2847fe3"
+    ],
+    "team_431fabe884": [
+      "match_2fbb11657b"
+    ],
+    "team_843741775d": [
+      "match_2fbb11657b"
+    ],
+    "team_106b97f59d": [
+      "match_a7b19d3288"
+    ],
+    "team_99e1818d91": [
+      "match_a7b19d3288"
+    ],
+    "team_5ecb67488d": [
+      "match_d182289a40"
+    ],
+    "team_059019f6e5": [
+      "match_d182289a40"
+    ],
+    "team_ddbbdd81fb": [
+      "match_8e75bfd983"
+    ],
+    "team_58c6a9d245": [
+      "match_8e75bfd983"
+    ],
+    "team_7dba439bb8": [
+      "match_0a1ddc5b06"
+    ],
+    "team_88f57f3123": [
+      "match_0a1ddc5b06"
+    ],
+    "team_d464509cf3": [
+      "match_7594866815"
+    ],
+    "team_f655b6be6b": [
+      "match_7594866815"
+    ],
+    "team_fb82fccfcc": [
+      "match_bd639d8de7"
+    ],
+    "team_157f013b9a": [
+      "match_bd639d8de7"
+    ],
+    "team_72743402aa": [
+      "match_f995d81b93"
+    ],
+    "team_8d90079cd4": [
+      "match_f995d81b93"
+    ],
+    "team_6c90b90a6d": [
+      "match_1dfa9e484f"
+    ],
+    "team_f9ee0cc446": [
+      "match_1dfa9e484f"
+    ],
+    "team_8f5474c965": [
+      "match_670f2bbf0b"
+    ],
+    "team_eae9d24ec0": [
+      "match_670f2bbf0b"
+    ],
+    "team_ab93919fe9": [
+      "match_8ded7c94bc"
+    ],
+    "team_fcafee8365": [
+      "match_8ded7c94bc"
+    ],
+    "team_5d62921d1b": [
+      "match_957eda9018"
+    ],
+    "team_564a94436c": [
+      "match_957eda9018"
+    ],
+    "team_411b82f45e": [
+      "match_f0c133f922"
+    ],
+    "team_a8f8948e38": [
+      "match_f0c133f922"
+    ],
+    "team_b9b841e92b": [
+      "match_31d4e9cba6"
+    ],
+    "team_3c9ee90ecf": [
+      "match_31d4e9cba6"
+    ],
+    "team_c4df559032": [
+      "match_d3e5d5f151"
+    ],
+    "team_941f6d5929": [
+      "match_d3e5d5f151"
+    ]
+  },
+  "matches_by_city": {
+    "city_55732311c0": [
+      "match_b96e00052f",
+      "match_c22019a76c",
+      "match_1460a8751f",
+      "match_b34245ecc0",
+      "match_d182289a40"
+    ],
+    "city_e606deed78": [
+      "match_2d09888cc9",
+      "match_7cc8f7792b",
+      "match_84b1e2d537",
+      "match_cf87301ce3"
+    ],
+    "city_10c57d5a40": [
+      "match_caa371befe",
+      "match_1fe2aef079",
+      "match_96b497b13f",
+      "match_c49fb9f86f",
+      "match_ec39f532bb",
+      "match_f7841887b0",
+      "match_7594866815",
+      "match_f0c133f922"
+    ],
+    "city_69b281c0d3": [
+      "match_d8f6489024",
+      "match_1a915174d8",
+      "match_18d5c2933e",
+      "match_43ed7be964"
+    ],
+    "city_19666cb0b4": [
+      "match_879cf735ac",
+      "match_8bd0ca7c35",
+      "match_1cb9a44eb5",
+      "match_dd36c5b143",
+      "match_3fa46da29e",
+      "match_90937ba13d"
+    ],
+    "city_2ecfa0d56a": [
+      "match_9cb70c931e",
+      "match_3264574124",
+      "match_4bb594eae9",
+      "match_3b9aa3747d",
+      "match_d2f7c8a1eb",
+      "match_0b79b73183"
+    ],
+    "city_3dbe81cc2e": [
+      "match_76da6f0ac4",
+      "match_a30d2b7f57",
+      "match_2340f4f66a",
+      "match_001fe2da7f",
+      "match_811c8e0948",
+      "match_7f3e639e93",
+      "match_30ed8dadc0",
+      "match_1dfa9e484f"
+    ],
+    "city_9620dd13ba": [
+      "match_b4d776c4e7",
+      "match_a9462b9bc0",
+      "match_2f97529c6f",
+      "match_9d64cc15c0",
+      "match_6440d2901c",
+      "match_d2164450d0",
+      "match_bd639d8de7"
+    ],
+    "city_2edbe14f2a": [
+      "match_3d69b99704",
+      "match_03ec5bfa1d",
+      "match_2b40ac50f4",
+      "match_74c42ca02b",
+      "match_72a8ca6ba1",
+      "match_0a1ddc5b06"
+    ],
+    "city_dcc04ddeb5": [
+      "match_2f9821e76d",
+      "match_881c63b81c",
+      "match_7e94b13e95",
+      "match_d21731f35b",
+      "match_ccb1e6221d",
+      "match_6549d4f332",
+      "match_a7b19d3288",
+      "match_d3e5d5f151"
+    ],
+    "city_7e4bede2aa": [
+      "match_2df46cda6c",
+      "match_0e4172a5e3",
+      "match_672a8b586b",
+      "match_af4bae7bc3",
+      "match_74635fd8a2",
+      "match_92611a8ed4",
+      "match_f995d81b93"
+    ],
+    "city_41745cdf99": [
+      "match_6243e05874",
+      "match_c35441b12f",
+      "match_9eb5f1554a",
+      "match_00a473ae23",
+      "match_839bef5996",
+      "match_05b2847fe3"
+    ],
+    "city_02750a20f3": [
+      "match_d135f5c9cb",
+      "match_06bcdd63a8",
+      "match_de41cdfc43",
+      "match_70cc729be2",
+      "match_db794658a5",
+      "match_670f2bbf0b",
+      "match_31d4e9cba6"
+    ],
+    "city_0698c06581": [
+      "match_8f0fa6aaed",
+      "match_f4fd2e4a45",
+      "match_cc7145fd5f",
+      "match_2923231429",
+      "match_f8e4e86bde",
+      "match_6506671514",
+      "match_2fbb11657b"
+    ],
+    "city_d62e6f8663": [
+      "match_15fc343555",
+      "match_131f052480",
+      "match_9257252b24",
+      "match_8c7bc39d01",
+      "match_9ce7ff5493",
+      "match_8ded7c94bc"
+    ],
+    "city_10a8b02f74": [
+      "match_b7f08e48ef",
+      "match_5c7bd623e3",
+      "match_eb5585a2fe",
+      "match_51738b71d3",
+      "match_c9c9dd5030",
+      "match_4467646916",
+      "match_41d32af4a4",
+      "match_8e75bfd983",
+      "match_957eda9018"
+    ]
+  },
+  "matches_by_stadium": {
+    "venue_3161948125": [
+      "match_b96e00052f",
+      "match_c22019a76c",
+      "match_1460a8751f",
+      "match_b34245ecc0",
+      "match_d182289a40"
+    ],
+    "venue_2e4d75238a": [
+      "match_2d09888cc9",
+      "match_7cc8f7792b",
+      "match_84b1e2d537",
+      "match_cf87301ce3"
+    ],
+    "venue_9893a780da": [
+      "match_caa371befe",
+      "match_1fe2aef079",
+      "match_96b497b13f",
+      "match_c49fb9f86f",
+      "match_ec39f532bb",
+      "match_f7841887b0",
+      "match_7594866815",
+      "match_f0c133f922"
+    ],
+    "venue_30fa0376b0": [
+      "match_d8f6489024",
+      "match_1a915174d8",
+      "match_18d5c2933e",
+      "match_43ed7be964"
+    ],
+    "venue_32dee7f254": [
+      "match_879cf735ac",
+      "match_8bd0ca7c35",
+      "match_1cb9a44eb5",
+      "match_dd36c5b143",
+      "match_3fa46da29e",
+      "match_90937ba13d"
+    ],
+    "venue_ae355b193f": [
+      "match_9cb70c931e",
+      "match_3264574124",
+      "match_4bb594eae9",
+      "match_3b9aa3747d",
+      "match_d2f7c8a1eb",
+      "match_0b79b73183"
+    ],
+    "venue_edceaa3e49": [
+      "match_76da6f0ac4",
+      "match_a30d2b7f57",
+      "match_2340f4f66a",
+      "match_001fe2da7f",
+      "match_811c8e0948",
+      "match_7f3e639e93",
+      "match_30ed8dadc0",
+      "match_1dfa9e484f"
+    ],
+    "venue_8e8ab774a6": [
+      "match_b4d776c4e7",
+      "match_a9462b9bc0",
+      "match_2f97529c6f",
+      "match_9d64cc15c0",
+      "match_6440d2901c",
+      "match_d2164450d0",
+      "match_bd639d8de7"
+    ],
+    "venue_c2595e5a45": [
+      "match_3d69b99704",
+      "match_03ec5bfa1d",
+      "match_2b40ac50f4",
+      "match_74c42ca02b",
+      "match_72a8ca6ba1",
+      "match_0a1ddc5b06"
+    ],
+    "venue_317c9b5eef": [
+      "match_2f9821e76d",
+      "match_881c63b81c",
+      "match_7e94b13e95",
+      "match_d21731f35b",
+      "match_ccb1e6221d",
+      "match_6549d4f332",
+      "match_a7b19d3288",
+      "match_d3e5d5f151"
+    ],
+    "venue_6b87d53ff4": [
+      "match_2df46cda6c",
+      "match_0e4172a5e3",
+      "match_672a8b586b",
+      "match_af4bae7bc3",
+      "match_74635fd8a2",
+      "match_92611a8ed4",
+      "match_f995d81b93"
+    ],
+    "venue_2c041d7421": [
+      "match_6243e05874",
+      "match_c35441b12f",
+      "match_9eb5f1554a",
+      "match_00a473ae23",
+      "match_839bef5996",
+      "match_05b2847fe3"
+    ],
+    "venue_96e6a06e0b": [
+      "match_d135f5c9cb",
+      "match_06bcdd63a8",
+      "match_de41cdfc43",
+      "match_70cc729be2",
+      "match_db794658a5",
+      "match_670f2bbf0b",
+      "match_31d4e9cba6"
+    ],
+    "venue_027a1f5520": [
+      "match_8f0fa6aaed",
+      "match_f4fd2e4a45",
+      "match_cc7145fd5f",
+      "match_2923231429",
+      "match_f8e4e86bde",
+      "match_6506671514",
+      "match_2fbb11657b"
+    ],
+    "venue_9efd10302e": [
+      "match_15fc343555",
+      "match_131f052480",
+      "match_9257252b24",
+      "match_8c7bc39d01",
+      "match_9ce7ff5493",
+      "match_8ded7c94bc"
+    ],
+    "venue_1eb2352e03": [
+      "match_b7f08e48ef",
+      "match_5c7bd623e3",
+      "match_eb5585a2fe",
+      "match_51738b71d3",
+      "match_c9c9dd5030",
+      "match_4467646916",
+      "match_41d32af4a4",
+      "match_8e75bfd983",
+      "match_957eda9018"
+    ]
+  },
+  "teams_by_city_base": {
+    "city_55732311c0": [
+      "team_41937b20fb",
+      "team_20a8df9b76"
+    ],
+    "city_9620dd13ba": [
+      "team_cd6a7b8768"
+    ],
+    "city_ad65df94c3": [
+      "team_37497aa5a2"
+    ],
+    "city_3b26cd2812": [
+      "team_17d53e0e6a"
+    ],
+    "city_fa076bcb75": [
+      "team_e3772ac4b4"
+    ],
+    "city_d62e6f8663": [
+      "team_354bf98925",
+      "team_707fe00aa1"
+    ],
+    "city_0698c06581": [
+      "team_2f73739960"
+    ]
+  },
+  "team_name_to_matches": {
+    "Mexico": [
+      "match_b96e00052f",
+      "match_7cc8f7792b",
+      "match_c22019a76c"
+    ],
+    "South Africa": [
+      "match_b96e00052f",
+      "match_caa371befe",
+      "match_d8f6489024"
+    ],
+    "South Korea": [
+      "match_2d09888cc9",
+      "match_7cc8f7792b",
+      "match_d8f6489024"
+    ],
+    "Czech Republic": [
+      "match_2d09888cc9",
+      "match_caa371befe",
+      "match_c22019a76c"
+    ],
+    "Canada": [
+      "match_879cf735ac",
+      "match_b4d776c4e7",
+      "match_a9462b9bc0"
+    ],
+    "Bosnia & Herzegovina": [
+      "match_879cf735ac",
+      "match_76da6f0ac4",
+      "match_3d69b99704"
+    ],
+    "Qatar": [
+      "match_9cb70c931e",
+      "match_b4d776c4e7",
+      "match_3d69b99704"
+    ],
+    "Switzerland": [
+      "match_9cb70c931e",
+      "match_76da6f0ac4",
+      "match_a9462b9bc0"
+    ],
+    "Brazil": [
+      "match_2f9821e76d",
+      "match_6243e05874",
+      "match_d135f5c9cb"
+    ],
+    "Morocco": [
+      "match_2f9821e76d",
+      "match_0e4172a5e3",
+      "match_1fe2aef079"
+    ],
+    "Haiti": [
+      "match_2df46cda6c",
+      "match_6243e05874",
+      "match_1fe2aef079"
+    ],
+    "Scotland": [
+      "match_2df46cda6c",
+      "match_0e4172a5e3",
+      "match_d135f5c9cb"
+    ],
+    "USA": [
+      "match_a30d2b7f57",
+      "match_03ec5bfa1d",
+      "match_2340f4f66a"
+    ],
+    "Paraguay": [
+      "match_a30d2b7f57",
+      "match_3264574124",
+      "match_4bb594eae9"
+    ],
+    "Australia": [
+      "match_2f97529c6f",
+      "match_03ec5bfa1d",
+      "match_4bb594eae9"
+    ],
+    "Turkey": [
+      "match_2f97529c6f",
+      "match_3264574124",
+      "match_2340f4f66a"
+    ],
+    "Germany": [
+      "match_8f0fa6aaed",
+      "match_8bd0ca7c35",
+      "match_881c63b81c"
+    ],
+    "Curaçao": [
+      "match_8f0fa6aaed",
+      "match_15fc343555",
+      "match_9eb5f1554a"
+    ],
+    "Ivory Coast": [
+      "match_c35441b12f",
+      "match_8bd0ca7c35",
+      "match_9eb5f1554a"
+    ],
+    "Ecuador": [
+      "match_c35441b12f",
+      "match_15fc343555",
+      "match_881c63b81c"
+    ],
+    "Netherlands": [
+      "match_b7f08e48ef",
+      "match_f4fd2e4a45",
+      "match_131f052480"
+    ],
+    "Japan": [
+      "match_b7f08e48ef",
+      "match_18d5c2933e",
+      "match_5c7bd623e3"
+    ],
+    "Sweden": [
+      "match_1a915174d8",
+      "match_f4fd2e4a45",
+      "match_5c7bd623e3"
+    ],
+    "Tunisia": [
+      "match_1a915174d8",
+      "match_18d5c2933e",
+      "match_131f052480"
+    ],
+    "Belgium": [
+      "match_2b40ac50f4",
+      "match_811c8e0948",
+      "match_6440d2901c"
+    ],
+    "Egypt": [
+      "match_2b40ac50f4",
+      "match_9d64cc15c0",
+      "match_74c42ca02b"
+    ],
+    "Iran": [
+      "match_001fe2da7f",
+      "match_811c8e0948",
+      "match_74c42ca02b"
+    ],
+    "New Zealand": [
+      "match_001fe2da7f",
+      "match_9d64cc15c0",
+      "match_6440d2901c"
+    ],
+    "Spain": [
+      "match_96b497b13f",
+      "match_c49fb9f86f",
+      "match_84b1e2d537"
+    ],
+    "Cape Verde": [
+      "match_96b497b13f",
+      "match_de41cdfc43",
+      "match_cc7145fd5f"
+    ],
+    "Saudi Arabia": [
+      "match_06bcdd63a8",
+      "match_c49fb9f86f",
+      "match_cc7145fd5f"
+    ],
+    "Uruguay": [
+      "match_06bcdd63a8",
+      "match_de41cdfc43",
+      "match_84b1e2d537"
+    ],
+    "France": [
+      "match_7e94b13e95",
+      "match_00a473ae23",
+      "match_af4bae7bc3"
+    ],
+    "Senegal": [
+      "match_7e94b13e95",
+      "match_d21731f35b",
+      "match_1cb9a44eb5"
+    ],
+    "Iraq": [
+      "match_672a8b586b",
+      "match_00a473ae23",
+      "match_1cb9a44eb5"
+    ],
+    "Norway": [
+      "match_672a8b586b",
+      "match_d21731f35b",
+      "match_af4bae7bc3"
+    ],
+    "Argentina": [
+      "match_9257252b24",
+      "match_eb5585a2fe",
+      "match_51738b71d3"
+    ],
+    "Algeria": [
+      "match_9257252b24",
+      "match_d2f7c8a1eb",
+      "match_8c7bc39d01"
+    ],
+    "Austria": [
+      "match_3b9aa3747d",
+      "match_eb5585a2fe",
+      "match_8c7bc39d01"
+    ],
+    "Jordan": [
+      "match_3b9aa3747d",
+      "match_d2f7c8a1eb",
+      "match_51738b71d3"
+    ],
+    "Portugal": [
+      "match_2923231429",
+      "match_f8e4e86bde",
+      "match_70cc729be2"
+    ],
+    "DR Congo": [
+      "match_2923231429",
+      "match_cf87301ce3",
+      "match_ec39f532bb"
+    ],
+    "Uzbekistan": [
+      "match_1460a8751f",
+      "match_f8e4e86bde",
+      "match_ec39f532bb"
+    ],
+    "Colombia": [
+      "match_1460a8751f",
+      "match_cf87301ce3",
+      "match_70cc729be2"
+    ],
+    "England": [
+      "match_c9c9dd5030",
+      "match_74635fd8a2",
+      "match_ccb1e6221d"
+    ],
+    "Croatia": [
+      "match_c9c9dd5030",
+      "match_3fa46da29e",
+      "match_839bef5996"
+    ],
+    "Ghana": [
+      "match_dd36c5b143",
+      "match_74635fd8a2",
+      "match_839bef5996"
+    ],
+    "Panama": [
+      "match_dd36c5b143",
+      "match_3fa46da29e",
+      "match_ccb1e6221d"
+    ],
+    "2A": [
+      "match_7f3e639e93"
+    ],
+    "2B": [
+      "match_7f3e639e93"
+    ],
+    "1E": [
+      "match_92611a8ed4"
+    ],
+    "3A/B/C/D/F": [
+      "match_92611a8ed4"
+    ],
+    "1F": [
+      "match_43ed7be964"
+    ],
+    "2C": [
+      "match_43ed7be964"
+    ],
+    "1C": [
+      "match_6506671514"
+    ],
+    "2F": [
+      "match_6506671514"
+    ],
+    "1I": [
+      "match_6549d4f332"
+    ],
+    "3C/D/F/G/H": [
+      "match_6549d4f332"
+    ],
+    "2E": [
+      "match_4467646916"
+    ],
+    "2I": [
+      "match_4467646916"
+    ],
+    "1A": [
+      "match_b34245ecc0"
+    ],
+    "3C/E/F/H/I": [
+      "match_b34245ecc0"
+    ],
+    "1L": [
+      "match_f7841887b0"
+    ],
+    "3E/H/I/J/K": [
+      "match_f7841887b0"
+    ],
+    "1D": [
+      "match_0b79b73183"
+    ],
+    "3B/E/F/I/J": [
+      "match_0b79b73183"
+    ],
+    "1G": [
+      "match_72a8ca6ba1"
+    ],
+    "3A/E/H/I/J": [
+      "match_72a8ca6ba1"
+    ],
+    "2K": [
+      "match_90937ba13d"
+    ],
+    "2L": [
+      "match_90937ba13d"
+    ],
+    "1H": [
+      "match_30ed8dadc0"
+    ],
+    "2J": [
+      "match_30ed8dadc0"
+    ],
+    "1B": [
+      "match_d2164450d0"
+    ],
+    "3E/F/G/I/J": [
+      "match_d2164450d0"
+    ],
+    "1J": [
+      "match_db794658a5"
+    ],
+    "2H": [
+      "match_db794658a5"
+    ],
+    "1K": [
+      "match_9ce7ff5493"
+    ],
+    "3D/E/I/J/L": [
+      "match_9ce7ff5493"
+    ],
+    "2D": [
+      "match_41d32af4a4"
+    ],
+    "2G": [
+      "match_41d32af4a4"
+    ],
+    "W74": [
+      "match_05b2847fe3"
+    ],
+    "W77": [
+      "match_05b2847fe3"
+    ],
+    "W73": [
+      "match_2fbb11657b"
+    ],
+    "W75": [
+      "match_2fbb11657b"
+    ],
+    "W76": [
+      "match_a7b19d3288"
+    ],
+    "W78": [
+      "match_a7b19d3288"
+    ],
+    "W79": [
+      "match_d182289a40"
+    ],
+    "W80": [
+      "match_d182289a40"
+    ],
+    "W83": [
+      "match_8e75bfd983"
+    ],
+    "W84": [
+      "match_8e75bfd983"
+    ],
+    "W81": [
+      "match_0a1ddc5b06"
+    ],
+    "W82": [
+      "match_0a1ddc5b06"
+    ],
+    "W86": [
+      "match_7594866815"
+    ],
+    "W88": [
+      "match_7594866815"
+    ],
+    "W85": [
+      "match_bd639d8de7"
+    ],
+    "W87": [
+      "match_bd639d8de7"
+    ],
+    "W89": [
+      "match_f995d81b93"
+    ],
+    "W90": [
+      "match_f995d81b93"
+    ],
+    "W93": [
+      "match_1dfa9e484f"
+    ],
+    "W94": [
+      "match_1dfa9e484f"
+    ],
+    "W91": [
+      "match_670f2bbf0b"
+    ],
+    "W92": [
+      "match_670f2bbf0b"
+    ],
+    "W95": [
+      "match_8ded7c94bc"
+    ],
+    "W96": [
+      "match_8ded7c94bc"
+    ],
+    "W97": [
+      "match_957eda9018"
+    ],
+    "W98": [
+      "match_957eda9018"
+    ],
+    "W99": [
+      "match_f0c133f922"
+    ],
+    "W100": [
+      "match_f0c133f922"
+    ],
+    "L101": [
+      "match_31d4e9cba6"
+    ],
+    "L102": [
+      "match_31d4e9cba6"
+    ],
+    "W101": [
+      "match_d3e5d5f151"
+    ],
+    "W102": [
+      "match_d3e5d5f151"
+    ]
+  },
+  "city_name_to_matches": {
+    "Ciudad de México": [
+      "match_b96e00052f",
+      "match_c22019a76c",
+      "match_1460a8751f",
+      "match_b34245ecc0",
+      "match_d182289a40"
+    ],
+    "Guadalajara": [
+      "match_2d09888cc9",
+      "match_7cc8f7792b",
+      "match_84b1e2d537",
+      "match_cf87301ce3"
+    ],
+    "Atlanta": [
+      "match_caa371befe",
+      "match_1fe2aef079",
+      "match_96b497b13f",
+      "match_c49fb9f86f",
+      "match_ec39f532bb",
+      "match_f7841887b0",
+      "match_7594866815",
+      "match_f0c133f922"
+    ],
+    "Monterrey": [
+      "match_d8f6489024",
+      "match_1a915174d8",
+      "match_18d5c2933e",
+      "match_43ed7be964"
+    ],
+    "Toronto": [
+      "match_879cf735ac",
+      "match_8bd0ca7c35",
+      "match_1cb9a44eb5",
+      "match_dd36c5b143",
+      "match_3fa46da29e",
+      "match_90937ba13d"
+    ],
+    "Santa Clara": [
+      "match_9cb70c931e",
+      "match_3264574124",
+      "match_4bb594eae9",
+      "match_3b9aa3747d",
+      "match_d2f7c8a1eb",
+      "match_0b79b73183"
+    ],
+    "Inglewood": [
+      "match_76da6f0ac4",
+      "match_a30d2b7f57",
+      "match_2340f4f66a",
+      "match_001fe2da7f",
+      "match_811c8e0948",
+      "match_7f3e639e93",
+      "match_30ed8dadc0",
+      "match_1dfa9e484f"
+    ],
+    "Vancouver": [
+      "match_b4d776c4e7",
+      "match_a9462b9bc0",
+      "match_2f97529c6f",
+      "match_9d64cc15c0",
+      "match_6440d2901c",
+      "match_d2164450d0",
+      "match_bd639d8de7"
+    ],
+    "Seattle": [
+      "match_3d69b99704",
+      "match_03ec5bfa1d",
+      "match_2b40ac50f4",
+      "match_74c42ca02b",
+      "match_72a8ca6ba1",
+      "match_0a1ddc5b06"
+    ],
+    "East Rutherford": [
+      "match_2f9821e76d",
+      "match_881c63b81c",
+      "match_7e94b13e95",
+      "match_d21731f35b",
+      "match_ccb1e6221d",
+      "match_6549d4f332",
+      "match_a7b19d3288",
+      "match_d3e5d5f151"
+    ],
+    "Foxborough": [
+      "match_2df46cda6c",
+      "match_0e4172a5e3",
+      "match_672a8b586b",
+      "match_af4bae7bc3",
+      "match_74635fd8a2",
+      "match_92611a8ed4",
+      "match_f995d81b93"
+    ],
+    "Filadelfia": [
+      "match_6243e05874",
+      "match_c35441b12f",
+      "match_9eb5f1554a",
+      "match_00a473ae23",
+      "match_839bef5996",
+      "match_05b2847fe3"
+    ],
+    "Miami Gardens": [
+      "match_d135f5c9cb",
+      "match_06bcdd63a8",
+      "match_de41cdfc43",
+      "match_70cc729be2",
+      "match_db794658a5",
+      "match_670f2bbf0b",
+      "match_31d4e9cba6"
+    ],
+    "Houston": [
+      "match_8f0fa6aaed",
+      "match_f4fd2e4a45",
+      "match_cc7145fd5f",
+      "match_2923231429",
+      "match_f8e4e86bde",
+      "match_6506671514",
+      "match_2fbb11657b"
+    ],
+    "Kansas City": [
+      "match_15fc343555",
+      "match_131f052480",
+      "match_9257252b24",
+      "match_8c7bc39d01",
+      "match_9ce7ff5493",
+      "match_8ded7c94bc"
+    ],
+    "Arlington": [
+      "match_b7f08e48ef",
+      "match_5c7bd623e3",
+      "match_eb5585a2fe",
+      "match_51738b71d3",
+      "match_c9c9dd5030",
+      "match_4467646916",
+      "match_41d32af4a4",
+      "match_8e75bfd983",
+      "match_957eda9018"
+    ]
+  },
+  "stadium_name_to_matches": {
+    "Estadio Azteca": [
+      "match_b96e00052f",
+      "match_c22019a76c",
+      "match_1460a8751f",
+      "match_b34245ecc0",
+      "match_d182289a40"
+    ],
+    "Estadio Akron": [
+      "match_2d09888cc9",
+      "match_7cc8f7792b",
+      "match_84b1e2d537",
+      "match_cf87301ce3"
+    ],
+    "Mercedes-Benz Stadium": [
+      "match_caa371befe",
+      "match_1fe2aef079",
+      "match_96b497b13f",
+      "match_c49fb9f86f",
+      "match_ec39f532bb",
+      "match_f7841887b0",
+      "match_7594866815",
+      "match_f0c133f922"
+    ],
+    "Estadio BBVA": [
+      "match_d8f6489024",
+      "match_1a915174d8",
+      "match_18d5c2933e",
+      "match_43ed7be964"
+    ],
+    "BMO Field": [
+      "match_879cf735ac",
+      "match_8bd0ca7c35",
+      "match_1cb9a44eb5",
+      "match_dd36c5b143",
+      "match_3fa46da29e",
+      "match_90937ba13d"
+    ],
+    "Levi's Stadium": [
+      "match_9cb70c931e",
+      "match_3264574124",
+      "match_4bb594eae9",
+      "match_3b9aa3747d",
+      "match_d2f7c8a1eb",
+      "match_0b79b73183"
+    ],
+    "SoFi Stadium": [
+      "match_76da6f0ac4",
+      "match_a30d2b7f57",
+      "match_2340f4f66a",
+      "match_001fe2da7f",
+      "match_811c8e0948",
+      "match_7f3e639e93",
+      "match_30ed8dadc0",
+      "match_1dfa9e484f"
+    ],
+    "BC Place": [
+      "match_b4d776c4e7",
+      "match_a9462b9bc0",
+      "match_2f97529c6f",
+      "match_9d64cc15c0",
+      "match_6440d2901c",
+      "match_d2164450d0",
+      "match_bd639d8de7"
+    ],
+    "Lumen Field": [
+      "match_3d69b99704",
+      "match_03ec5bfa1d",
+      "match_2b40ac50f4",
+      "match_74c42ca02b",
+      "match_72a8ca6ba1",
+      "match_0a1ddc5b06"
+    ],
+    "MetLife Stadium": [
+      "match_2f9821e76d",
+      "match_881c63b81c",
+      "match_7e94b13e95",
+      "match_d21731f35b",
+      "match_ccb1e6221d",
+      "match_6549d4f332",
+      "match_a7b19d3288",
+      "match_d3e5d5f151"
+    ],
+    "Gillette Stadium": [
+      "match_2df46cda6c",
+      "match_0e4172a5e3",
+      "match_672a8b586b",
+      "match_af4bae7bc3",
+      "match_74635fd8a2",
+      "match_92611a8ed4",
+      "match_f995d81b93"
+    ],
+    "Lincoln Financial Field": [
+      "match_6243e05874",
+      "match_c35441b12f",
+      "match_9eb5f1554a",
+      "match_00a473ae23",
+      "match_839bef5996",
+      "match_05b2847fe3"
+    ],
+    "Hard Rock Stadium": [
+      "match_d135f5c9cb",
+      "match_06bcdd63a8",
+      "match_de41cdfc43",
+      "match_70cc729be2",
+      "match_db794658a5",
+      "match_670f2bbf0b",
+      "match_31d4e9cba6"
+    ],
+    "NRG Stadium": [
+      "match_8f0fa6aaed",
+      "match_f4fd2e4a45",
+      "match_cc7145fd5f",
+      "match_2923231429",
+      "match_f8e4e86bde",
+      "match_6506671514",
+      "match_2fbb11657b"
+    ],
+    "Arrowhead Stadium": [
+      "match_15fc343555",
+      "match_131f052480",
+      "match_9257252b24",
+      "match_8c7bc39d01",
+      "match_9ce7ff5493",
+      "match_8ded7c94bc"
+    ],
+    "AT&T Stadium": [
+      "match_b7f08e48ef",
+      "match_5c7bd623e3",
+      "match_eb5585a2fe",
+      "match_51738b71d3",
+      "match_c9c9dd5030",
+      "match_4467646916",
+      "match_41d32af4a4",
+      "match_8e75bfd983",
+      "match_957eda9018"
+    ]
+  }
+}
