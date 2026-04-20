@@ -37,5 +37,12 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
     await db.incrementInviteCodeUse(invite_code);
   }
 
+  try {
+    await db.sendMagicLinkOtp(email, env.WEB_REDIRECT_URL);
+  } catch (e) {
+    console.error('OTP send error:', e);
+    return Response.json({ error: 'No se pudo enviar el enlace mágico' }, { status: 500 });
+  }
+
   return Response.json({ ok: true, message: 'Revisa tu correo para el enlace de acceso' });
 }

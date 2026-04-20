@@ -260,17 +260,15 @@ export class SupabaseClient {
   }
 
   async sendMagicLinkOtp(email: string, redirectTo: string): Promise<void> {
-    const res = await fetch(`${this.url}/auth/v1/otp`, {
+    const url = `${this.url}/auth/v1/otp?redirect_to=${encodeURIComponent(redirectTo)}`;
+    const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': this.key,
         'Authorization': `Bearer ${this.key}`,
       },
-      body: JSON.stringify({
-        email,
-        redirect_to: redirectTo,
-      }),
+      body: JSON.stringify({ email }),
     });
 
     if (!res.ok) {
