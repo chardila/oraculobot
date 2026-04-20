@@ -12,8 +12,10 @@ async function call(token: string, method: string, body: unknown): Promise<void>
   }
 }
 
-export function sendMessage(token: string, chatId: number, text: string): Promise<void> {
-  return call(token, 'sendMessage', { chat_id: chatId, text, parse_mode: 'HTML' });
+export function sendMessage(token: string, chatId: number, text: string, forceReply = false): Promise<void> {
+  const body: Record<string, unknown> = { chat_id: chatId, text, parse_mode: 'HTML' };
+  if (forceReply) body.reply_markup = { force_reply: true, input_field_placeholder: 'Escribe tu pregunta...' };
+  return call(token, 'sendMessage', body);
 }
 
 export function sendMenu(

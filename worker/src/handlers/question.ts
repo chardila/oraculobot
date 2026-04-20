@@ -15,7 +15,8 @@ export async function startQuestion(
   await db.setConversationState(user.telegram_id!, 'awaiting_question', {});
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     '❓ Escribe tu pregunta sobre el torneo, los partidos o los resultados.\n\n' +
-    'Cuando termines, toca el botón <b>🔙 Menú</b> en cualquier respuesta (o escribe /cancel).');
+    'Cuando termines, toca el botón <b>🔙 Menú</b> en cualquier respuesta (o escribe /cancel).',
+    true);
 }
 
 export async function handleQuestionText(

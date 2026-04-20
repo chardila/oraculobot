@@ -320,6 +320,18 @@
       return { label: '🏠 Menú principal', action: () => { addUserMsg('🏠 Menú principal'); startConversation(); }, secondary: true };
     }
 
+    function appendBackButton() {
+      const back = backButton();
+      const rowEl = document.createElement('div');
+      rowEl.className = 'btn-row';
+      const btn = document.createElement('button');
+      btn.className = 'chat-btn secondary';
+      btn.textContent = back.label;
+      btn.addEventListener('click', back.action);
+      rowEl.appendChild(btn);
+      btnArea.appendChild(rowEl);
+    }
+
     // ── Predecir ──
     async function startPredict() {
       addUserMsg('🔮 Predecir');
@@ -441,7 +453,7 @@
       addBotMsg('Escribe tu pregunta sobre el torneo o el ranking:');
       chatState.step = 'asking_question';
       showQuestionInput();
-      showButtons([[backButton()]]);
+      appendBackButton();
     }
 
     btnSend.addEventListener('click', sendQuestion);
@@ -467,7 +479,7 @@
         // Allow follow-up questions
         addBotMsg('¿Tienes otra pregunta?');
         showQuestionInput();
-        showButtons([[backButton()]]);
+        appendBackButton();
       } catch (e) {
         loading.remove();
         addBotMsg(`❌ ${e.message}`);
