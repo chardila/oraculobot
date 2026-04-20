@@ -6,6 +6,11 @@ import { VENUE_CONTEXT } from '../services/worldcup-venues';
 
 const BACK_BUTTON = [[{ text: '🔙 Menú', callback_data: 'menu:main' }]];
 
+export function sanitizeUsername(name: string | null | undefined): string {
+  if (!name) return 'Anónimo';
+  return name.replace(/[\r\n\t]/g, ' ').slice(0, 30);
+}
+
 export async function startQuestion(
   chatId: number,
   user: DbUser,
@@ -51,7 +56,7 @@ export async function handleQuestionText(
     ]);
 
     const leaderboardText = leaderboard.slice(0, 10)
-      .map((r, i) => `${i + 1}. ${r.username}: ${r.total_points} pts`)
+      .map((r, i) => `${i + 1}. ${sanitizeUsername(r.username)}: ${r.total_points} pts`)
       .join('\n');
 
     const scheduleText = allMatches
