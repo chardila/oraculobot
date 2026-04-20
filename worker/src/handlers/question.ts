@@ -29,6 +29,12 @@ export async function handleQuestionText(
   const chatId = msg.chat.id;
   const question = msg.text?.trim() ?? '';
 
+  if (question.length > 500) {
+    await sendMenu(env.TELEGRAM_BOT_TOKEN, chatId,
+      'La pregunta no puede superar 500 caracteres.', BACK_BUTTON);
+    return;
+  }
+
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, '⏳ Consultando...');
 
   try {

@@ -28,6 +28,9 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
   if (!body.question?.trim()) {
     return Response.json({ error: 'La pregunta no puede estar vacía' }, { status: 400 });
   }
+  if (body.question.length > 500) {
+    return Response.json({ error: 'La pregunta no puede superar 500 caracteres' }, { status: 400 });
+  }
 
   const today = new Date().toISOString().slice(0, 10);
   let questionsToday = user.questions_today;
