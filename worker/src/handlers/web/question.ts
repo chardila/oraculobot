@@ -2,13 +2,9 @@ import type { Env, WebQuestionRequest } from '../../types';
 import { SupabaseClient } from '../../supabase';
 import { authenticate, AuthError } from '../../middleware/auth';
 import { askDeepSeek } from '../../services/deepseek';
+import { sanitizeUsername } from '../question';
 
 const QUESTIONS_PER_DAY = 10;
-
-function sanitizeUsername(name: string | null | undefined): string {
-  if (!name) return 'Anónimo';
-  return name.replace(/[\r\n\t]/g, ' ').slice(0, 30);
-}
 
 export async function handleWebQuestion(request: Request, env: Env): Promise<Response> {
   const db = new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
