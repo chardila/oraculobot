@@ -2,7 +2,6 @@ import type { TelegramMessage, Env } from '../types';
 import type { SupabaseClient } from '../supabase';
 import { sendMessage } from '../telegram';
 
-// Forward declaration to avoid circular import — menu imports registration, registration shows menu
 type ShowMainMenuFn = (chatId: number, isAdmin: boolean, env: Env, name?: string) => Promise<void>;
 
 export function extractInviteCode(text: string): string {
@@ -27,17 +26,10 @@ export async function handleRegistration(
     return;
   }
 
-  const code = await db.getInviteCode(text.toUpperCase());
-
-  if (!code) {
+  const consumed = await db.tryConsumeInviteCode(text.toUpperCase());
+  if (!consumed) {
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-      '❌ Código inválido. Pide a quien te invitó que te reenvíe el código.');
-    return;
-  }
-
-  if (code.use_count >= code.max_uses) {
-    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-      '❌ Este código ya no es válido.');
+      '❌ Código inválido o ya no es válido. Pide a quien te invitó que te reenvíe el código.');
     return;
   }
 
@@ -45,11 +37,9 @@ export async function handleRegistration(
     telegram_id: telegramId,
     username: msg.from.username ?? fullName,
     is_admin: false,
-    invite_code: code.code,
+    invite_code: text.toUpperCase(),
     questions_today: 0,
   });
-
-  await db.incrementInviteCodeUse(code.code);
 
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     `✅ ¡Registrado! Bienvenido al torneo, <b>${fullName}</b>.`);

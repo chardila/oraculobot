@@ -79,6 +79,15 @@ export class SupabaseClient {
     });
   }
 
+  async tryConsumeInviteCode(code: string): Promise<boolean> {
+    const result = await this.req<boolean>('rpc/try_consume_invite_code', {
+      method: 'POST',
+      body: JSON.stringify({ p_code: code }),
+      headers: { 'Prefer': 'return=minimal' },
+    });
+    return result === true;
+  }
+
   async createInviteCode(data: Omit<DbInviteCode, 'use_count' | 'created_at'>): Promise<DbInviteCode> {
     const rows = await this.req<DbInviteCode[]>('invite_codes', {
       method: 'POST',

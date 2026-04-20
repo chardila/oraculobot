@@ -16,11 +16,6 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
 
   const db = new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
 
-  const code = await db.getInviteCode(invite_code);
-  if (!code || code.use_count >= code.max_uses) {
-    return Response.json({ error: 'Código de invitación inválido o expirado' }, { status: 400 });
-  }
-
   let authUserId: string;
   try {
     const result = await db.generateMagicLink(email, env.WEB_REDIRECT_URL);
@@ -33,8 +28,11 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
   // Only create user row and consume invite code on first registration
   const existing = await db.getUserByAuthId(authUserId);
   if (!existing) {
+    const consumed = await db.tryConsumeInviteCode(invite_code);
+    if (!consumed) {
+      return Response.json({ error: 'Código de invitación inválido o expirado' }, { status: 400 });
+    }
     await db.createWebUser(authUserId, invite_code);
-    await db.incrementInviteCodeUse(invite_code);
   }
 
   try {
