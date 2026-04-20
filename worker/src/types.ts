@@ -41,6 +41,7 @@ export interface Env {
   GITHUB_REPO: string;
   INVITE_CODE_SECRET: string;
   TELEGRAM_BOT_USERNAME: string;
+  TELEGRAM_WEBHOOK_SECRET: string;
   WEB_ORIGIN: string;       // CORS origin, e.g. https://owner.github.io
   WEB_REDIRECT_URL: string; // Magic link redirect, e.g. https://owner.github.io/oraculobot/jugar.html
 }
