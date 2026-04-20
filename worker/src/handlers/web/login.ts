@@ -14,13 +14,19 @@ export async function handleWebLogin(request: Request, env: Env): Promise<Respon
   }
 
   const db = new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
+  const SUCCESS_MSG = { ok: true, message: 'Si tienes una cuenta, recibirás un enlace de acceso en tu correo' };
 
   try {
+    const { user: authUser } = await db.generateMagicLink(body.email, env.WEB_REDIRECT_URL);
+    const registeredUser = await db.getUserByAuthId(authUser.id);
+    if (!registeredUser) {
+      return Response.json(SUCCESS_MSG);
+    }
     await db.sendMagicLinkOtp(body.email, env.WEB_REDIRECT_URL);
   } catch (e) {
     console.error('Magic link error:', e);
     return Response.json({ error: 'No se pudo enviar el enlace mágico' }, { status: 500 });
   }
 
-  return Response.json({ ok: true, message: 'Si tienes una cuenta, recibirás un enlace de acceso en tu correo' });
+  return Response.json(SUCCESS_MSG);
 }
