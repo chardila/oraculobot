@@ -8,6 +8,19 @@ import { handleWebRanking } from './handlers/web/ranking';
 import { handleWebPredict } from './handlers/web/predict';
 import { handleWebQuestion } from './handlers/web/question';
 
+export function timingSafeEqual(a: string | null, b: string): boolean {
+  if (!a) return false;
+  const enc = new TextEncoder();
+  const aBytes = enc.encode(a);
+  const bBytes = enc.encode(b);
+  if (aBytes.length !== bBytes.length) return false;
+  let result = 0;
+  for (let i = 0; i < aBytes.length; i++) {
+    result |= aBytes[i] ^ bBytes[i];
+  }
+  return result === 0;
+}
+
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
@@ -48,7 +61,7 @@ export default {
     // Telegram webhook: POST /
     if (method === 'POST' && pathname === '/') {
       const secret = request.headers.get('X-Telegram-Bot-Api-Secret-Token');
-      if (secret !== env.TELEGRAM_WEBHOOK_SECRET) {
+      if (!timingSafeEqual(secret, env.TELEGRAM_WEBHOOK_SECRET)) {
         return new Response('Unauthorized', { status: 401 });
       }
       try {
