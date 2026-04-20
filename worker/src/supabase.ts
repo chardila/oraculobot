@@ -269,7 +269,7 @@ export class SupabaseClient {
       },
       body: JSON.stringify({
         email,
-        options: { redirect_to: redirectTo },
+        redirect_to: redirectTo,
       }),
     });
 
