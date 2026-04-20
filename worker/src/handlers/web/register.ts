@@ -23,7 +23,7 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
 
   let authUserId: string;
   try {
-    const result = await db.generateMagicLink(email, `${env.WEB_ORIGIN}/jugar.html`);
+    const result = await db.generateMagicLink(email, env.WEB_REDIRECT_URL);
     authUserId = result.user.id;
   } catch (e) {
     console.error('Magic link error:', e);
@@ -38,7 +38,7 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
   }
 
   try {
-    await db.sendMagicLinkOtp(email, `${env.WEB_ORIGIN}/jugar.html`);
+    await db.sendMagicLinkOtp(email, env.WEB_REDIRECT_URL);
   } catch (e) {
     console.error('OTP send error:', e);
     return Response.json({ error: 'No se pudo enviar el enlace mágico' }, { status: 500 });

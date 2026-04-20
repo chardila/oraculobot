@@ -16,7 +16,7 @@ export async function handleWebLogin(request: Request, env: Env): Promise<Respon
   const db = new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
 
   try {
-    await db.sendMagicLinkOtp(body.email, `${env.WEB_ORIGIN}/jugar.html`);
+    await db.sendMagicLinkOtp(body.email, env.WEB_REDIRECT_URL);
   } catch (e) {
     console.error('Magic link error:', e);
     return Response.json({ error: 'No se pudo enviar el enlace mágico' }, { status: 500 });
