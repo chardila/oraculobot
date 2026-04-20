@@ -62,28 +62,10 @@ export class SupabaseClient {
   }
 
   // Invite codes
-  async getInviteCode(code: string): Promise<DbInviteCode | null> {
-    const rows = await this.req<DbInviteCode[]>('invite_codes', {}, {
-      code: `eq.${code}`,
-      limit: '1',
-    });
-    return rows?.[0] ?? null;
-  }
-
-  async incrementInviteCodeUse(code: string): Promise<void> {
-    // Atomic increment via RPC to avoid race conditions
-    await this.req('rpc/increment_invite_use', {
-      method: 'POST',
-      body: JSON.stringify({ p_code: code }),
-      headers: { 'Prefer': 'return=minimal' },
-    });
-  }
-
   async tryConsumeInviteCode(code: string): Promise<boolean> {
     const result = await this.req<boolean>('rpc/try_consume_invite_code', {
       method: 'POST',
       body: JSON.stringify({ p_code: code }),
-      headers: { 'Prefer': 'return=minimal' },
     });
     return result === true;
   }
