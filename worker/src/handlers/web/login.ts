@@ -24,6 +24,9 @@ export async function handleWebLogin(request: Request, env: Env): Promise<Respon
     }
     await db.sendMagicLinkOtp(body.email, env.WEB_REDIRECT_URL);
   } catch (e) {
+    if ((e as { code?: string }).code === 'rate_limited') {
+      return Response.json({ error: 'Ya te enviamos un enlace. Espera un minuto antes de volver a intentarlo.' }, { status: 429 });
+    }
     console.error('Magic link error:', e);
     return Response.json({ error: 'No se pudo enviar el enlace mágico' }, { status: 500 });
   }

@@ -262,6 +262,9 @@ export class SupabaseClient {
       body: JSON.stringify({ email }),
     });
 
+    if (res.status === 429) {
+      throw Object.assign(new Error('rate_limited'), { code: 'rate_limited' });
+    }
     if (!res.ok) {
       const text = await res.text();
       throw new Error(`Supabase otp: ${res.status} ${text}`);
