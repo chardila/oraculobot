@@ -18,6 +18,7 @@ describe('buildAdminButtons', () => {
     expect(labels).not.toContain('📊 Ranking');
     expect(labels).not.toContain('📅 Partidos');
     expect(labels).not.toContain('❓ Pregunta');
+    expect(labels).not.toContain('🌐 Sitio');
   });
 });
 
@@ -29,6 +30,7 @@ describe('buildUserButtons', () => {
     expect(labels).toContain('📊 Ranking');
     expect(labels).toContain('📅 Partidos');
     expect(labels).toContain('❓ Pregunta');
+    expect(labels).toContain('🌐 Sitio');
   });
 
   it('does not include admin actions', () => {
