@@ -74,6 +74,10 @@
       <label for="email">Correo</label>
       <input type="email" id="email" placeholder="tu@correo.com" autocomplete="email">
     </div>
+    <div class="field" id="name-field">
+      <label for="display-name">Nombre (como aparecerás en el ranking)</label>
+      <input type="text" id="display-name" placeholder="Ej: Carlos" autocomplete="name">
+    </div>
     <div class="field" id="invite-field">
       <label for="invite-code">Código de invitación</label>
       <input type="text" id="invite-code" placeholder="Ej: ABC123" autocomplete="off">
@@ -126,6 +130,8 @@
     const emailInput    = document.getElementById('email');
     const inviteInput   = document.getElementById('invite-code');
     const inviteField   = document.getElementById('invite-field');
+    const nameInput     = document.getElementById('display-name');
+    const nameField     = document.getElementById('name-field');
     const btnSubmit     = document.getElementById('btn-submit');
     const loginMsg      = document.getElementById('login-msg');
     const loginSubtitle = document.getElementById('login-subtitle');
@@ -160,11 +166,13 @@
       isNewUser = !isNewUser;
       if (isNewUser) {
         inviteField.style.display = '';
+        nameField.style.display = '';
         loginSubtitle.textContent = 'Ingresa tu correo y código de invitación para registrarte.';
         toggleMode.textContent = '¿Ya tienes cuenta? Entra solo con tu correo';
         btnSubmit.textContent = 'Registrarme →';
       } else {
         inviteField.style.display = 'none';
+        nameField.style.display = 'none';
         loginSubtitle.textContent = 'Ingresa tu correo para recibir un enlace de acceso.';
         toggleMode.textContent = '¿Primera vez? Regístrate con tu código de invitación';
         btnSubmit.textContent = 'Enviar enlace →';
@@ -175,7 +183,9 @@
     btnSubmit.addEventListener('click', async () => {
       const email = emailInput.value.trim();
       const code  = inviteInput.value.trim();
+      const name  = nameInput.value.trim();
       if (!email) { showLoginMsg('Ingresa tu correo.', 'err'); return; }
+      if (isNewUser && !name) { showLoginMsg('Ingresa tu nombre.', 'err'); return; }
       if (isNewUser && !code) { showLoginMsg('Ingresa el código de invitación.', 'err'); return; }
 
       btnSubmit.disabled = true;
@@ -184,7 +194,7 @@
 
       try {
         const endpoint = isNewUser ? '/api/register' : '/api/login';
-        const body = isNewUser ? { email, invite_code: code } : { email };
+        const body = isNewUser ? { email, name, invite_code: code } : { email };
         const res = await fetch(WORKER_URL + endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

@@ -9,9 +9,9 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
     return Response.json({ error: 'JSON inválido' }, { status: 400 });
   }
 
-  const { email, invite_code } = body;
-  if (!email || !invite_code) {
-    return Response.json({ error: 'Email e invite_code son requeridos' }, { status: 400 });
+  const { email, invite_code, name } = body;
+  if (!email || !invite_code || !name?.trim()) {
+    return Response.json({ error: 'Email, nombre e invite_code son requeridos' }, { status: 400 });
   }
 
   const db = new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
@@ -36,7 +36,7 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
     if (!consumed) {
       return Response.json({ error: 'Código de invitación inválido o expirado' }, { status: 400 });
     }
-    await db.createWebUser(authUserId, invite_code, inviteCode.league_id);
+    await db.createWebUser(authUserId, invite_code, inviteCode.league_id, name.trim());
   }
 
   try {

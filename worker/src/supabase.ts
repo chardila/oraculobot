@@ -232,10 +232,10 @@ export class SupabaseClient {
     return rows?.[0] ?? null;
   }
 
-  async createWebUser(authUserId: string, inviteCode: string, leagueId: string): Promise<DbUser> {
+  async createWebUser(authUserId: string, inviteCode: string, leagueId: string, username: string): Promise<DbUser> {
     const rows = await this.req<DbUser[]>('users', {
       method: 'POST',
-      body: JSON.stringify({ auth_user_id: authUserId, invite_code: inviteCode, league_id: leagueId }),
+      body: JSON.stringify({ auth_user_id: authUserId, invite_code: inviteCode, league_id: leagueId, username }),
     });
     return rows[0];
   }

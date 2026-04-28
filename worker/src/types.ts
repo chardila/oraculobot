@@ -69,6 +69,7 @@ export interface DbUser {
 export interface WebRegisterRequest {
   email: string;
   invite_code: string;
+  name: string;
 }
 
 export interface WebPredictRequest {
