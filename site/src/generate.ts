@@ -15,6 +15,11 @@ interface Match {
   status: string;
 }
 
+interface League {
+  id: string;
+  name: string;
+}
+
 interface LeaderboardRow {
   user_id: string;
   username: string | null;
@@ -40,7 +45,7 @@ async function query<T>(endpoint: string, params: Record<string, string> = {}): 
   return res.json() as Promise<T>;
 }
 
-async function rpc<T>(fn: string): Promise<T> {
+async function rpc<T>(fn: string, body: Record<string, unknown> = {}): Promise<T> {
   const supabaseUrl = process.env.SUPABASE_URL!;
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
   const res = await fetch(`${supabaseUrl}/rest/v1/rpc/${fn}`, {
@@ -50,7 +55,7 @@ async function rpc<T>(fn: string): Promise<T> {
       Authorization: `Bearer ${supabaseKey}`,
       'Content-Type': 'application/json',
     },
-    body: '{}',
+    body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`Supabase rpc/${fn}: ${res.status} ${await res.text()}`);
   return res.json() as Promise<T>;
@@ -111,21 +116,25 @@ export function layout(title: string, body: string): string {
 </html>`;
 }
 
-export function generateIndex(leaderboard: LeaderboardRow[]): string {
+export function generateIndex(leagues: Array<{ league: League; leaderboard: LeaderboardRow[] }>): string {
   const MEDALS = ['🥇', '🥈', '🥉'];
-  const rows = leaderboard.length === 0
-    ? '<tr><td colspan="3">Sin puntos registrados aún.</td></tr>'
-    : leaderboard.map((r, i) =>
-        `<tr><td data-label="#">${MEDALS[i] ?? i + 1}</td><td data-label="Participante">${r.username ?? 'Anónimo'}</td><td data-label="Puntos"><b>${r.total_points}</b></td></tr>`
-      ).join('');
 
-  return layout('Ranking', `
-    <h1>🏆 Ranking — Mundial 2026</h1>
-    <table>
-      <thead><tr><th>#</th><th>Participante</th><th>Puntos</th></tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  `);
+  const sections = leagues.map(({ league, leaderboard }) => {
+    const rows = leaderboard.length === 0
+      ? '<tr><td colspan="3">Sin puntos registrados aún.</td></tr>'
+      : leaderboard.map((r, i) =>
+          `<tr><td data-label="#">${MEDALS[i] ?? i + 1}</td><td data-label="Participante">${r.username ?? 'Anónimo'}</td><td data-label="Puntos"><b>${r.total_points}</b></td></tr>`
+        ).join('');
+
+    return `
+      <h2>🏆 ${league.name}</h2>
+      <table>
+        <thead><tr><th>#</th><th>Participante</th><th>Puntos</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }).join('');
+
+  return layout('Ranking', `<h1>🏆 Ranking — Mundial 2026</h1>${sections}`);
 }
 
 export function generatePartidos(matches: Match[]): string {
@@ -194,17 +203,25 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 
   console.log('Querying Supabase...');
-  const [leaderboard, matches, predictions] = await Promise.all([
-    rpc<LeaderboardRow[]>('leaderboard'),
+  const [leagues, matches, predictions] = await Promise.all([
+    query<League[]>('leagues', { order: 'created_at.asc', select: 'id,name' }),
     query<Match[]>('matches', { order: 'kickoff_at.asc' }),
     query<Prediction[]>('predictions', { select: 'points' }),
   ]);
 
-  fs.writeFileSync(path.join(OUT_DIR, 'index.html'), generateIndex(leaderboard));
+  const leagueBoards = await Promise.all(
+    leagues.map(async league => ({
+      league,
+      leaderboard: await rpc<LeaderboardRow[]>('leaderboard', { p_league_id: league.id }),
+    }))
+  );
+
+  fs.writeFileSync(path.join(OUT_DIR, 'index.html'), generateIndex(leagueBoards));
   fs.writeFileSync(path.join(OUT_DIR, 'partidos.html'), generatePartidos(matches));
   fs.writeFileSync(path.join(OUT_DIR, 'stats.html'), generateStats(leaderboard, predictions));
 
-  console.log(`✅ Site generated in ${OUT_DIR}/ (${matches.length} matches, ${leaderboard.length} users)`);
+  const totalUsers = leagueBoards.reduce((s, lb) => s + lb.leaderboard.length, 0);
+  console.log(`✅ Site generated in ${OUT_DIR}/ (${matches.length} matches, ${leagues.length} pollas, ${totalUsers} users)`);
 }
 
 // Only run when executed directly (not when imported by tests)

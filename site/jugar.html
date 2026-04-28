@@ -399,13 +399,14 @@
       clearInputs();
       const loading = addBotMsg('⏳ Cargando ranking...');
       try {
-        const rows = await fetch(WORKER_URL + '/api/ranking').then(r => r.json());
+        const data = await api('/api/ranking');
         loading.remove();
         const MEDALS = ['🥇', '🥈', '🥉'];
-        if (rows.length === 0) {
-          addBotMsg('Sin puntos registrados aún.');
+        const { league_name, ranking } = data;
+        if (ranking.length === 0) {
+          addBotMsg(`🏆 ${league_name ?? 'Ranking'}\n\nSin puntos registrados aún.`);
         } else {
-          const text = rows.map((r, i) =>
+          const text = `🏆 ${league_name ?? 'Ranking'}\n\n` + ranking.map((r, i) =>
             `${MEDALS[i] ?? (i + 1) + '.'} ${r.username ?? 'Anónimo'} — ${r.total_points} pts`
           ).join('\n');
           addBotMsg(text);
