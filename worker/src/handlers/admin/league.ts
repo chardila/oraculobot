@@ -23,8 +23,9 @@ export async function handleAdminLeagueText(
   const chatId = msg.chat.id;
   const name = msg.text?.trim() ?? '';
 
-  if (!name) {
-    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, '❌ El nombre no puede estar vacío.');
+  if (!name || name.startsWith('/')) {
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
+      '❌ Nombre inválido. Escribe el nombre de la polla o envía /cancel para salir.');
     return;
   }
 
