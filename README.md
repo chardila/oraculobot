@@ -1,19 +1,18 @@
 # OraculoBot
 
-A World Cup prediction bot for friends and family. Users make match predictions through Telegram, and a static leaderboard site auto-updates after every result.
+A World Cup prediction bot for friends and family. Users make match predictions through a web interface, and a static leaderboard site auto-updates after every result. The Telegram bot is for admin use only.
 
 **~$0/month** — runs entirely on free tiers: Cloudflare Workers, Supabase, GitHub Pages, DeepSeek.
 
 ## Features
 
-- Invite-only registration via Telegram
-- Inline keyboard navigation — no slash commands needed
+- Multiple independent pollas (leagues) — family, friends, colleagues — each with its own ranking
+- Invite-only web registration: email + invite code + display name
 - Predict match scores before kickoff (closes 5 min before kick)
 - Automatic point calculation when admin enters results
-- Leaderboard, match results, and stats on a static website (linked from the menu)
+- Leaderboard, match results, and stats on a static website (auto-regenerates on every push)
 - Natural language questions answered by DeepSeek AI
-- Back-to-menu button after every action; `/cancel` to exit any active flow
-- Admin controls: enter results, generate invite codes, create matches
+- Admin controls via Telegram: enter results, generate invite codes, create matches, create pollas
 
 ## Scoring
 
@@ -28,21 +27,23 @@ A World Cup prediction bot for friends and family. Users make match predictions 
 
 | Layer | Technology |
 |-------|-----------|
-| Bot | Telegram Bot API (webhook) |
+| Bot (admin only) | Telegram Bot API (webhook) |
+| Web app | Static HTML + Cloudflare Worker API |
 | Backend | Cloudflare Workers (TypeScript) |
 | Database | Supabase (Postgres + REST) |
-| Static site | GitHub Pages (auto-generated) |
+| Static site | GitHub Pages (auto-generated on push) |
 | AI | DeepSeek chat API |
 
 ## Architecture
 
 ```
-Telegram → Cloudflare Worker → Supabase
-                     └──────────────────→ GitHub Actions → GitHub Pages
-                     └──────────────────→ DeepSeek API (on /question)
+Participants → Web app (jugar.html) → Cloudflare Worker API → Supabase
+Admin        → Telegram Bot         → Cloudflare Worker     → Supabase
+                                                └──────────────────→ GitHub Actions → GitHub Pages
+                                                └──────────────────→ DeepSeek API (on /question)
 ```
 
-The Worker receives Telegram webhooks, handles all bot logic, and writes to Supabase. When an admin enters a match result, the Worker triggers a GitHub Actions workflow that reads Supabase and regenerates the static HTML site.
+The Worker receives Telegram webhooks (admin only) and web API requests (participants). When an admin enters a match result, it triggers a GitHub Actions workflow that regenerates the static site.
 
 ## Prerequisites
 
@@ -61,13 +62,10 @@ In Supabase dashboard → SQL Editor, run in order:
 1. `supabase/migrations/001_initial.sql`
 2. `supabase/migrations/002_leaderboard_rpc.sql`
 3. `supabase/migrations/003_increment_invite_rpc.sql`
-
-Then create the bootstrap admin invite code:
-
-```sql
-insert into invite_codes (code, created_by, max_uses, use_count)
-values ('ADMIN2026', null, 1, 0);
-```
+4. `supabase/migrations/004_web_auth.sql`
+5. `supabase/migrations/005_try_consume_invite_rpc.sql`
+6. `supabase/migrations/006_leagues.sql`
+7. `supabase/migrations/007_leaderboard_web_only.sql`
 
 ### 2. Deploy the Worker
 
@@ -75,15 +73,18 @@ values ('ADMIN2026', null, 1, 0);
 cd worker
 npm install
 
-npx wrangler secret put TELEGRAM_BOT_TOKEN    # from @BotFather
-npx wrangler secret put TELEGRAM_BOT_USERNAME # bot username without @
-npx wrangler secret put ADMIN_TELEGRAM_ID     # your numeric Telegram ID (get it from @userinfobot)
-npx wrangler secret put SUPABASE_URL          # https://<ref>.supabase.co (no trailing slash)
-npx wrangler secret put SUPABASE_SERVICE_KEY  # service_role key (not anon) from Supabase Settings → API
+npx wrangler secret put TELEGRAM_BOT_TOKEN       # from @BotFather
+npx wrangler secret put TELEGRAM_BOT_USERNAME    # bot username without @
+npx wrangler secret put TELEGRAM_WEBHOOK_SECRET  # any random string: openssl rand -hex 32
+npx wrangler secret put ADMIN_TELEGRAM_ID        # your numeric Telegram ID (get it from @userinfobot)
+npx wrangler secret put SUPABASE_URL             # https://<ref>.supabase.co (no trailing slash)
+npx wrangler secret put SUPABASE_SERVICE_KEY     # service_role key from Supabase Settings → API
 npx wrangler secret put DEEPSEEK_API_KEY
-npx wrangler secret put GITHUB_PAT            # fine-grained token with actions:write
-npx wrangler secret put GITHUB_REPO           # owner/repo-name
-npx wrangler secret put INVITE_CODE_SECRET    # any random string: openssl rand -hex 32
+npx wrangler secret put GITHUB_PAT               # fine-grained token with actions:write
+npx wrangler secret put GITHUB_REPO              # owner/repo-name
+npx wrangler secret put INVITE_CODE_SECRET       # any random string: openssl rand -hex 32
+npx wrangler secret put WEB_ORIGIN               # https://owner.github.io
+npx wrangler secret put WEB_REDIRECT_URL         # https://owner.github.io/oraculobot/jugar.html
 
 npx wrangler deploy
 ```
@@ -91,21 +92,13 @@ npx wrangler deploy
 ### 3. Register the Telegram webhook
 
 ```bash
-curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=<WORKER_URL>"
+curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=<WORKER_URL>&secret_token=<TELEGRAM_WEBHOOK_SECRET>"
 # Expected: {"ok":true,"result":true}
 ```
 
-### 4. Become admin
+### 4. Create the first polla
 
-1. Send `ADMIN2026` to the bot — it registers you as a normal user
-2. Get your Telegram ID from the Supabase `users` table or from @userinfobot
-3. Run in Supabase SQL Editor:
-
-```sql
-update users set is_admin = true where telegram_id = <your-telegram-id>;
-```
-
-4. Send any message to the bot — admin options (✅ Result, 🎟 Invite, ➕ Match) appear in the menu.
+Send any message to the bot on Telegram — the admin menu will appear. Use **🏆 Crear polla** to create your first league (e.g. "Polla Principal"), then use **🎟 Invitar** to generate invite codes for participants.
 
 ### 5. Enable GitHub Pages
 
@@ -115,7 +108,7 @@ Add repository secrets (Settings → Secrets → Actions):
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_KEY`
 
-The site rebuilds automatically each time the admin enters a match result.
+The static site rebuilds automatically on every push to `main` and when the admin enters a match result.
 
 ### 6. Import matches (optional)
 
@@ -129,6 +122,13 @@ SUPABASE_SERVICE_KEY="your-service-role-key" \
 npx tsx import.ts
 ```
 
+## Participant flow
+
+1. Admin generates an invite code for a polla (via Telegram)
+2. Participant opens `jugar.html`, enters email + name + invite code → receives magic link
+3. Participant clicks the link → lands on the web app authenticated
+4. From the web app: predict match scores, view ranking, ask AI questions
+
 ## Local development
 
 Create `worker/.dev.vars` (gitignored):
@@ -136,6 +136,7 @@ Create `worker/.dev.vars` (gitignored):
 ```
 TELEGRAM_BOT_TOKEN=...
 TELEGRAM_BOT_USERNAME=...
+TELEGRAM_WEBHOOK_SECRET=...
 ADMIN_TELEGRAM_ID=...
 SUPABASE_URL=...
 SUPABASE_SERVICE_KEY=...
@@ -143,6 +144,8 @@ DEEPSEEK_API_KEY=...
 GITHUB_PAT=...
 GITHUB_REPO=...
 INVITE_CODE_SECRET=...
+WEB_ORIGIN=http://localhost:3000
+WEB_REDIRECT_URL=http://localhost:3000/jugar.html
 ```
 
 ```bash
@@ -156,7 +159,7 @@ Use [ngrok](https://ngrok.com) or a Cloudflare tunnel to expose the local port, 
 ```bash
 # Worker
 cd worker
-npm test              # run tests (24 tests)
+npm test              # run tests (44 tests)
 npm run dev           # local dev server
 npm run deploy        # deploy to Cloudflare
 
@@ -169,31 +172,43 @@ npm run generate      # generate HTML to dist/ (needs SUPABASE_URL + SUPABASE_SE
 
 ```
 worker/src/
-  index.ts              # Worker entry point (webhook receiver)
+  index.ts              # Worker entry point (webhook + web API router)
   router.ts             # Routes Telegram updates, dispatches conversation state
   types.ts              # Shared TypeScript types
   telegram.ts           # Telegram Bot API client
   supabase.ts           # Supabase REST client
+  middleware/
+    auth.ts             # JWT authentication for web API
+    cors.ts             # CORS headers
   handlers/
-    registration.ts     # Invite code validation + user creation
+    registration.ts     # Admin-only Telegram registration gate
     menu.ts             # Inline keyboard menus + navigation
-    prediction.ts       # Prediction flow
-    ranking.ts          # Leaderboard view
-    matches.ts          # Match list view
-    question.ts         # DeepSeek natural language queries
+    prediction.ts       # Prediction flow (Telegram)
+    ranking.ts          # Leaderboard view (Telegram)
+    matches.ts          # Match list view (Telegram)
+    question.ts         # DeepSeek natural language queries (Telegram)
+    web/
+      register.ts       # Web: register with email + name + invite code
+      login.ts          # Web: send magic link to existing user
+      predict.ts        # Web: submit prediction
+      ranking.ts        # Web: leaderboard filtered by user's polla
+      matches.ts        # Web: list matches
+      question.ts       # Web: ask AI question
     admin/
-      result.ts         # Enter match result + calculate points
-      invite.ts         # Generate invite code
-      match.ts          # Create match (multi-step flow)
+      result.ts         # Admin: enter match result + calculate points
+      invite.ts         # Admin: generate invite code (with polla selection)
+      match.ts          # Admin: create match (multi-step flow)
+      league.ts         # Admin: create polla
   services/
     scoring.ts          # Pure calculatePoints() — tested
     deepseek.ts         # DeepSeek API client
     github.ts           # GitHub Actions trigger
-site/src/
-  generate.ts           # Static site generator (Supabase → HTML)
+site/
+  jugar.html            # Interactive web app (auth + predictions + ranking)
+  src/generate.ts       # Static site generator (Supabase → HTML, one section per polla)
 supabase/migrations/    # SQL migrations (apply in order)
 .github/workflows/
-  build-site.yml        # Triggered by Worker; deploys to GitHub Pages
+  build-site.yml        # Triggered on push to main and by Worker after results
 WorldCup2026/
   worldcup.json         # Match schedule
   import.ts             # Import script
