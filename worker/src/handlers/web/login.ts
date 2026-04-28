@@ -17,7 +17,10 @@ export async function handleWebLogin(request: Request, env: Env): Promise<Respon
   const SUCCESS_MSG = { ok: true, message: 'Si tienes una cuenta, recibirás un enlace de acceso en tu correo' };
 
   try {
-    const { user: authUser } = await db.generateMagicLink(body.email, env.WEB_REDIRECT_URL);
+    const authUser = await db.getAuthUserByEmail(body.email);
+    if (!authUser) {
+      return Response.json(SUCCESS_MSG);
+    }
     const registeredUser = await db.getUserByAuthId(authUser.id);
     if (!registeredUser) {
       return Response.json(SUCCESS_MSG);

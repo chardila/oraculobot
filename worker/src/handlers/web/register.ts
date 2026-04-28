@@ -18,11 +18,11 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
 
   let authUserId: string;
   try {
-    const result = await db.generateMagicLink(email, env.WEB_REDIRECT_URL);
-    authUserId = result.user.id;
+    const authUser = await db.getAuthUserByEmail(email) ?? await db.createAuthUser(email);
+    authUserId = authUser.id;
   } catch (e) {
-    console.error('Magic link error:', e);
-    return Response.json({ error: 'No se pudo enviar el enlace mágico' }, { status: 500 });
+    console.error('Auth user lookup/create error:', e);
+    return Response.json({ error: 'No se pudo procesar el registro' }, { status: 500 });
   }
 
   // Only create user row and consume invite code on first registration

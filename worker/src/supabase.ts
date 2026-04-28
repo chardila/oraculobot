@@ -240,38 +240,35 @@ export class SupabaseClient {
     return rows[0];
   }
 
-  async generateMagicLink(email: string, redirectTo: string): Promise<{ action_link: string; user: { id: string } }> {
-    const res = await fetch(`${this.url}/auth/v1/admin/generate_link`, {
+  async getAuthUserByEmail(email: string): Promise<{ id: string } | null> {
+    const url = new URL(`${this.url}/auth/v1/admin/users`);
+    url.searchParams.set('filter', email);
+    const res = await fetch(url.toString(), {
+      headers: {
+        'apikey': this.key,
+        'Authorization': `Bearer ${this.key}`,
+      },
+    });
+    if (!res.ok) return null;
+    const body = await res.json() as { users?: Array<{ id: string; email?: string }> };
+    return body.users?.find(u => u.email === email) ?? null;
+  }
+
+  async createAuthUser(email: string): Promise<{ id: string }> {
+    const res = await fetch(`${this.url}/auth/v1/admin/users`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': this.key,
         'Authorization': `Bearer ${this.key}`,
       },
-      body: JSON.stringify({
-        type: 'magiclink',
-        email,
-        options: { redirect_to: redirectTo },
-      }),
+      body: JSON.stringify({ email, email_confirm: true }),
     });
-
     if (!res.ok) {
       const text = await res.text();
-      throw new Error(`Supabase generate_link: ${res.status} ${text}`);
+      throw new Error(`Supabase create user: ${res.status} ${text}`);
     }
-
-    // Supabase Admin API returns user fields at root level alongside action_link
-    const body = await res.json() as Record<string, unknown>;
-    console.log('generate_link response keys:', Object.keys(body).join(', '));
-
-    // Support both shapes: { user: { id }, action_link } and { id, action_link }
-    const userId = (body.user as { id?: string } | undefined)?.id ?? body.id as string;
-    const actionLink = body.action_link as string;
-
-    if (!userId) throw new Error('generate_link: no user id in response');
-    if (!actionLink) throw new Error('generate_link: no action_link in response');
-
-    return { action_link: actionLink, user: { id: userId } };
+    return res.json() as Promise<{ id: string }>;
   }
 
   async sendMagicLinkOtp(email: string, redirectTo: string): Promise<void> {
