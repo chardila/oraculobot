@@ -119,3 +119,5 @@ export interface ConversationState {
   context: Record<string, unknown>;
   updated_at: string;
 }
+
+export type InlineKeyboardButton = { text: string; callback_data?: string; url?: string };

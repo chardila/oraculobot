@@ -1,4 +1,4 @@
-import type { TelegramCallbackQuery, Env, DbUser } from '../types';
+import type { TelegramCallbackQuery, Env, DbUser, InlineKeyboardButton } from '../types';
 import type { SupabaseClient } from '../supabase';
 import { sendMenu, editMenu } from '../telegram';
 import { showPredictionMatches, handlePredictionCallback, handlePredictionScoreCallback } from './prediction';
@@ -14,7 +14,7 @@ function isAdmin(user: DbUser, env: Env): boolean {
   return String(user.telegram_id!) === env.ADMIN_TELEGRAM_ID;
 }
 
-export function buildAdminButtons(): Array<Array<{ text: string; callback_data?: string; url?: string }>> {
+export function buildAdminButtons(): InlineKeyboardButton[][] {
   return [
     [
       { text: '✅ Resultado', callback_data: 'menu:admin_result' },
@@ -27,7 +27,7 @@ export function buildAdminButtons(): Array<Array<{ text: string; callback_data?:
   ];
 }
 
-export function buildUserButtons(): Array<Array<{ text: string; callback_data?: string; url?: string }>> {
+export function buildUserButtons(): InlineKeyboardButton[][] {
   return [
     [
       { text: '🔮 Predecir', callback_data: 'menu:predict' },
