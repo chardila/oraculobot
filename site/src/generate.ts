@@ -218,7 +218,8 @@ async function main() {
 
   fs.writeFileSync(path.join(OUT_DIR, 'index.html'), generateIndex(leagueBoards));
   fs.writeFileSync(path.join(OUT_DIR, 'partidos.html'), generatePartidos(matches));
-  fs.writeFileSync(path.join(OUT_DIR, 'stats.html'), generateStats(leaderboard, predictions));
+  const allLeaderboard = leagueBoards.flatMap(lb => lb.leaderboard);
+  fs.writeFileSync(path.join(OUT_DIR, 'stats.html'), generateStats(allLeaderboard, predictions));
 
   const totalUsers = leagueBoards.reduce((s, lb) => s + lb.leaderboard.length, 0);
   console.log(`✅ Site generated in ${OUT_DIR}/ (${matches.length} matches, ${leagues.length} pollas, ${totalUsers} users)`);
