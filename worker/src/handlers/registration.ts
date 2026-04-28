@@ -20,9 +20,17 @@ export async function handleRegistration(
   const raw = msg.text?.trim() ?? '';
   const text = extractInviteCode(raw);
 
+  const isAdmin = String(telegramId) === env.ADMIN_TELEGRAM_ID;
+
+  if (!isAdmin) {
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
+      '👋 Para participar en OraculoBot entra al sitio web con tu código de invitación.');
+    return;
+  }
+
   if (!text || text.length < 4) {
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-      '👋 Bienvenido a OraculoBot.\n\nPara participar, envía tu <b>código de invitación</b>.');
+      '👋 Hola, admin. Usa el menú para gestionar la polla.');
     return;
   }
 
@@ -30,14 +38,14 @@ export async function handleRegistration(
   const inviteCode = await db.getInviteCode(code);
   if (!inviteCode) {
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-      '❌ Código inválido o ya no es válido. Pide a quien te invitó que te reenvíe el código.');
+      '❌ Código inválido o ya no es válido.');
     return;
   }
 
   const consumed = await db.tryConsumeInviteCode(code);
   if (!consumed) {
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-      '❌ Código inválido o ya no es válido. Pide a quien te invitó que te reenvíe el código.');
+      '❌ Código inválido o ya no es válido.');
     return;
   }
 
@@ -50,8 +58,7 @@ export async function handleRegistration(
   });
 
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-    `✅ ¡Registrado! Bienvenido al torneo, <b>${fullName}</b>.`);
+    `✅ ¡Registrado! Bienvenido, <b>${fullName}</b>.`);
 
-  const isAdmin = String(telegramId) === env.ADMIN_TELEGRAM_ID;
   await showMainMenu(chatId, isAdmin, env, fullName);
 }
