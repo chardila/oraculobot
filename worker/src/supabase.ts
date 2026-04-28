@@ -1,5 +1,5 @@
 import type {
-  DbUser, DbMatch, DbPrediction, DbInviteCode, ConversationState
+  DbUser, DbMatch, DbPrediction, DbInviteCode, DbLeague, ConversationState
 } from './types';
 
 export class SupabaseClient {
@@ -61,7 +61,31 @@ export class SupabaseClient {
     return rows[0];
   }
 
+  // Leagues
+  async getLeagues(): Promise<DbLeague[]> {
+    return this.req<DbLeague[]>('leagues', {}, {
+      select: 'id,name',
+      order: 'created_at.asc',
+    });
+  }
+
+  async createLeague(name: string): Promise<DbLeague> {
+    const rows = await this.req<DbLeague[]>('leagues', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+    return rows[0];
+  }
+
   // Invite codes
+  async getInviteCode(code: string): Promise<DbInviteCode | null> {
+    const rows = await this.req<DbInviteCode[]>('invite_codes', {}, {
+      code: `eq.${code}`,
+      limit: '1',
+    });
+    return rows?.[0] ?? null;
+  }
+
   async tryConsumeInviteCode(code: string): Promise<boolean> {
     const result = await this.req<boolean>('rpc/try_consume_invite_code', {
       method: 'POST',
@@ -169,9 +193,9 @@ export class SupabaseClient {
     }, { id: `eq.${id}` });
   }
 
-  async getLeaderboard(): Promise<Array<{ user_id: string; total_points: number; username: string | null }>> {
+  async getLeaderboard(leagueId: string): Promise<Array<{ user_id: string; total_points: number; username: string | null }>> {
     return this.req<Array<{ user_id: string; total_points: number; username: string | null }>>(
-      'rpc/leaderboard', { method: 'POST', body: '{}' }
+      'rpc/leaderboard', { method: 'POST', body: JSON.stringify({ p_league_id: leagueId }) }
     );
   }
 
@@ -208,10 +232,10 @@ export class SupabaseClient {
     return rows?.[0] ?? null;
   }
 
-  async createWebUser(authUserId: string, inviteCode: string): Promise<DbUser> {
+  async createWebUser(authUserId: string, inviteCode: string, leagueId: string): Promise<DbUser> {
     const rows = await this.req<DbUser[]>('users', {
       method: 'POST',
-      body: JSON.stringify({ auth_user_id: authUserId, invite_code: inviteCode }),
+      body: JSON.stringify({ auth_user_id: authUserId, invite_code: inviteCode, league_id: leagueId }),
     });
     return rows[0];
   }

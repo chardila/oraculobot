@@ -26,7 +26,15 @@ export async function handleRegistration(
     return;
   }
 
-  const consumed = await db.tryConsumeInviteCode(text.toUpperCase());
+  const code = text.toUpperCase();
+  const inviteCode = await db.getInviteCode(code);
+  if (!inviteCode) {
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
+      '❌ Código inválido o ya no es válido. Pide a quien te invitó que te reenvíe el código.');
+    return;
+  }
+
+  const consumed = await db.tryConsumeInviteCode(code);
   if (!consumed) {
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
       '❌ Código inválido o ya no es válido. Pide a quien te invitó que te reenvíe el código.');
@@ -37,7 +45,8 @@ export async function handleRegistration(
     telegram_id: telegramId,
     username: msg.from.username ?? fullName,
     is_admin: false,
-    invite_code: text.toUpperCase(),
+    invite_code: code,
+    league_id: inviteCode.league_id,
     questions_today: 0,
   });
 

@@ -50,7 +50,7 @@ export async function handleQuestionText(
 
   try {
     const [leaderboard, allMatches, recent] = await Promise.all([
-      db.getLeaderboard(),
+      db.getLeaderboard(user.league_id),
       db.getAllMatches(),
       db.getRecentFinished(5),
     ]);

@@ -46,6 +46,12 @@ export interface Env {
   WEB_REDIRECT_URL: string; // Magic link redirect, e.g. https://owner.github.io/oraculobot/jugar.html
 }
 
+export interface DbLeague {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
 export interface DbUser {
   id: string;
   telegram_id: number | null;
@@ -55,6 +61,7 @@ export interface DbUser {
   auth_user_id?: string | null;
   questions_today: number;
   questions_reset_at?: string | null;
+  league_id: string;
   created_at: string;
 }
 
@@ -102,6 +109,7 @@ export interface DbInviteCode {
   created_by: string;
   max_uses: number;
   use_count: number;
+  league_id: string;
   created_at: string;
 }
 

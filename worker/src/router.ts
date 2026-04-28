@@ -7,6 +7,7 @@ import { handlePredictionText } from './handlers/prediction';
 import { handleQuestionText } from './handlers/question';
 import { handleAdminResultText } from './handlers/admin/result';
 import { handleAdminMatchText } from './handlers/admin/match';
+import { handleAdminLeagueText } from './handlers/admin/league';
 
 const CONVERSATION_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
@@ -85,6 +86,9 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
       case 'awaiting_match_phase':
       case 'awaiting_match_group':
         await handleAdminMatchText(msg, state, user, db, env);
+        return;
+      case 'awaiting_league_name':
+        await handleAdminLeagueText(msg, state, user, db, env);
         return;
     }
   }

@@ -1,4 +1,4 @@
-import type { Env } from '../types';
+import type { Env, DbUser } from '../types';
 import type { SupabaseClient } from '../supabase';
 import { editMenu } from '../telegram';
 
@@ -8,9 +8,10 @@ export async function showRanking(
   chatId: number,
   msgId: number,
   db: SupabaseClient,
-  env: Env
+  env: Env,
+  user: DbUser
 ): Promise<void> {
-  const rows = await db.getLeaderboard();
+  const rows = await db.getLeaderboard(user.league_id);
 
   let text = '📊 <b>Ranking — Mundial 2026</b>\n\n';
   if (rows.length === 0) {

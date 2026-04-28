@@ -28,11 +28,15 @@ export async function handleWebRegister(request: Request, env: Env): Promise<Res
   // Only create user row and consume invite code on first registration
   const existing = await db.getUserByAuthId(authUserId);
   if (!existing) {
+    const inviteCode = await db.getInviteCode(invite_code);
+    if (!inviteCode) {
+      return Response.json({ error: 'Código de invitación inválido o expirado' }, { status: 400 });
+    }
     const consumed = await db.tryConsumeInviteCode(invite_code);
     if (!consumed) {
       return Response.json({ error: 'Código de invitación inválido o expirado' }, { status: 400 });
     }
-    await db.createWebUser(authUserId, invite_code);
+    await db.createWebUser(authUserId, invite_code, inviteCode.league_id);
   }
 
   try {

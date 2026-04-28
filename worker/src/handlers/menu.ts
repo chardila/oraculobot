@@ -6,8 +6,9 @@ import { showRanking } from './ranking';
 import { showMatches } from './matches';
 import { startQuestion } from './question';
 import { startAdminResult, handleAdminResultSelect } from './admin/result';
-import { generateInviteCode } from './admin/invite';
+import { generateInviteCode, handleInviteLeagueCallback } from './admin/invite';
 import { startAdminMatch, handleAdminMatchPhaseCallback } from './admin/match';
+import { startAdminLeague } from './admin/league';
 
 function isAdmin(user: DbUser, env: Env): boolean {
   return String(user.telegram_id!) === env.ADMIN_TELEGRAM_ID;
@@ -35,6 +36,7 @@ function buildButtons(admin: boolean): Array<Array<{ text: string; callback_data
     ]);
     base.push([
       { text: '➕ Partido', callback_data: 'menu:admin_match' },
+      { text: '🏆 Crear polla', callback_data: 'menu:admin_league' },
     ]);
   }
 
@@ -82,6 +84,14 @@ export async function handleMenuCallback(
     return;
   }
 
+  // Admin invite league selection
+  if (data.startsWith('admin:invite:league:')) {
+    if (!admin) return;
+    const leagueId = data.replace('admin:invite:league:', '');
+    await handleInviteLeagueCallback(leagueId, chatId, msgId, user, db, env);
+    return;
+  }
+
   // Prediction match selection or score button
   if (data.startsWith('predict:')) {
     if (data.startsWith('predict:score:')) {
@@ -100,7 +110,7 @@ export async function handleMenuCallback(
       await showPredictionMatches(chatId, msgId, db, env);
       break;
     case 'ranking':
-      await showRanking(chatId, msgId, db, env);
+      await showRanking(chatId, msgId, db, env, user);
       break;
     case 'matches':
       await showMatches(chatId, msgId, db, env);
@@ -117,8 +127,11 @@ export async function handleMenuCallback(
     case 'admin_match':
       if (admin) await startAdminMatch(chatId, user, db, env);
       break;
+    case 'admin_league':
+      if (admin) await startAdminLeague(chatId, user, db, env);
+      break;
     case 'main': {
-      await db.clearConversationState(user.telegram_id);
+      await db.clearConversationState(user.telegram_id!);
       const name = user.username ?? undefined;
       const greeting = name ? `Hola, <b>${name}</b>! ` : '';
       await editMenu(

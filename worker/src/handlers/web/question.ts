@@ -49,7 +49,7 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
 
   try {
     const [leaderboard, allMatches, recent] = await Promise.all([
-      db.getLeaderboard(),
+      db.getLeaderboard(user.league_id),
       db.getAllMatches(),
       db.getRecentFinished(5),
     ]);
