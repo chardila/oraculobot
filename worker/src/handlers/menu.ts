@@ -14,11 +14,24 @@ function isAdmin(user: DbUser, env: Env): boolean {
   return String(user.telegram_id!) === env.ADMIN_TELEGRAM_ID;
 }
 
-function buildButtons(admin: boolean): Array<Array<{ text: string; callback_data?: string; url?: string }>> {
-  const base = [
+export function buildAdminButtons(): Array<Array<{ text: string; callback_data?: string; url?: string }>> {
+  return [
+    [
+      { text: '✅ Resultado', callback_data: 'menu:admin_result' },
+      { text: '🎟 Invitar',   callback_data: 'menu:admin_invite' },
+    ],
+    [
+      { text: '➕ Partido',    callback_data: 'menu:admin_match' },
+      { text: '🏆 Crear polla', callback_data: 'menu:admin_league' },
+    ],
+  ];
+}
+
+export function buildUserButtons(): Array<Array<{ text: string; callback_data?: string; url?: string }>> {
+  return [
     [
       { text: '🔮 Predecir', callback_data: 'menu:predict' },
-      { text: '📊 Ranking', callback_data: 'menu:ranking' },
+      { text: '📊 Ranking',  callback_data: 'menu:ranking' },
     ],
     [
       { text: '📅 Partidos', callback_data: 'menu:matches' },
@@ -28,19 +41,6 @@ function buildButtons(admin: boolean): Array<Array<{ text: string; callback_data
       { text: '🌐 Sitio', url: 'https://chardila.github.io/oraculobot/' },
     ],
   ];
-
-  if (admin) {
-    base.push([
-      { text: '✅ Resultado', callback_data: 'menu:admin_result' },
-      { text: '🎟 Invitar', callback_data: 'menu:admin_invite' },
-    ]);
-    base.push([
-      { text: '➕ Partido', callback_data: 'menu:admin_match' },
-      { text: '🏆 Crear polla', callback_data: 'menu:admin_league' },
-    ]);
-  }
-
-  return base;
 }
 
 export async function showMainMenu(
@@ -54,7 +54,7 @@ export async function showMainMenu(
     env.TELEGRAM_BOT_TOKEN,
     chatId,
     `🌍 <b>OraculoBot — Mundial 2026</b>\n\n${greeting}¿Qué quieres hacer?`,
-    buildButtons(isAdminUser)
+    isAdminUser ? buildAdminButtons() : buildUserButtons()
   );
 }
 
@@ -137,7 +137,7 @@ export async function handleMenuCallback(
       await editMenu(
         env.TELEGRAM_BOT_TOKEN, chatId, msgId,
         `🌍 <b>OraculoBot — Mundial 2026</b>\n\n${greeting}¿Qué quieres hacer?`,
-        buildButtons(admin)
+        admin ? buildAdminButtons() : buildUserButtons()
       );
       break;
     }
