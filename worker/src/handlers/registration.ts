@@ -44,7 +44,6 @@ export async function handleRegistration(
   await db.createUser({
     telegram_id: telegramId,
     username: msg.from.username ?? fullName,
-    is_admin: false,
     invite_code: code,
     league_id: inviteCode.league_id,
     questions_today: 0,

@@ -56,7 +56,6 @@ export interface DbUser {
   id: string;
   telegram_id: number | null;
   username: string | null;
-  is_admin: boolean;
   invite_code: string | null;
   auth_user_id?: string | null;
   questions_today: number;
