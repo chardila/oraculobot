@@ -7,7 +7,6 @@ describe('buildAdminButtons', () => {
     const labels = buttons.map(b => b.text);
     expect(labels).toContain('✅ Resultado');
     expect(labels).toContain('🎟 Invitar');
-    expect(labels).toContain('➕ Partido');
     expect(labels).toContain('🏆 Crear polla');
   });
 
@@ -38,7 +37,6 @@ describe('buildUserButtons', () => {
     const labels = buttons.map(b => b.text);
     expect(labels).not.toContain('✅ Resultado');
     expect(labels).not.toContain('🎟 Invitar');
-    expect(labels).not.toContain('➕ Partido');
     expect(labels).not.toContain('🏆 Crear polla');
   });
 });

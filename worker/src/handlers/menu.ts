@@ -7,7 +7,6 @@ import { showMatches } from './matches';
 import { startQuestion } from './question';
 import { startAdminResult, handleAdminResultSelect } from './admin/result';
 import { generateInviteCode, handleInviteLeagueCallback } from './admin/invite';
-import { startAdminMatch, handleAdminMatchPhaseCallback } from './admin/match';
 import { startAdminLeague } from './admin/league';
 
 function isAdmin(user: DbUser, env: Env): boolean {
@@ -21,7 +20,6 @@ export function buildAdminButtons(): InlineKeyboardButton[][] {
       { text: '🎟 Invitar',   callback_data: 'menu:admin_invite' },
     ],
     [
-      { text: '➕ Partido',    callback_data: 'menu:admin_match' },
       { text: '🏆 Crear polla', callback_data: 'menu:admin_league' },
     ],
   ];
@@ -68,13 +66,6 @@ export async function handleMenuCallback(
   const chatId = cq.message!.chat.id;
   const msgId = cq.message!.message_id;
   const admin = isAdmin(user, env);
-
-  // Admin match phase button selection
-  if (data.startsWith('match:phase:')) {
-    if (!admin) return;
-    await handleAdminMatchPhaseCallback(data, chatId, user, db, env);
-    return;
-  }
 
   // Admin result match selection
   if (data.startsWith('admin:result:')) {
@@ -123,9 +114,6 @@ export async function handleMenuCallback(
       break;
     case 'admin_invite':
       if (admin) await generateInviteCode(chatId, msgId, user, db, env);
-      break;
-    case 'admin_match':
-      if (admin) await startAdminMatch(chatId, user, db, env);
       break;
     case 'admin_league':
       if (admin) await startAdminLeague(chatId, user, db, env);
