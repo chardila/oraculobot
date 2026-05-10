@@ -27,7 +27,7 @@ async function issueCode(
     league_id: leagueId,
   });
 
-  const link = `https://t.me/${env.TELEGRAM_BOT_USERNAME}?start=${code}`;
+  const link = `${env.WEB_ORIGIN}/jugar.html?code=${code}`;
 
   await editMenu(
     env.TELEGRAM_BOT_TOKEN,
