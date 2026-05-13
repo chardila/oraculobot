@@ -85,6 +85,7 @@ async function main() {
       kickoff_at: parseKickoff(m.date, m.time),
       phase,
       group_name,
+      ground: m.ground ?? null,
       status: 'scheduled',
     };
   });

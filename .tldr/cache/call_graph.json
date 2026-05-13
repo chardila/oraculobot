@@ -1,0 +1,530 @@
+{
+  "edges": [
+    {
+      "from_file": "worker/src/handlers/admin/match.ts",
+      "from_func": "handleAdminMatchPhaseCallback",
+      "to_file": "worker/src/handlers/admin/match.ts",
+      "to_func": "createMatch"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.incrementInviteCodeUse",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/match.ts",
+      "from_func": "startAdminMatch",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/result.ts",
+      "from_func": "handleAdminResultText",
+      "to_file": "worker/src/services/scoring.ts",
+      "to_func": "calculatePoints"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/result.ts",
+      "from_func": "startAdminResult",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "editMenu"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/router.ts",
+      "to_func": "isStateStale"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/handlers/menu.ts",
+      "to_func": "handleMenuCallback"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.finishMatch",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/result.ts",
+      "from_func": "handleAdminResultText",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/prediction.ts",
+      "from_func": "handlePredictionText",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.setConversationState",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "generateStats",
+      "to_file": "site/src/generate.ts",
+      "to_func": "layout"
+    },
+    {
+      "from_file": "worker/src/telegram.ts",
+      "from_func": "sendMenu",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "call"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "showMainMenu",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMenu"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/question.ts",
+      "to_func": "startQuestion"
+    },
+    {
+      "from_file": "worker/src/handlers/question.ts",
+      "from_func": "handleQuestionText",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/admin/match.ts",
+      "to_func": "startAdminMatch"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/match.ts",
+      "from_func": "handleAdminMatchPhaseCallback",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/question.ts",
+      "from_func": "startQuestion",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/prediction.ts",
+      "from_func": "handlePredictionCallback",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMenu"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/admin/match.ts",
+      "to_func": "handleAdminMatchPhaseCallback"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "editMenu"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "generatePartidos",
+      "to_file": "site/src/generate.ts",
+      "to_func": "formatDate"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "main",
+      "to_file": "site/src/generate.ts",
+      "to_func": "generateIndex"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.getAllMatches",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "generateStats",
+      "to_file": "site/src/generate.ts",
+      "to_func": "pct"
+    },
+    {
+      "from_file": "worker/src/handlers/registration.ts",
+      "from_func": "handleRegistration",
+      "to_file": "worker/src/handlers/registration.ts",
+      "to_func": "extractInviteCode"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/prediction.ts",
+      "to_func": "showPredictionMatches"
+    },
+    {
+      "from_file": "WorldCup2026/import.ts",
+      "from_func": "main",
+      "to_file": "WorldCup2026/import.ts",
+      "to_func": "insertMatches"
+    },
+    {
+      "from_file": "worker/src/handlers/prediction.ts",
+      "from_func": "showPredictionMatches",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "editMenu"
+    },
+    {
+      "from_file": "worker/src/telegram.ts",
+      "from_func": "sendMessage",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "call"
+    },
+    {
+      "from_file": "worker/src/handlers/matches.ts",
+      "from_func": "showMatches",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "editMenu"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.getPredictionsByMatch",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "showMainMenu",
+      "to_file": "worker/src/handlers/menu.ts",
+      "to_func": "buildButtons"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/admin/invite.ts",
+      "to_func": "generateInviteCode"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.getFinishedWithPastKickoff",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "main",
+      "to_file": "site/src/generate.ts",
+      "to_func": "generatePartidos"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/match.ts",
+      "from_func": "handleAdminMatchText",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMenu"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/match.ts",
+      "from_func": "createMatch",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/admin/result.ts",
+      "to_func": "startAdminResult"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/menu.ts",
+      "to_func": "isAdmin"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/match.ts",
+      "from_func": "handleAdminMatchText",
+      "to_file": "worker/src/handlers/admin/match.ts",
+      "to_func": "createMatch"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/prediction.ts",
+      "to_func": "handlePredictionScoreCallback"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.clearConversationState",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "answerCallback"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/menu.ts",
+      "to_func": "buildButtons"
+    },
+    {
+      "from_file": "worker/src/handlers/ranking.ts",
+      "from_func": "showRanking",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "editMenu"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/invite.ts",
+      "from_func": "generateInviteCode",
+      "to_file": "worker/src/handlers/admin/invite.ts",
+      "to_func": "generateCode"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.getLeaderboard",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "worker/src/telegram.ts",
+      "from_func": "editMenu",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "call"
+    },
+    {
+      "from_file": "worker/src/handlers/prediction.ts",
+      "from_func": "handlePredictionScoreCallback",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/registration.ts",
+      "from_func": "handleRegistration",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.getRecentFinished",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/result.ts",
+      "from_func": "handleAdminResultText",
+      "to_file": "worker/src/services/github.ts",
+      "to_func": "triggerSiteBuild"
+    },
+    {
+      "from_file": "worker/src/handlers/prediction.ts",
+      "from_func": "handlePredictionCallback",
+      "to_file": "worker/src/handlers/prediction.ts",
+      "to_func": "buildScoreButtons"
+    },
+    {
+      "from_file": "WorldCup2026/import.ts",
+      "from_func": "main",
+      "to_file": "WorldCup2026/import.ts",
+      "to_func": "parseKickoff"
+    },
+    {
+      "from_file": "WorldCup2026/import.ts",
+      "from_func": "main",
+      "to_file": "WorldCup2026/import.ts",
+      "to_func": "parsePhase"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "main",
+      "to_file": "site/src/generate.ts",
+      "to_func": "rpc"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/handlers/prediction.ts",
+      "to_func": "handlePredictionText"
+    },
+    {
+      "from_file": "worker/src/handlers/matches.ts",
+      "from_func": "showMatches",
+      "to_file": "worker/src/handlers/matches.ts",
+      "to_func": "formatMatchPhase"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/prediction.ts",
+      "to_func": "handlePredictionCallback"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "generateIndex",
+      "to_file": "site/src/generate.ts",
+      "to_func": "layout"
+    },
+    {
+      "from_file": "worker/src/handlers/prediction.ts",
+      "from_func": "handlePredictionCallback",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/matches.ts",
+      "from_func": "showMatches",
+      "to_file": "worker/src/handlers/matches.ts",
+      "to_func": "formatDate"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "main",
+      "to_file": "site/src/generate.ts",
+      "to_func": "query"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/handlers/admin/result.ts",
+      "to_func": "handleAdminResultText"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/invite.ts",
+      "from_func": "generateInviteCode",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "editMenu"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/admin/result.ts",
+      "to_func": "handleAdminResultSelect"
+    },
+    {
+      "from_file": "worker/src/handlers/question.ts",
+      "from_func": "handleQuestionText",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMenu"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.updatePredictionPoints",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "generatePartidos",
+      "to_file": "site/src/generate.ts",
+      "to_func": "layout"
+    },
+    {
+      "from_file": "worker/src/handlers/question.ts",
+      "from_func": "handleQuestionText",
+      "to_file": "worker/src/services/deepseek.ts",
+      "to_func": "askDeepSeek"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/handlers/registration.ts",
+      "to_func": "handleRegistration"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/handlers/menu.ts",
+      "to_func": "showMainMenu"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.getUpcomingMatches",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/matches.ts",
+      "to_func": "showMatches"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/handlers/admin/match.ts",
+      "to_func": "handleAdminMatchText"
+    },
+    {
+      "from_file": "worker/src/supabase.ts",
+      "from_func": "SupabaseClient.upsertPrediction",
+      "to_file": "worker/src/supabase.ts",
+      "to_func": "req"
+    },
+    {
+      "from_file": "worker/src/handlers/prediction.ts",
+      "from_func": "showPredictionMatches",
+      "to_file": "worker/src/handlers/prediction.ts",
+      "to_func": "formatDate"
+    },
+    {
+      "from_file": "worker/src/router.ts",
+      "from_func": "route",
+      "to_file": "worker/src/handlers/question.ts",
+      "to_func": "handleQuestionText"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/match.ts",
+      "from_func": "handleAdminMatchText",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "worker/src/handlers/menu.ts",
+      "from_func": "handleMenuCallback",
+      "to_file": "worker/src/handlers/ranking.ts",
+      "to_func": "showRanking"
+    },
+    {
+      "from_file": "worker/src/telegram.ts",
+      "from_func": "answerCallback",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "call"
+    },
+    {
+      "from_file": "worker/src/telegram.ts",
+      "from_func": "deleteMessage",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "call"
+    },
+    {
+      "from_file": "worker/src/handlers/admin/result.ts",
+      "from_func": "handleAdminResultSelect",
+      "to_file": "worker/src/telegram.ts",
+      "to_func": "sendMessage"
+    },
+    {
+      "from_file": "site/src/generate.ts",
+      "from_func": "main",
+      "to_file": "site/src/generate.ts",
+      "to_func": "generateStats"
+    }
+  ],
+  "languages": [
+    "typescript"
+  ],
+  "timestamp": 1775998958.8065653
+}

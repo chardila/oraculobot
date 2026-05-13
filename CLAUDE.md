@@ -55,6 +55,8 @@ Points are calculated in the worker when admin enters a result and persisted to 
 
 **Site regeneration** is fire-and-forget: `worker/src/services/github.ts` calls `workflow_dispatch` on `build-site.yml` after every result. If it fails, data in Supabase is correct; re-run from GitHub Actions manually.
 
+**Matches page** (`site/src/generate.ts`) groups 104 matches by phase (group stage A-L, then knockout rounds). Each match shows the stadium, city and country via a `VENUE_MAP` lookup. The `ground` column in the `matches` table stores the venue key from `worldcup.json`. The generator also falls back to reading `worldcup.json` directly for venue data.
+
 ## Project structure
 
 ```
@@ -62,29 +64,43 @@ worker/src/
   index.ts              # Worker entry point
   router.ts             # Telegram update router + conversation state dispatch
   types.ts              # All shared TypeScript interfaces
-  telegram.ts           # Telegram Bot API client (sendMessage, sendMenu, editMenu...); buttons support callback_data or url
+  telegram.ts           # Telegram Bot API client (sendMessage, sendMenu, editMenu...)
   supabase.ts           # Supabase REST client (SupabaseClient class)
   handlers/
     registration.ts     # Invite code validation + user creation
-    menu.ts             # Main inline keyboard menus + callback routing; back button pattern uses callback_data: 'menu:main'
-    prediction.ts       # Prediction flow (show matches, capture score)
-    ranking.ts          # Leaderboard display
-    matches.ts          # Matches list display
-    question.ts         # DeepSeek NLQ flow
+    menu.ts             # Main inline keyboard menus + callback routing
     admin/
       result.ts         # Admin: enter match result + calculate points
       invite.ts         # Admin: generate invite code
-      match.ts          # Admin: create match (multi-step)
+      league.ts         # Admin: create league (polla)
   services/
     scoring.ts          # Pure calculatePoints() function
     deepseek.ts         # DeepSeek chat completions API client
     github.ts           # GitHub Actions workflow_dispatch trigger
-site/src/
-  generate.ts           # Node.js script: queries Supabase → generates HTML to dist/
+    worldcup-venues.ts  # Static stadium/venue context for DeepSeek prompts
+  middleware/
+    auth.ts             # Web API JWT authentication
+    cors.ts             # CORS headers for web API responses
+  handlers/web/
+    matches.ts          # GET /api/matches — returns all matches from Supabase
+    predict.ts          # POST /api/predict — submit prediction for a match
+    ranking.ts          # GET /api/ranking — leaderboard for user's league
+    question.ts         # POST /api/question — DeepSeek NLQ
+    register.ts         # POST /api/register — web user registration
+    login.ts            # POST /api/login — magic link email login
+site/
+  jugar.html            # Chat-style web UI (login, predict, ranking, search)
+  src/
+    generate.ts         # Static site generator: queries Supabase → HTML
+    generate.test.ts    # Tests for generator functions
+WorldCup2026/
+  worldcup.json         # Master fixture data (104 matches, venues, times)
+  import.ts             # CLI script: reads worldcup.json → inserts into Supabase
 supabase/migrations/
   001_initial.sql       # All tables + indexes + RLS
   002_leaderboard_rpc.sql
   003_increment_invite_rpc.sql
+  009_add_match_venue.sql  # Adds ground column to matches
 .github/workflows/
   build-site.yml        # Triggered by Worker; builds and deploys to GitHub Pages
 ```
