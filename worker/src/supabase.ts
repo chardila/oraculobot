@@ -94,7 +94,7 @@ export class SupabaseClient {
     return result === true;
   }
 
-  async createInviteCode(data: Omit<DbInviteCode, 'use_count' | 'created_at'>): Promise<DbInviteCode> {
+  async createInviteCode(data: Omit<DbInviteCode, 'use_count' | 'created_at' | 'expires_at'>): Promise<DbInviteCode> {
     const rows = await this.req<DbInviteCode[]>('invite_codes', {
       method: 'POST',
       body: JSON.stringify({ ...data, use_count: 0 }),

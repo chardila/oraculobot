@@ -111,6 +111,7 @@ export interface DbInviteCode {
   max_uses: number;
   use_count: number;
   league_id: string;
+  expires_at: string;
   created_at: string;
 }
 
