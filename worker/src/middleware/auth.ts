@@ -21,7 +21,7 @@ export async function authenticate(request: Request, env: Env, db: SupabaseClien
   const res = await fetch(`${env.SUPABASE_URL}/auth/v1/user`, {
     headers: {
       'Authorization': `Bearer ${token}`,
-      'apikey': env.SUPABASE_SERVICE_KEY,
+      'apikey': env.SUPABASE_ANON_KEY,
     },
   });
 

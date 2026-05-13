@@ -36,6 +36,7 @@ export interface Env {
   ADMIN_TELEGRAM_ID: string;
   SUPABASE_URL: string;
   SUPABASE_SERVICE_KEY: string;
+  SUPABASE_ANON_KEY: string;
   DEEPSEEK_API_KEY: string;
   GITHUB_PAT: string;
   GITHUB_REPO: string;

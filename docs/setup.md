@@ -14,6 +14,10 @@ In Supabase dashboard → SQL Editor, run in order:
 1. `supabase/migrations/001_initial.sql`
 2. `supabase/migrations/002_leaderboard_rpc.sql`
 3. `supabase/migrations/003_increment_invite_rpc.sql`
+4. `supabase/migrations/004_web_auth.sql`
+5. `supabase/migrations/005_try_consume_invite_rpc.sql`
+6. `supabase/migrations/006_leagues.sql`
+7. `supabase/migrations/007_rls_policies.sql`
 
 ## 2. Create bootstrap admin invite code
 
@@ -33,6 +37,7 @@ wrangler secret put TELEGRAM_BOT_TOKEN
 wrangler secret put ADMIN_TELEGRAM_ID        # your numeric Telegram user ID
 wrangler secret put SUPABASE_URL             # https://<project>.supabase.co
 wrangler secret put SUPABASE_SERVICE_KEY     # service_role key from Supabase Settings → API
+wrangler secret put SUPABASE_ANON_KEY        # anon public key from Supabase Settings → API
 wrangler secret put DEEPSEEK_API_KEY
 wrangler secret put GITHUB_PAT               # fine-grained token: actions:write on this repo
 wrangler secret put GITHUB_REPO              # owner/repo-name
@@ -71,6 +76,7 @@ In repo Settings → Pages → Source: **GitHub Actions**
 Add repository secrets (Settings → Secrets → Actions):
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_KEY`
+- `SUPABASE_ANON_KEY`
 
 ## 7. Local development
 
@@ -80,6 +86,7 @@ TELEGRAM_BOT_TOKEN=...
 ADMIN_TELEGRAM_ID=...
 SUPABASE_URL=...
 SUPABASE_SERVICE_KEY=...
+SUPABASE_ANON_KEY=...
 DEEPSEEK_API_KEY=...
 GITHUB_PAT=...
 GITHUB_REPO=...
