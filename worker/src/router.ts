@@ -3,8 +3,6 @@ import { SupabaseClient } from './supabase';
 import { sendMessage, answerCallback } from './telegram';
 import { handleRegistration } from './handlers/registration';
 import { showMainMenu, handleMenuCallback } from './handlers/menu';
-import { handlePredictionText } from './handlers/prediction';
-import { handleQuestionText } from './handlers/question';
 import { handleAdminResultText } from './handlers/admin/result';
 import { handleAdminLeagueText } from './handlers/admin/league';
 
@@ -70,12 +68,6 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
 
   if (state) {
     switch (state.step) {
-      case 'awaiting_prediction_score':
-        await handlePredictionText(msg, state, user, db, env);
-        return;
-      case 'awaiting_question':
-        await handleQuestionText(msg, state, user, db, env);
-        return;
       case 'awaiting_result_score':
         await handleAdminResultText(msg, state, user, db, env);
         return;

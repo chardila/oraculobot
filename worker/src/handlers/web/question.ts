@@ -2,7 +2,7 @@ import type { Env, WebQuestionRequest } from '../../types';
 import { SupabaseClient } from '../../supabase';
 import { authenticate, AuthError } from '../../middleware/auth';
 import { askDeepSeek } from '../../services/deepseek';
-import { sanitizeUsername } from '../question';
+import { sanitizeUsername } from '../../services/sanitize';
 
 const QUESTIONS_PER_DAY = 10;
 

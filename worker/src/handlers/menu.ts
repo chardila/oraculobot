@@ -1,10 +1,6 @@
 import type { TelegramCallbackQuery, Env, DbUser, InlineKeyboardButton } from '../types';
 import type { SupabaseClient } from '../supabase';
-import { sendMenu, editMenu } from '../telegram';
-import { showPredictionMatches, handlePredictionCallback, handlePredictionScoreCallback } from './prediction';
-import { showRanking } from './ranking';
-import { showMatches } from './matches';
-import { startQuestion } from './question';
+import { sendMessage, sendMenu, editMenu } from '../telegram';
 import { startAdminResult, handleAdminResultSelect } from './admin/result';
 import { generateInviteCode, handleInviteLeagueCallback } from './admin/invite';
 import { startAdminLeague } from './admin/league';
@@ -25,34 +21,23 @@ export function buildAdminButtons(): InlineKeyboardButton[][] {
   ];
 }
 
-export function buildUserButtons(): InlineKeyboardButton[][] {
-  return [
-    [
-      { text: '🔮 Predecir', callback_data: 'menu:predict' },
-      { text: '📊 Ranking',  callback_data: 'menu:ranking' },
-    ],
-    [
-      { text: '📅 Partidos', callback_data: 'menu:matches' },
-      { text: '❓ Pregunta', callback_data: 'menu:question' },
-    ],
-    [
-      { text: '🌐 Sitio', url: 'https://chardila.github.io/oraculobot/' },
-    ],
-  ];
-}
-
 export async function showMainMenu(
   chatId: number,
   isAdminUser: boolean,
   env: Env,
   name?: string
 ): Promise<void> {
+  if (!isAdminUser) {
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
+      '👋 Para participar en OraculoBot entra al sitio web con tu código de invitación.');
+    return;
+  }
   const greeting = name ? `Hola, <b>${name}</b>! ` : '';
   await sendMenu(
     env.TELEGRAM_BOT_TOKEN,
     chatId,
-    `🌍 <b>OraculoBot — Mundial 2026</b>\n\n${greeting}¿Qué quieres hacer?`,
-    isAdminUser ? buildAdminButtons() : buildUserButtons()
+    `${greeting}🌍 <b>OraculoBot — Admin</b>\n\n¿Qué quieres hacer?`,
+    buildAdminButtons()
   );
 }
 
@@ -83,32 +68,10 @@ export async function handleMenuCallback(
     return;
   }
 
-  // Prediction match selection or score button
-  if (data.startsWith('predict:')) {
-    if (data.startsWith('predict:score:')) {
-      await handlePredictionScoreCallback(cq, user, db, env);
-    } else {
-      await handlePredictionCallback(cq, user, db, env);
-    }
-    return;
-  }
-
   if (!data.startsWith('menu:')) return;
   const action = data.replace('menu:', '');
 
   switch (action) {
-    case 'predict':
-      await showPredictionMatches(chatId, msgId, db, env);
-      break;
-    case 'ranking':
-      await showRanking(chatId, msgId, db, env, user);
-      break;
-    case 'matches':
-      await showMatches(chatId, msgId, db, env);
-      break;
-    case 'question':
-      await startQuestion(chatId, user, db, env);
-      break;
     case 'admin_result':
       if (admin) await startAdminResult(chatId, msgId, db, env);
       break;
@@ -120,12 +83,13 @@ export async function handleMenuCallback(
       break;
     case 'main': {
       await db.clearConversationState(user.telegram_id!);
+      if (!admin) return;
       const name = user.username ?? undefined;
       const greeting = name ? `Hola, <b>${name}</b>! ` : '';
       await editMenu(
         env.TELEGRAM_BOT_TOKEN, chatId, msgId,
-        `🌍 <b>OraculoBot — Mundial 2026</b>\n\n${greeting}¿Qué quieres hacer?`,
-        admin ? buildAdminButtons() : buildUserButtons()
+        `${greeting}🌍 <b>OraculoBot — Admin</b>\n\n¿Qué quieres hacer?`,
+        buildAdminButtons()
       );
       break;
     }

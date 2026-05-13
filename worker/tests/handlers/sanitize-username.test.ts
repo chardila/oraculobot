@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { sanitizeUsername } from '../../src/handlers/question';
+import { sanitizeUsername } from '../../src/services/sanitize';
 
 describe('sanitizeUsername', () => {
   it('removes newlines', () => {
