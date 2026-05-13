@@ -135,10 +135,15 @@ export function layout(title: string, body: string): string {
     nav a:hover { text-decoration: underline; }
     h1 { font-size: 1.5rem; margin: 0.5rem 0 1rem; }
     h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
-    .phase-header { font-size: 1.05rem; font-weight: 700; padding: 0.5rem 0.75rem; border-radius: 8px; margin: 1.5rem 0 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+    .phase-header { font-size: 1.05rem; font-weight: 700; padding: 0.5rem 0.75rem; border-radius: 8px; margin: 0.5rem 0 0; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; }
+    .phase-header:hover { filter: brightness(0.96); }
     .phase-header.grupos { background: #e8f4fd; color: #1a5a8c; }
     .phase-header.eliminatorias { background: #fef3e2; color: #8c6a1a; }
     .phase-header.final { background: #fff0e0; color: #b3470a; }
+    .phase-header .arrow { margin-left: auto; font-size: 0.85rem; transition: transform 0.2s; }
+    .phase-header.open .arrow { transform: rotate(180deg); }
+    .phase-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
+    .phase-content.open { max-height: none; }
     .group-label { font-size: 0.85rem; font-weight: 600; color: #555; padding: 0.4rem 0.75rem; margin: 1rem 0 0.25rem; background: #f0f0f0; border-radius: 6px; display: inline-block; }
     table { border-collapse: collapse; width: 100%; font-size: 0.88rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
     th, td { text-align: left; padding: 0.55rem 0.75rem; }
@@ -174,6 +179,13 @@ export function layout(title: string, body: string): string {
   </nav>
   ${body}
   <footer>Actualizado: ${updated}</footer>
+  <script>
+    function togglePhase(header) {
+      header.classList.toggle('open');
+      const content = header.nextElementSibling;
+      if (content) content.classList.toggle('open');
+    }
+  </script>
 </body>
 </html>`;
 }
@@ -262,6 +274,8 @@ function groupByPhase(matches: VenueMatch[]): string {
     phases.get(m.phase)!.push(m);
   }
 
+  const isFirst = (p: string) => p === PHASE_ORDER.find(p2 => phases.has(p2));
+
   return PHASE_ORDER
     .filter(p => phases.has(p))
     .map(phase => {
@@ -269,6 +283,7 @@ function groupByPhase(matches: VenueMatch[]): string {
       const icon = PHASE_ICONS[phase] ?? '';
       const label = PHASE_LABELS[phase] ?? phase;
       const cssClass = phase === 'grupos' ? 'grupos' : phase === 'final' ? 'final' : 'eliminatorias';
+      const open = isFirst(phase) ? ' open' : '';
 
       let content: string;
       if (phase === 'grupos') {
@@ -280,7 +295,7 @@ function groupByPhase(matches: VenueMatch[]): string {
         </table>`;
       }
 
-      return `<div class="phase-header ${cssClass}">${icon} ${label}</div>${content}`;
+      return `<div class="phase-header ${cssClass}${open}" onclick="togglePhase(this)">${icon} ${label}<span class="arrow">▾</span></div><div class="phase-content${open}">${content}</div>`;
     }).join('');
 }
 
