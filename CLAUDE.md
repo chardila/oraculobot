@@ -23,6 +23,7 @@ cd worker && npx vitest run tests/scoring.test.ts
 cd site
 npm run generate     # Reads Supabase, writes HTML to dist/
                      # Requires: SUPABASE_URL and SUPABASE_SERVICE_KEY env vars
+                     # Optional: ADMIN_TELEGRAM_ID — excludes admin from leaderboard
 ```
 
 ### Register Telegram webhook after deploy
@@ -100,7 +101,8 @@ supabase/migrations/
   001_initial.sql       # All tables + indexes + RLS
   002_leaderboard_rpc.sql
   003_increment_invite_rpc.sql
-  009_add_match_venue.sql  # Adds ground column to matches
+  009_add_match_venue.sql          # Adds ground column to matches
+  010_leaderboard_exclude_admin.sql  # leaderboard() returns telegram_id; worker/generator filter admin
 .github/workflows/
   build-site.yml        # Triggered by Worker; builds and deploys to GitHub Pages
 ```
