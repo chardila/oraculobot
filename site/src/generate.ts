@@ -408,11 +408,62 @@ export function generateStats(
       </table>
     </div>`;
 
+  // ── Sección 4: Dificultad de partidos ───────────────────────────────
+  interface DiffEntry { m: VenueMatch; pct: number; total: number; }
+
+  const predByMatch = new Map<string, PredictionDetail[]>();
+  for (const p of resolved) {
+    if (!predByMatch.has(p.match_id)) predByMatch.set(p.match_id, []);
+    predByMatch.get(p.match_id)!.push(p);
+  }
+
+  const diffData: DiffEntry[] = finishedMatches
+    .map(m => {
+      const mp = predByMatch.get(m.id) ?? [];
+      if (!mp.length) return null;
+      const hits = mp.filter(p => (p.points ?? 0) >= 3).length;
+      return { m, pct: Math.round(hits / mp.length * 100), total: mp.length };
+    })
+    .filter((x): x is DiffEntry => x !== null);
+
+  const easiest = [...diffData]
+    .sort((a, b) => b.pct - a.pct || b.total - a.total)
+    .slice(0, 3);
+  const hardest = [...diffData]
+    .sort((a, b) => a.pct - b.pct || a.total - b.total)
+    .slice(0, 3);
+
+  const diffRow = (d: DiffEntry, label: string, bg: string) =>
+    `<tr style="background:${bg}">
+      <td data-label="Partido">${d.m.home_team} vs ${d.m.away_team}</td>
+      <td data-label="Fase">${d.m.phase}</td>
+      <td data-label="Resultado">${d.m.home_score} – ${d.m.away_score}</td>
+      <td data-label="% Aciertos"><b>${d.pct}%</b></td>
+      <td>${label}</td>
+    </tr>`;
+
+  const diffRows = [
+    ...easiest.map(d => diffRow(d, '😎 Fácil', '#f0faf3')),
+    ...hardest.map(d => diffRow(d, '😱 Sorpresa', '#fef5f5')),
+  ].join('');
+
+  const diffTable = `
+    <div class="stats-section">
+      <h2>⚽ Partidos más y menos predecibles</h2>
+      ${diffData.length === 0
+        ? '<p>Sin partidos con predicciones aún.</p>'
+        : `<table>
+            <thead><tr><th>Partido</th><th>Fase</th><th>Resultado</th><th>% Aciertos</th><th></th></tr></thead>
+            <tbody>${diffRows}</tbody>
+          </table>`}
+    </div>`;
+
   return layout('Estadísticas', `
     ${statsStyles}
     <h1>📊 Estadísticas — Mundial 2026</h1>
     ${kpiSection}
     ${userTable}
+    ${diffTable}
   `);
 }
 

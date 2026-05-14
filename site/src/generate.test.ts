@@ -134,6 +134,38 @@ describe('generate', () => {
     expect(html).toContain('Bob');
     expect(html).toContain('—'); // promedio cuando played === 0
   });
+
+  it('generateStats dificultad: identifica partido fácil y difícil', () => {
+    // m1: 2 aciertos de 2 → 100% (fácil)
+    // m2: 0 aciertos de 2 → 0%  (difícil)
+    const html = generateStats(
+      [],
+      [
+        { points: 5, user_id: 'u1', match_id: 'm1' },
+        { points: 3, user_id: 'u2', match_id: 'm1' },
+        { points: 0, user_id: 'u1', match_id: 'm2' },
+        { points: 0, user_id: 'u2', match_id: 'm2' },
+      ],
+      [
+        { ...baseFinishedMatch, id: 'm1', home_team: 'España', away_team: 'Alemania' },
+        { ...baseFinishedMatch, id: 'm2', home_team: 'Japón', away_team: 'Senegal' },
+      ]
+    );
+    expect(html).toContain('100%'); // España vs Alemania → fácil
+    expect(html).toContain('0%');   // Japón vs Senegal → difícil
+    expect(html).toContain('😎');
+    expect(html).toContain('😱');
+  });
+
+  it('generateStats dificultad: excluye partidos sin predicciones', () => {
+    const html = generateStats(
+      [],
+      [],
+      [{ ...baseFinishedMatch, id: 'm1', home_team: 'Colombia', away_team: 'Brasil' }]
+    );
+    // Sin predicciones, la tabla muestra el mensaje vacío
+    expect(html).not.toContain('Colombia vs Brasil');
+  });
 });
 
 describe('layout() responsive', () => {
