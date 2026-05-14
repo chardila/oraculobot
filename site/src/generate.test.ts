@@ -68,7 +68,41 @@ describe('generate', () => {
       ],
       []
     );
-    expect(html).toContain('Alice');
+    expect(html).toContain('kpi-grid');
+    expect(html).toContain('Estadísticas');
+  });
+
+  it('generateStats KPI: muestra partidos jugados y porcentajes', () => {
+    // 10 predicciones resueltas: 2 exactas(5pts), 5 correctas(3-4pts), 3 ceros
+    // exactos = 20%, correctos(3-4) = 50%, ceros = 30% — todos distintos
+    const html = generateStats(
+      [],
+      [
+        { points: 5, user_id: 'u1', match_id: 'm1' },
+        { points: 5, user_id: 'u2', match_id: 'm1' },
+        { points: 4, user_id: 'u1', match_id: 'm2' },
+        { points: 4, user_id: 'u2', match_id: 'm2' },
+        { points: 3, user_id: 'u1', match_id: 'm3' },
+        { points: 3, user_id: 'u2', match_id: 'm3' },
+        { points: 3, user_id: 'u1', match_id: 'm4' },
+        { points: 0, user_id: 'u2', match_id: 'm4' },
+        { points: 0, user_id: 'u1', match_id: 'm5' },
+        { points: 0, user_id: 'u2', match_id: 'm5' },
+      ],
+      [
+        { ...baseFinishedMatch, id: 'm1' },
+        { ...baseFinishedMatch, id: 'm2' },
+        { ...baseFinishedMatch, id: 'm3' },
+        { ...baseFinishedMatch, id: 'm4' },
+        { ...baseFinishedMatch, id: 'm5' },
+        { ...baseMatch, id: 'm6' }, // scheduled — no debe contar
+      ]
+    );
+    expect(html).toContain('kpi-grid');
+    expect(html).toContain('5');   // 5 partidos finished
+    expect(html).toContain('20%'); // 2/10 exactos
+    expect(html).toContain('50%'); // 5/10 correctos (solo 3-4pts, NO incluye 5pts)
+    expect(html).toContain('30%'); // 3/10 ceros
   });
 });
 

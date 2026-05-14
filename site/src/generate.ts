@@ -324,30 +324,54 @@ export function generateStats(
   predictions: PredictionDetail[],
   matches: VenueMatch[]
 ): string {
+  const COLORS = ['#0070f3', '#00c896', '#ff9800', '#e040fb', '#f44336'];
+  const MEDALS = ['🥇', '🥈', '🥉'];
+
+  const finishedMatches = matches
+    .filter(m => m.status === 'finished')
+    .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
+  const finishedCount = finishedMatches.length;
   const resolved = predictions.filter(p => p.points !== null);
   const total = resolved.length;
-  const exact = resolved.filter(p => p.points === 5).length;
-  const correct = resolved.filter(p => p.points !== null && p.points >= 3 && p.points < 5).length;
-  const bonus = resolved.filter(p => p.points === 4).length;
-  const zero = resolved.filter(p => p.points === 0).length;
   const pct = (n: number) => total ? `${Math.round(n / total * 100)}%` : '—';
 
-  const leader = leaderboard[0];
+  const exact = resolved.filter(p => p.points === 5).length;
+  const correct = resolved.filter(p => (p.points ?? 0) >= 3 && (p.points ?? 0) < 5).length;
+  const zero = resolved.filter(p => p.points === 0).length;
+
+  const statsStyles = `<style>
+    .stats-section{background:#fff;border-radius:12px;padding:1.25rem;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+    .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;}
+    .kpi{background:#f8f9fa;border-radius:10px;padding:.9rem .75rem;text-align:center;}
+    .kpi-value{font-size:1.6rem;font-weight:800;line-height:1;color:#0070f3;}
+    .kpi-green{color:#1e7e34;}.kpi-orange{color:#b96a00;}.kpi-red{color:#c62828;}
+    .kpi-label{font-size:.72rem;color:#888;margin-top:.3rem;font-weight:500;text-transform:uppercase;letter-spacing:.04em;}
+    .mini-bar{height:8px;background:#f0f0f0;border-radius:4px;overflow:hidden;margin-bottom:2px;}
+    .mini-bar-fill{height:100%;border-radius:4px;}
+    .part-frac{font-size:.72rem;color:#888;}
+    @media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+  </style>`;
+
+  const kpiSection = `
+    <div class="stats-section">
+      <h2>🌐 Resumen global</h2>
+      <div class="kpi-grid">
+        <div class="kpi"><div class="kpi-value">${finishedCount}</div><div class="kpi-label">Partidos jugados</div></div>
+        <div class="kpi"><div class="kpi-value kpi-green">${pct(exact)}</div><div class="kpi-label">🎯 Exactos (5 pts)</div></div>
+        <div class="kpi"><div class="kpi-value kpi-orange">${pct(correct)}</div><div class="kpi-label">✔️ Correctos (3–4 pts)</div></div>
+        <div class="kpi"><div class="kpi-value kpi-red">${pct(zero)}</div><div class="kpi-label">❌ Sin puntos (0 pts)</div></div>
+      </div>
+    </div>`;
+
+  // Suppress unused variable warnings for constants used by future tasks
+  void COLORS;
+  void MEDALS;
+  void leaderboard;
 
   return layout('Estadísticas', `
-    <h1>📊 Estadísticas</h1>
-    <h2>Líder actual</h2>
-    <p>${leader ? `<b>${leader.username ?? 'Anónimo'}</b> con <b>${leader.total_points} pts</b>` : 'Sin datos aún.'}</p>
-    <h2>Predicciones resueltas: ${total}</h2>
-    <table>
-      <thead><tr><th>Resultado</th><th>Cantidad</th><th>%</th></tr></thead>
-      <tbody>
-        <tr><td data-label="Resultado">🎯 Marcador exacto (5pts)</td><td data-label="Cantidad">${exact}</td><td data-label="%">${pct(exact)}</td></tr>
-        <tr><td data-label="Resultado">✔️ Resultado + diferencia (4pts)</td><td data-label="Cantidad">${bonus}</td><td data-label="%">${pct(bonus)}</td></tr>
-        <tr><td data-label="Resultado">✔️ Solo resultado (3pts)</td><td data-label="Cantidad">${correct - bonus}</td><td data-label="%">${pct(correct - bonus)}</td></tr>
-        <tr><td data-label="Resultado">❌ Sin puntos (0pts)</td><td data-label="Cantidad">${zero}</td><td data-label="%">${pct(zero)}</td></tr>
-      </tbody>
-    </table>
+    ${statsStyles}
+    <h1>📊 Estadísticas — Mundial 2026</h1>
+    ${kpiSection}
   `);
 }
 
