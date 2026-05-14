@@ -41,6 +41,7 @@ interface LeaderboardRow {
   user_id: string;
   username: string | null;
   total_points: number;
+  telegram_id: number | null;
 }
 
 interface Prediction {
@@ -374,11 +375,15 @@ async function main() {
 
   const enrichedMatches: VenueMatch[] = matches.map(m => enrichMatch(m, groundLookup));
 
+  const adminTelegramId = process.env.ADMIN_TELEGRAM_ID ? Number(process.env.ADMIN_TELEGRAM_ID) : null;
   const leagueBoards = await Promise.all(
-    leagues.map(async league => ({
-      league,
-      leaderboard: await rpc<LeaderboardRow[]>('leaderboard', { p_league_id: league.id }),
-    }))
+    leagues.map(async league => {
+      const rows = await rpc<LeaderboardRow[]>('leaderboard', { p_league_id: league.id });
+      const leaderboard = adminTelegramId
+        ? rows.filter(r => r.telegram_id !== adminTelegramId)
+        : rows;
+      return { league, leaderboard };
+    })
   );
 
   fs.writeFileSync(path.join(OUT_DIR, 'index.html'), generateIndex(leagueBoards));
