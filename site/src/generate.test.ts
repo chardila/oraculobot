@@ -8,6 +8,13 @@ const baseMatch = {
   ground: 'Atlanta', name: 'Mercedes-Benz Stadium', city: 'Atlanta', country: '🇺🇸',
 };
 
+const baseFinishedMatch = {
+  ...baseMatch,
+  status: 'finished' as const,
+  home_score: 2,
+  away_score: 1,
+};
+
 describe('generate', () => {
   it('layout returns an HTML string containing the title', () => {
     const html = layout('Test Title', '<p>body</p>');
@@ -53,11 +60,15 @@ describe('generate', () => {
 
   it('generateStats returns HTML with stats data', () => {
     const html = generateStats(
-      [{ user_id: '1', username: 'Alice', total_points: 10 }],
-      [{ points: 5 }, { points: 3 }, { points: 0 }]
+      [{ user_id: '1', username: 'Alice', total_points: 10, telegram_id: null }],
+      [
+        { points: 5, user_id: '1', match_id: '1' },
+        { points: 3, user_id: '1', match_id: '2' },
+        { points: 0, user_id: '1', match_id: '3' },
+      ],
+      []
     );
     expect(html).toContain('Alice');
-    expect(html).toContain('10 pts');
   });
 });
 

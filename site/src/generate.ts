@@ -44,8 +44,10 @@ interface LeaderboardRow {
   telegram_id: number | null;
 }
 
-interface Prediction {
+interface PredictionDetail {
   points: number | null;
+  user_id: string;
+  match_id: string;
 }
 
 const VENUE_MAP: Record<string, { name: string; city: string; country: string }> = {
@@ -317,7 +319,11 @@ export function generatePartidos(matches: VenueMatch[]): string {
   `);
 }
 
-export function generateStats(leaderboard: LeaderboardRow[], predictions: Prediction[]): string {
+export function generateStats(
+  leaderboard: LeaderboardRow[],
+  predictions: PredictionDetail[],
+  matches: VenueMatch[]
+): string {
   const resolved = predictions.filter(p => p.points !== null);
   const total = resolved.length;
   const exact = resolved.filter(p => p.points === 5).length;
@@ -360,7 +366,7 @@ async function main() {
   const [leagues, matches, predictions] = await Promise.all([
     query<League[]>('leagues', { order: 'created_at.asc', select: 'id,name' }),
     query<Match[]>('matches', { order: 'kickoff_at.asc' }),
-    query<Prediction[]>('predictions', { select: 'points' }),
+    query<PredictionDetail[]>('predictions', { select: 'points,user_id,match_id' }),
   ]);
 
   // Build ground lookup from worldcup.json (for backfill until DB has ground column)
@@ -389,7 +395,7 @@ async function main() {
   fs.writeFileSync(path.join(OUT_DIR, 'index.html'), generateIndex(leagueBoards));
   fs.writeFileSync(path.join(OUT_DIR, 'partidos.html'), generatePartidos(enrichedMatches));
   const allLeaderboard = leagueBoards.flatMap(lb => lb.leaderboard);
-  fs.writeFileSync(path.join(OUT_DIR, 'stats.html'), generateStats(allLeaderboard, predictions));
+  fs.writeFileSync(path.join(OUT_DIR, 'stats.html'), generateStats(allLeaderboard, predictions, enrichedMatches));
 
   const totalUsers = leagueBoards.reduce((s, lb) => s + lb.leaderboard.length, 0);
   console.log(`✅ Site generated in ${OUT_DIR}/ (${matches.length} matches, ${leagues.length} pollas, ${totalUsers} users)`);
