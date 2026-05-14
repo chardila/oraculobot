@@ -363,15 +363,56 @@ export function generateStats(
       </div>
     </div>`;
 
-  // Suppress unused variable warnings for constants used by future tasks
-  void COLORS;
-  void MEDALS;
-  void leaderboard;
+  // ── Sección 3: Desglose por usuario ──────────────────────────────────
+  const predByUser = new Map<string, PredictionDetail[]>();
+  for (const p of resolved) {
+    if (!predByUser.has(p.user_id)) predByUser.set(p.user_id, []);
+    predByUser.get(p.user_id)!.push(p);
+  }
+
+  const userRows = leaderboard.map((u, i) => {
+    const userPreds = predByUser.get(u.user_id) ?? [];
+    const played = userPreds.length;
+    const uExact = userPreds.filter(p => p.points === 5).length;
+    const uCorrect = userPreds.filter(p => (p.points ?? 0) >= 3 && (p.points ?? 0) < 5).length;
+    const uZero = userPreds.filter(p => p.points === 0).length;
+    const avg = played > 0 ? (Number(u.total_points) / played).toFixed(1) : '—';
+    const pctPlayed = finishedCount > 0 ? Math.round(played / finishedCount * 100) : 0;
+    const color = i < COLORS.length ? COLORS[i] : '#bbb';
+    const pos = MEDALS[i] ?? String(i + 1);
+    return `<tr>
+      <td data-label="#">${pos}</td>
+      <td data-label="Participante">${u.username ?? 'Anónimo'}</td>
+      <td data-label="Pts"><b>${u.total_points}</b></td>
+      <td data-label="🎯 Exactos">${uExact}</td>
+      <td data-label="✔️ Correctos">${uCorrect}</td>
+      <td data-label="❌ Ceros">${uZero}</td>
+      <td data-label="Promedio">${avg}</td>
+      <td data-label="Participación">
+        <div class="mini-bar"><div class="mini-bar-fill" style="width:${pctPlayed}%;background:${color}"></div></div>
+        <div class="part-frac">${played}/${finishedCount}</div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const userTable = leaderboard.length === 0 ? '' : `
+    <div class="stats-section">
+      <h2>👤 Desglose por participante</h2>
+      <table>
+        <thead><tr>
+          <th>#</th><th>Participante</th><th>Pts</th>
+          <th>🎯 Exactos</th><th>✔️ Correctos</th><th>❌ Ceros</th>
+          <th>Promedio</th><th>Participación</th>
+        </tr></thead>
+        <tbody>${userRows}</tbody>
+      </table>
+    </div>`;
 
   return layout('Estadísticas', `
     ${statsStyles}
     <h1>📊 Estadísticas — Mundial 2026</h1>
     ${kpiSection}
+    ${userTable}
   `);
 }
 

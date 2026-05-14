@@ -104,6 +104,36 @@ describe('generate', () => {
     expect(html).toContain('50%'); // 5/10 correctos (solo 3-4pts, NO incluye 5pts)
     expect(html).toContain('30%'); // 3/10 ceros
   });
+
+  it('generateStats tabla usuario: exactos, correctos, ceros y promedio', () => {
+    // Alice: 1 exacto (5pts), 1 correcto (3pts), 1 cero (0pts) → total=8, promedio=8/3=2.7
+    const html = generateStats(
+      [{ user_id: 'u1', username: 'Alice', total_points: 8, telegram_id: null }],
+      [
+        { points: 5, user_id: 'u1', match_id: 'm1' },
+        { points: 3, user_id: 'u1', match_id: 'm2' },
+        { points: 0, user_id: 'u1', match_id: 'm3' },
+      ],
+      [
+        { ...baseFinishedMatch, id: 'm1' },
+        { ...baseFinishedMatch, id: 'm2' },
+        { ...baseFinishedMatch, id: 'm3' },
+      ]
+    );
+    expect(html).toContain('Alice');
+    expect(html).toContain('2.7'); // promedio (8/3)
+    expect(html).toContain('3/3'); // participación (predicho 3 de 3 jugados)
+  });
+
+  it('generateStats tabla usuario: promedio — cuando no hay predicciones resueltas', () => {
+    const html = generateStats(
+      [{ user_id: 'u1', username: 'Bob', total_points: 0, telegram_id: null }],
+      [],
+      [{ ...baseFinishedMatch, id: 'm1' }]
+    );
+    expect(html).toContain('Bob');
+    expect(html).toContain('—'); // promedio cuando played === 0
+  });
 });
 
 describe('layout() responsive', () => {
