@@ -387,7 +387,9 @@ export function generateStats(
     ...rest.map(u => buildDataset(u, '#e0e0e0', 1)),
   ];
 
-  const chartJson = JSON.stringify({ labels: chartLabels, datasets });
+  const chartJson = JSON.stringify({ labels: chartLabels, datasets })
+    .replace(/<\//g, '<\\/');
+
 
   const chartSection = `
     <div class="stats-section">
