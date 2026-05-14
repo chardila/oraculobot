@@ -193,8 +193,8 @@ export class SupabaseClient {
     }, { id: `eq.${id}` });
   }
 
-  async getLeaderboard(leagueId: string): Promise<Array<{ user_id: string; total_points: number; username: string | null }>> {
-    return this.req<Array<{ user_id: string; total_points: number; username: string | null }>>(
+  async getLeaderboard(leagueId: string): Promise<Array<{ user_id: string; total_points: number; username: string | null; telegram_id: number | null }>> {
+    return this.req<Array<{ user_id: string; total_points: number; username: string | null; telegram_id: number | null }>>(
       'rpc/leaderboard', { method: 'POST', body: JSON.stringify({ p_league_id: leagueId }) }
     );
   }

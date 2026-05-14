@@ -15,10 +15,14 @@ export async function handleWebRanking(request: Request, env: Env): Promise<Resp
     throw e;
   }
 
-  const [ranking, leagues] = await Promise.all([
+  const [rankingRaw, leagues] = await Promise.all([
     db.getLeaderboard(user.league_id),
     db.getLeagues(),
   ]);
+  const adminId = env.ADMIN_TELEGRAM_ID ? Number(env.ADMIN_TELEGRAM_ID) : null;
+  const ranking = adminId
+    ? rankingRaw.filter(r => r.telegram_id !== adminId)
+    : rankingRaw;
   const league = leagues.find(l => l.id === user.league_id);
   return Response.json({ league_name: league?.name ?? null, ranking });
 }
