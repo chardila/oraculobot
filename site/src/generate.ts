@@ -363,6 +363,54 @@ export function generateStats(
       </div>
     </div>`;
 
+  // ── Sección 2: Gráfica de evolución ─────────────────────────────────
+  const predMap = new Map<string, PredictionDetail>();
+  for (const p of resolved) predMap.set(`${p.user_id}:${p.match_id}`, p);
+
+  const chartLabels = finishedMatches.map((_, i) => `P${i + 1}`);
+  const top5 = leaderboard.slice(0, COLORS.length);
+  const rest = leaderboard.slice(COLORS.length);
+
+  const buildDataset = (u: LeaderboardRow, color: string, borderWidth: number) => {
+    let acc = 0;
+    const data = finishedMatches.map(m => {
+      const pred = predMap.get(`${u.user_id}:${m.id}`);
+      acc += pred?.points ?? 0;
+      return acc;
+    });
+    return { label: u.username ?? 'Anónimo', data, borderColor: color,
+             backgroundColor: 'transparent', borderWidth, pointRadius: 0, tension: 0.3 };
+  };
+
+  const datasets = [
+    ...top5.map((u, i) => buildDataset(u, COLORS[i], 2.5)),
+    ...rest.map(u => buildDataset(u, '#e0e0e0', 1)),
+  ];
+
+  const chartJson = JSON.stringify({ labels: chartLabels, datasets });
+
+  const chartSection = `
+    <div class="stats-section">
+      <h2>📈 Evolución de puntos acumulados</h2>
+      <canvas id="evolution-chart" height="80"></canvas>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script>
+        (function(){
+          var ctx = document.getElementById('evolution-chart');
+          new Chart(ctx, {
+            type: 'line',
+            data: ${chartJson},
+            options: {
+              responsive: true,
+              interaction: { mode: 'index', intersect: false },
+              plugins: { legend: { display: false } },
+              scales: { y: { beginAtZero: true } }
+            }
+          });
+        })();
+      </script>
+    </div>`;
+
   // ── Sección 3: Desglose por usuario ──────────────────────────────────
   const predByUser = new Map<string, PredictionDetail[]>();
   for (const p of resolved) {
@@ -465,6 +513,7 @@ export function generateStats(
     ${statsStyles}
     <h1>📊 Estadísticas — Mundial 2026</h1>
     ${kpiSection}
+    ${chartSection}
     ${userTable}
     ${diffTable}
   `);

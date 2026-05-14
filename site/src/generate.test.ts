@@ -181,6 +181,33 @@ describe('generate', () => {
     // Sin predicciones, la tabla muestra el mensaje vacío
     expect(html).not.toContain('Colombia vs Brasil');
   });
+
+  it('generateStats evolución: embebe CDN de Chart.js y datos de usuarios', () => {
+    const html = generateStats(
+      [
+        { user_id: 'u1', username: 'Alice', total_points: 8, telegram_id: null },
+        { user_id: 'u2', username: 'Bob',   total_points: 3, telegram_id: null },
+      ],
+      [
+        { points: 5, user_id: 'u1', match_id: 'm1' },
+        { points: 3, user_id: 'u1', match_id: 'm2' },
+        { points: 3, user_id: 'u2', match_id: 'm1' },
+        { points: 0, user_id: 'u2', match_id: 'm2' },
+      ],
+      [
+        { ...baseFinishedMatch, id: 'm1', kickoff_at: '2026-06-15T18:00:00Z' },
+        { ...baseFinishedMatch, id: 'm2', kickoff_at: '2026-06-16T18:00:00Z' },
+      ]
+    );
+    expect(html).toContain('cdn.jsdelivr.net/npm/chart.js');
+    expect(html).toContain('<canvas');
+    expect(html).toContain('"Alice"');
+    expect(html).toContain('"Bob"');
+    // Alice acumula: P1=5, P2=8
+    expect(html).toContain('[5,8]');
+    // Bob acumula: P1=3, P2=3
+    expect(html).toContain('[3,3]');
+  });
 });
 
 describe('layout() responsive', () => {
