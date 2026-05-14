@@ -426,11 +426,14 @@ export function generateStats(
     })
     .filter((x): x is DiffEntry => x !== null);
 
-  const easiest = [...diffData]
-    .sort((a, b) => b.pct - a.pct || b.total - a.total)
-    .slice(0, 3);
+  const easiestCount = Math.min(3, Math.floor(diffData.length / 2));
+  const easiest = easiestCount > 0
+    ? [...diffData].sort((a, b) => b.pct - a.pct || b.total - a.total).slice(0, easiestCount)
+    : [];
+  const easiestIds = new Set(easiest.map(d => d.m.id));
   const hardest = [...diffData]
     .sort((a, b) => a.pct - b.pct || a.total - b.total)
+    .filter(d => !easiestIds.has(d.m.id))
     .slice(0, 3);
 
   const diffRow = (d: DiffEntry, label: string, bg: string) =>

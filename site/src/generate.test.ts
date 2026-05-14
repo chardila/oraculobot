@@ -157,6 +157,21 @@ describe('generate', () => {
     expect(html).toContain('😱');
   });
 
+  it('generateStats dificultad: no duplica filas cuando hay pocos partidos', () => {
+    // Solo 1 partido con predicciones — no debe aparecer 2 veces
+    const html = generateStats(
+      [],
+      [
+        { points: 5, user_id: 'u1', match_id: 'm1' },
+        { points: 0, user_id: 'u2', match_id: 'm1' },
+      ],
+      [{ ...baseFinishedMatch, id: 'm1', home_team: 'Chile', away_team: 'Peru' }]
+    );
+    // 'Chile vs Peru' should appear exactly once (not twice — once for easy, once for hard)
+    const occurrences = html.match(/Chile vs Peru/g) ?? [];
+    expect(occurrences.length).toBe(1);
+  });
+
   it('generateStats dificultad: excluye partidos sin predicciones', () => {
     const html = generateStats(
       [],
