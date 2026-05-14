@@ -336,7 +336,7 @@ export function generateStats(
   const pct = (n: number) => total ? `${Math.round(n / total * 100)}%` : '—';
 
   const exact = resolved.filter(p => p.points === 5).length;
-  const correct = resolved.filter(p => (p.points ?? 0) >= 3 && (p.points ?? 0) < 5).length;
+  const correct = resolved.filter(p => (p.points ?? 0) > 0 && (p.points ?? 0) < 5).length;
   const zero = resolved.filter(p => p.points === 0).length;
 
   const statsStyles = `<style>
@@ -358,7 +358,7 @@ export function generateStats(
       <div class="kpi-grid">
         <div class="kpi"><div class="kpi-value">${finishedCount}</div><div class="kpi-label">Partidos jugados</div></div>
         <div class="kpi"><div class="kpi-value kpi-green">${pct(exact)}</div><div class="kpi-label">🎯 Exactos (5 pts)</div></div>
-        <div class="kpi"><div class="kpi-value kpi-orange">${pct(correct)}</div><div class="kpi-label">✔️ Correctos (3–4 pts)</div></div>
+        <div class="kpi"><div class="kpi-value kpi-orange">${pct(correct)}</div><div class="kpi-label">✔️ Con puntos (1–4 pts)</div></div>
         <div class="kpi"><div class="kpi-value kpi-red">${pct(zero)}</div><div class="kpi-label">❌ Sin puntos (0 pts)</div></div>
       </div>
     </div>`;
@@ -395,7 +395,7 @@ export function generateStats(
     <div class="stats-section">
       <h2>📈 Evolución de puntos acumulados</h2>
       <canvas id="evolution-chart" height="80"></canvas>
-      <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+      <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
       <script>
         (function(){
           var ctx = document.getElementById('evolution-chart');
@@ -424,7 +424,7 @@ export function generateStats(
     const userPreds = predByUser.get(u.user_id) ?? [];
     const played = userPreds.length;
     const uExact = userPreds.filter(p => p.points === 5).length;
-    const uCorrect = userPreds.filter(p => (p.points ?? 0) >= 3 && (p.points ?? 0) < 5).length;
+    const uCorrect = userPreds.filter(p => (p.points ?? 0) > 0 && (p.points ?? 0) < 5).length;
     const uZero = userPreds.filter(p => p.points === 0).length;
     const avg = played > 0 ? (Number(u.total_points) / played).toFixed(1) : '—';
     const pctPlayed = finishedCount > 0 ? Math.round(played / finishedCount * 100) : 0;
