@@ -144,7 +144,12 @@ export function layout(title: string, body: string): string {
     .phase-header.open .arrow { transform: rotate(180deg); }
     .phase-content { overflow: hidden; max-height: 0; transition: max-height 0.3s ease; }
     .phase-content.open { max-height: none; }
-    .group-label { font-size: 0.85rem; font-weight: 600; color: #555; padding: 0.4rem 0.75rem; margin: 1rem 0 0.25rem; background: #f0f0f0; border-radius: 6px; display: inline-block; }
+    .group-label { font-size: 0.85rem; font-weight: 600; color: #555; padding: 0.4rem 0.75rem; margin: 0.5rem 0 0; background: #f0f0f0; border-radius: 6px; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; }
+    .group-label:hover { background: #e5e5e5; }
+    .group-label .arrow { margin-left: auto; font-size: 0.75rem; transition: transform 0.2s; }
+    .group-label.open .arrow { transform: rotate(180deg); }
+    .group-content { overflow: hidden; max-height: 0; transition: max-height 0.2s ease; }
+    .group-content.open { max-height: none; }
     table { border-collapse: collapse; width: 100%; font-size: 0.88rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
     th, td { text-align: left; padding: 0.55rem 0.75rem; }
     th { background: #f5f5f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; color: #666; }
@@ -259,11 +264,13 @@ function groupByGroup(matches: VenueMatch[]): string {
   return Array.from(groups.entries())
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([group, ms]) =>
-      `<div class="group-label">Grupo ${group}</div>
-      <table>
-        <thead><tr><th>Local</th><th>Resultado</th><th>Visitante</th><th>Hora Colombia</th><th>Sede</th></tr></thead>
-        <tbody>${ms.map(matchRow).join('')}</tbody>
-      </table>`
+      `<div class="group-label" onclick="this.classList.toggle('open'); this.nextElementSibling.classList.toggle('open')">Grupo ${group}<span class="arrow">▾</span></div>
+      <div class="group-content">
+        <table>
+          <thead><tr><th>Local</th><th>Resultado</th><th>Visitante</th><th>Hora Colombia</th><th>Sede</th></tr></thead>
+          <tbody>${ms.map(matchRow).join('')}</tbody>
+        </table>
+      </div>`
     ).join('');
 }
 
@@ -274,8 +281,6 @@ function groupByPhase(matches: VenueMatch[]): string {
     phases.get(m.phase)!.push(m);
   }
 
-  const isFirst = (p: string) => p === PHASE_ORDER.find(p2 => phases.has(p2));
-
   return PHASE_ORDER
     .filter(p => phases.has(p))
     .map(phase => {
@@ -283,7 +288,7 @@ function groupByPhase(matches: VenueMatch[]): string {
       const icon = PHASE_ICONS[phase] ?? '';
       const label = PHASE_LABELS[phase] ?? phase;
       const cssClass = phase === 'grupos' ? 'grupos' : phase === 'final' ? 'final' : 'eliminatorias';
-      const open = isFirst(phase) ? ' open' : '';
+      const open = '';
 
       let content: string;
       if (phase === 'grupos') {
