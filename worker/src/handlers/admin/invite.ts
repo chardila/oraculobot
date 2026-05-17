@@ -27,7 +27,7 @@ async function issueCode(
     league_id: leagueId,
   });
 
-  const link = `${env.WEB_ORIGIN}/jugar.html?code=${code}`;
+  const link = `${env.WEB_REDIRECT_URL}?code=${code}`;
 
   await editMenu(
     env.TELEGRAM_BOT_TOKEN,
