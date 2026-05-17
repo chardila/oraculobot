@@ -1,6 +1,6 @@
 import type { Env, DbUser, DbLeague } from '../../types';
 import type { SupabaseClient } from '../../supabase';
-import { editMenu } from '../../telegram';
+import { editMenu, sendMessage } from '../../telegram';
 
 function generateCode(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -37,9 +37,32 @@ async function issueCode(
     `Polla: <b>${leagueName}</b>\n` +
     `Código: <code>${code}</code>\n` +
     `Link: ${link}\n\n` +
-    `(Uso único)`,
+    `(Uso único — copia el texto de abajo para enviar al invitado)`,
     [[{ text: '🔙 Menú', callback_data: 'menu:main' }]]
   );
+
+  const emailBody =
+    `Asunto: Invitación al Oráculo del Mundial 2026 🔮\n\n` +
+    `Hola,\n\n` +
+    `Te invito a participar en la polla del Mundial 2026 en OraculoBot — predice los marcadores de cada partido y compite en el ranking.\n\n` +
+    `── Cómo registrarte ──\n\n` +
+    `1. Abre este enlace (incluye tu código): ${link}\n` +
+    `2. Escribe tu correo y el nombre con el que aparecerás en el ranking.\n` +
+    `3. Haz clic en "Registrarme →"\n` +
+    `4. Te llegará un enlace mágico al correo — solo haz clic para entrar. Sin contraseña.\n\n` +
+    `⚠️ El enlace es de uso único.\n\n` +
+    `── Cómo predecir ──\n\n` +
+    `Toca 🔮 Predecir, elige el partido, escribe el marcador (ej. 2 - 1) y confirma.\n` +
+    `⏰ Las predicciones cierran 5 minutos antes del pitazo.\n\n` +
+    `── Puntos ──\n\n` +
+    `• Marcador exacto: 5 pts\n` +
+    `• Resultado correcto (ganador/empate): 3 pts\n` +
+    `• Diferencia de goles correcta: +1 pt\n\n` +
+    `── Para volver a entrar ──\n\n` +
+    `Selecciona "¿Ya tienes cuenta?" y escribe tu correo. Te llegará un nuevo enlace mágico.\n\n` +
+    `¡Buena suerte!`;
+
+  await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId, `<pre>${emailBody}</pre>`);
 }
 
 export async function generateInviteCode(
