@@ -208,7 +208,6 @@ export class SupabaseClient {
     const rows = await this.req<RawRow[]>('predictions', {}, {
       user_id: `eq.${userId}`,
       select: 'match_id,home_score,away_score,points,matches(home_team,away_team,kickoff_at,status,home_score,away_score)',
-      order: 'matches(kickoff_at).asc',
     });
     return rows
       .map(r => ({
