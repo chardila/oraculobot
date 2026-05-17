@@ -22,13 +22,12 @@ describe('generate', () => {
     expect(html).toContain('<p>body</p>');
   });
 
-  it('generateIndex returns HTML with leaderboard data', () => {
-    const html = generateIndex([{
-      league: { id: '1', name: 'Polla Test' },
-      leaderboard: [{ user_id: '1', username: 'Alice', total_points: 10 }],
-    }]);
-    expect(html).toContain('Alice');
-    expect(html).toContain('10');
+  it('generateIndex returns a dynamic shell with JS snippet', () => {
+    const html = generateIndex();
+    expect(html).toContain('ranking-container');
+    expect(html).toContain('/api/ranking');
+    expect(html).toContain('getSession');
+    expect(html).toContain('jugar.html');
   });
 
   it('generatePartidos returns HTML with match data', () => {

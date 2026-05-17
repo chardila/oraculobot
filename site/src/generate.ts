@@ -198,25 +198,52 @@ export function layout(title: string, body: string): string {
 </html>`;
 }
 
-export function generateIndex(leagues: Array<{ league: League; leaderboard: LeaderboardRow[] }>): string {
-  const MEDALS = ['🥇', '🥈', '🥉'];
+export function generateIndex(): string {
+  const SUPABASE_URL  = 'https://rhclzawbdxsitwtzdies.supabase.co';
+  const SUPABASE_ANON = 'sb_publishable_ia5yM6iARW7xUasAVGFFxA_nu6REkoU';
+  const WORKER_URL    = 'https://oraculobot-worker.carlos-ardila-account.workers.dev';
 
-  const sections = leagues.map(({ league, leaderboard }) => {
-    const rows = leaderboard.length === 0
-      ? '<tr><td colspan="3">Sin puntos registrados aún.</td></tr>'
-      : leaderboard.map((r, i) =>
-          `<tr><td data-label="#">${MEDALS[i] ?? i + 1}</td><td data-label="Participante">${r.username ?? 'Anónimo'}</td><td data-label="Puntos"><b>${r.total_points}</b></td></tr>`
+  const script = `
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"><\/script>
+    <script>
+    (async () => {
+      try {
+        const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+        const sb = supabase.createClient('${SUPABASE_URL}', '${SUPABASE_ANON}');
+        const { data: { session } } = await sb.auth.getSession();
+        const el = document.getElementById('ranking-container');
+        if (!session) {
+          el.innerHTML = '<p>Para ver el ranking, <a href="jugar.html">inicia sesión aquí<\/a>.</p>';
+          return;
+        }
+        const res = await fetch('${WORKER_URL}/api/ranking', {
+          headers: { 'Authorization': 'Bearer ' + session.access_token }
+        });
+        if (res.status === 401) {
+          el.innerHTML = '<p>Sesión expirada. <a href="jugar.html">Inicia sesión de nuevo<\/a>.</p>';
+          return;
+        }
+        if (!res.ok) { el.innerHTML = '<p>Error al cargar el ranking.</p>'; return; }
+        const { league_name, ranking } = await res.json();
+        const MEDALS = ['🥇', '🥈', '🥉'];
+        const rows = ranking.map((r, i) =>
+          '<tr><td>' + (MEDALS[i] ?? i + 1) + '</td><td>' + esc(r.username ?? 'Anónimo') + '</td><td><b>' + r.total_points + '</b></td><\/tr>'
         ).join('');
+        el.innerHTML =
+          '<h2>🏆 ' + esc(league_name ?? 'Ranking') + '</h2>' +
+          '<table><thead><tr><th>#</th><th>Participante</th><th>Puntos</th></tr></thead>' +
+          '<tbody>' + rows + '<\/tbody><\/table>';
+      } catch {
+        document.getElementById('ranking-container').innerHTML = '<p>Error inesperado al cargar el ranking.</p>';
+      }
+    })();
+    <\/script>`;
 
-    return `
-      <h2>🏆 ${league.name}</h2>
-      <table>
-        <thead><tr><th>#</th><th>Participante</th><th>Puntos</th></tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
-  }).join('');
-
-  return layout('Ranking', `<h1>🏆 Ranking — Mundial 2026</h1>${sections}`);
+  return layout('Ranking', `
+    <h1>🏆 Ranking — Mundial 2026</h1>
+    <div id="ranking-container"><p>Cargando ranking...</p></div>
+    ${script}
+  `);
 }
 
 const PHASE_ORDER = ['grupos', 'treintaidosavos', 'octavos', 'cuartos', 'semis', 'tercer_lugar', 'final'];
