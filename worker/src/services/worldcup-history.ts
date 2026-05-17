@@ -1,3 +1,9 @@
+/**
+ * Static historical World Cup context (2014–2026) for DeepSeek system prompts.
+ * Data bundled at module load time from JSON files in worker/src/data/history/.
+ * Downloaded once via WorldCup2026/download-history.ts and committed to the repo.
+ * 2022 standings/teams data intentionally absent — not published in openfootball for 2022.
+ */
 import wc2014 from '../data/history/2014-worldcup.json';
 import teams2014 from '../data/history/2014-worldcup.teams.json';
 import stadiums2014 from '../data/history/2014-worldcup.stadiums.json';
