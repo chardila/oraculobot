@@ -233,7 +233,8 @@ export function generateIndex(): string {
           '<h2>🏆 ' + esc(league_name ?? 'Ranking') + '</h2>' +
           '<table><thead><tr><th>#</th><th>Participante</th><th>Puntos</th></tr></thead>' +
           '<tbody>' + rows + '<\/tbody><\/table>';
-      } catch {
+      } catch (err) {
+        console.error('ranking load error', err);
         document.getElementById('ranking-container').innerHTML = '<p>Error inesperado al cargar el ranking.</p>';
       }
     })();
