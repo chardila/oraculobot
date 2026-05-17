@@ -210,18 +210,20 @@ export class SupabaseClient {
       select: 'match_id,home_score,away_score,points,matches(home_team,away_team,kickoff_at,status,home_score,away_score)',
       order: 'matches(kickoff_at).asc',
     });
-    return rows.map(r => ({
-      match_id: r.match_id,
-      home_team: r.matches.home_team,
-      away_team: r.matches.away_team,
-      kickoff_at: r.matches.kickoff_at,
-      status: r.matches.status,
-      predicted_home: r.home_score,
-      predicted_away: r.away_score,
-      actual_home: r.matches.home_score,
-      actual_away: r.matches.away_score,
-      points: r.points,
-    }));
+    return rows
+      .map(r => ({
+        match_id: r.match_id,
+        home_team: r.matches.home_team,
+        away_team: r.matches.away_team,
+        kickoff_at: r.matches.kickoff_at,
+        status: r.matches.status,
+        predicted_home: r.home_score,
+        predicted_away: r.away_score,
+        actual_home: r.matches.home_score,
+        actual_away: r.matches.away_score,
+        points: r.points,
+      }))
+      .sort((a, b) => a.kickoff_at.localeCompare(b.kickoff_at));
   }
 
   async getLeaderboard(leagueId: string): Promise<Array<{ user_id: string; total_points: number; username: string | null; telegram_id: number | null }>> {
