@@ -589,7 +589,7 @@ async function main() {
     })
   );
 
-  fs.writeFileSync(path.join(OUT_DIR, 'index.html'), generateIndex(leagueBoards));
+  fs.writeFileSync(path.join(OUT_DIR, 'index.html'), generateIndex());
   fs.writeFileSync(path.join(OUT_DIR, 'partidos.html'), generatePartidos(enrichedMatches));
   const allLeaderboard = leagueBoards.flatMap(lb => lb.leaderboard);
   fs.writeFileSync(path.join(OUT_DIR, 'stats.html'), generateStats(allLeaderboard, predictions, enrichedMatches));
