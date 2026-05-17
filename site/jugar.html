@@ -482,7 +482,7 @@
           const match = `${p.home_team} vs ${p.away_team}`;
           const pred = `Tu predicción: ${p.predicted_home}-${p.predicted_away}`;
           if (p.status === 'finished') {
-            const pts = p.points != null ? `${p.points} pts` : 'pts pendientes';
+            const pts = p.points !== null ? `${p.points} pts` : 'pts pendientes';
             return `✅ ${match}\n   ${pred}\n   Resultado: ${p.actual_home}-${p.actual_away} · ${pts}`;
           }
           return `🕐 ${match} (${formatDate(p.kickoff_at)})\n   ${pred}`;
