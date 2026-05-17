@@ -3,6 +3,8 @@ import { SupabaseClient } from '../../supabase';
 import { authenticate, AuthError } from '../../middleware/auth';
 import { askDeepSeek } from '../../services/deepseek';
 import { sanitizeUsername } from '../../services/sanitize';
+import { VENUE_CONTEXT } from '../../services/worldcup-venues';
+import { HISTORY_CONTEXT } from '../../services/worldcup-history';
 
 const QUESTIONS_PER_DAY = 10;
 
@@ -82,7 +84,9 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       `Fecha: ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })}\n\n` +
       `Leaderboard:\n${leaderboardText || 'Sin puntos aún.'}\n\n` +
       `Calendario completo del Mundial 2026:\n${scheduleText || 'Sin partidos.'}\n\n` +
-      `Resultados recientes:\n${recentText || 'Sin resultados aún.'}`;
+      `Resultados recientes:\n${recentText || 'Sin resultados aún.'}\n\n` +
+      `Estadios sede del torneo:\n${VENUE_CONTEXT}\n\n` +
+      `Datos históricos de Mundiales anteriores (2014-2022) y bracket 2026:\n${HISTORY_CONTEXT}`;
 
     const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt, body.question);
     return Response.json({ answer });
