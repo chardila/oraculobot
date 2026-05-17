@@ -327,6 +327,9 @@
           { label: '📅 Partidos', action: showPartidos },
           { label: '❓ Preguntar', action: startQuestion },
         ],
+        [
+          { label: '📋 Mis predicciones', action: showMyPredictions },
+        ],
       ]);
     }
 
@@ -458,6 +461,38 @@
       } catch {
         loading.remove();
         addBotMsg('No pude cargar los partidos.');
+      }
+      showButtons([[backButton()]]);
+    }
+
+    // ── Mis predicciones ──
+    async function showMyPredictions() {
+      addUserMsg('📋 Mis predicciones');
+      clearInputs();
+      const loading = addBotMsg('⏳ Cargando tus predicciones...');
+      try {
+        const { predictions } = await api('/api/my-predictions');
+        loading.remove();
+        if (predictions.length === 0) {
+          addBotMsg('Aún no tienes predicciones.\nUsa 🔮 Predecir para hacer tu primera.');
+          showButtons([[backButton()]]);
+          return;
+        }
+        const lines = predictions.map(p => {
+          const match = `${p.home_team} vs ${p.away_team}`;
+          const pred = `Tu predicción: ${p.predicted_home}-${p.predicted_away}`;
+          if (p.status === 'finished') {
+            const pts = p.points != null ? `${p.points} pts` : 'pts pendientes';
+            return `✅ ${match}\n   ${pred}\n   Resultado: ${p.actual_home}-${p.actual_away} · ${pts}`;
+          }
+          return `🕐 ${match} (${formatDate(p.kickoff_at)})\n   ${pred}`;
+        });
+        for (let i = 0; i < lines.length; i += 8) {
+          addBotMsg(lines.slice(i, i + 8).join('\n\n'));
+        }
+      } catch (e) {
+        loading.remove();
+        addBotMsg(`❌ ${e.message}`);
       }
       showButtons([[backButton()]]);
     }
