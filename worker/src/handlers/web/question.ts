@@ -6,7 +6,7 @@ import { sanitizeUsername } from '../../services/sanitize';
 import { VENUE_CONTEXT } from '../../services/worldcup-venues';
 import { HISTORY_CONTEXT } from '../../services/worldcup-history';
 
-const QUESTIONS_PER_DAY = 10;
+const QUESTIONS_PER_DAY = 20;
 
 export async function handleWebQuestion(request: Request, env: Env): Promise<Response> {
   const db = new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
