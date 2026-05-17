@@ -145,6 +145,10 @@
     const btnConfirmScore = document.getElementById('btn-confirm-score');
     const btnLogout     = document.getElementById('btn-logout');
 
+    // Pre-fill invite code from URL ?code=
+    const urlCode = new URLSearchParams(location.search).get('code');
+    if (urlCode) inviteInput.value = urlCode;
+
     // ── Auth ──
     sb.auth.onAuthStateChange((event, session) => {
       if (session) {
