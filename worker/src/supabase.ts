@@ -1,5 +1,5 @@
 import type {
-  DbUser, DbMatch, DbPrediction, DbInviteCode, DbLeague, ConversationState
+  DbUser, DbMatch, DbPrediction, DbInviteCode, DbLeague, ConversationState, UserPredictionItem
 } from './types';
 
 export class SupabaseClient {
@@ -191,6 +191,37 @@ export class SupabaseClient {
       body: JSON.stringify({ points }),
       headers: { 'Prefer': 'return=minimal' },
     }, { id: `eq.${id}` });
+  }
+
+  async getUserPredictions(userId: string): Promise<UserPredictionItem[]> {
+    type RawRow = {
+      match_id: string;
+      home_score: number;
+      away_score: number;
+      points: number | null;
+      matches: {
+        home_team: string; away_team: string; kickoff_at: string;
+        status: 'scheduled' | 'finished';
+        home_score: number | null; away_score: number | null;
+      };
+    };
+    const rows = await this.req<RawRow[]>('predictions', {}, {
+      user_id: `eq.${userId}`,
+      select: 'match_id,home_score,away_score,points,matches(home_team,away_team,kickoff_at,status,home_score,away_score)',
+      order: 'matches(kickoff_at).asc',
+    });
+    return rows.map(r => ({
+      match_id: r.match_id,
+      home_team: r.matches.home_team,
+      away_team: r.matches.away_team,
+      kickoff_at: r.matches.kickoff_at,
+      status: r.matches.status,
+      predicted_home: r.home_score,
+      predicted_away: r.away_score,
+      actual_home: r.matches.home_score,
+      actual_away: r.matches.away_score,
+      points: r.points,
+    }));
   }
 
   async getLeaderboard(leagueId: string): Promise<Array<{ user_id: string; total_points: number; username: string | null; telegram_id: number | null }>> {

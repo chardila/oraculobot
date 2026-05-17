@@ -106,6 +106,19 @@ export interface DbPrediction {
   updated_at: string;
 }
 
+export interface UserPredictionItem {
+  match_id: string;
+  home_team: string;
+  away_team: string;
+  kickoff_at: string;
+  status: 'scheduled' | 'finished';
+  predicted_home: number;
+  predicted_away: number;
+  actual_home: number | null;
+  actual_away: number | null;
+  points: number | null;
+}
+
 export interface DbInviteCode {
   code: string;
   created_by: string;
