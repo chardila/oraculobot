@@ -350,16 +350,23 @@
     }
 
     // ── Predecir ──
+    const PREDICT_PAGE_SIZE = 10;
+
     async function startPredict() {
       addUserMsg('🔮 Predecir');
       clearInputs();
       const loading = addBotMsg('⏳ Cargando partidos...');
       try {
-        const matches = await fetch(WORKER_URL + '/api/matches').then(r => r.json());
+        const [matches, predData] = await Promise.all([
+          fetch(WORKER_URL + '/api/matches').then(r => r.json()),
+          api('/api/my-predictions').catch(() => ({ predictions: [] })),
+        ]);
+        const predictedIds = new Set((predData.predictions || []).map(p => p.match_id));
         const cutoff = 5 * 60 * 1000;
         const upcoming = matches.filter(m =>
           m.status === 'scheduled' &&
-          new Date(m.kickoff_at).getTime() - Date.now() > cutoff
+          new Date(m.kickoff_at).getTime() - Date.now() > cutoff &&
+          !predictedIds.has(m.id)
         );
         loading.remove();
         if (upcoming.length === 0) {
@@ -367,19 +374,34 @@
           showButtons([[backButton()]]);
           return;
         }
-        addBotMsg('¿Para qué partido quieres predecir?');
-        const rows = upcoming.map(m => [{
-          label: `${m.home_team} vs ${m.away_team} · ${formatDate(m.kickoff_at)}`,
-          action: () => selectMatch(m),
-        }]);
-        rows.push([backButton()]);
-        showButtons(rows);
+        showMatchPage(upcoming, 0);
         chatState.step = 'selecting_match';
       } catch (e) {
         loading.remove();
         addBotMsg('No pude cargar los partidos. Intenta de nuevo.');
         showButtons([[backButton()]]);
       }
+    }
+
+    function showMatchPage(matches, offset) {
+      const page = matches.slice(offset, offset + PREDICT_PAGE_SIZE);
+      const remaining = matches.length - offset - page.length;
+      if (offset === 0) {
+        const suffix = matches.length > PREDICT_PAGE_SIZE ? ` (${matches.length} sin predecir)` : '';
+        addBotMsg(`¿Para qué partido quieres predecir?${suffix}`);
+      }
+      const rows = page.map(m => [{
+        label: `${m.home_team} vs ${m.away_team} · ${formatDate(m.kickoff_at)}`,
+        action: () => selectMatch(m),
+      }]);
+      if (remaining > 0) {
+        rows.push([{
+          label: `Ver ${remaining} más →`,
+          action: () => showMatchPage(matches, offset + PREDICT_PAGE_SIZE),
+        }]);
+      }
+      rows.push([backButton()]);
+      showButtons(rows);
     }
 
     function selectMatch(match) {
