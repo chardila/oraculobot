@@ -361,20 +361,25 @@
           fetch(WORKER_URL + '/api/matches').then(r => r.json()),
           api('/api/my-predictions').catch(() => ({ predictions: [] })),
         ]);
-        const predictedIds = new Set((predData.predictions || []).map(p => p.match_id));
         const cutoff = 5 * 60 * 1000;
+        const predictions = predData.predictions || [];
+        const predictedIds = new Set(predictions.map(p => p.match_id));
         const upcoming = matches.filter(m =>
           m.status === 'scheduled' &&
           new Date(m.kickoff_at).getTime() - Date.now() > cutoff &&
           !predictedIds.has(m.id)
         );
+        const predictedUpcoming = predictions.filter(p =>
+          p.status === 'scheduled' &&
+          new Date(p.kickoff_at).getTime() - Date.now() > cutoff
+        );
         loading.remove();
-        if (upcoming.length === 0) {
+        if (upcoming.length === 0 && predictedUpcoming.length === 0) {
           addBotMsg('No hay partidos disponibles para predecir en este momento.');
           showButtons([[backButton()]]);
           return;
         }
-        showMatchPage(upcoming, 0);
+        showMatchPage(upcoming, 0, predictedUpcoming);
         chatState.step = 'selecting_match';
       } catch (e) {
         loading.remove();
@@ -383,12 +388,16 @@
       }
     }
 
-    function showMatchPage(matches, offset) {
+    function showMatchPage(matches, offset, predictedUpcoming) {
       const page = matches.slice(offset, offset + PREDICT_PAGE_SIZE);
       const remaining = matches.length - offset - page.length;
       if (offset === 0) {
-        const suffix = matches.length > PREDICT_PAGE_SIZE ? ` (${matches.length} sin predecir)` : '';
-        addBotMsg(`¿Para qué partido quieres predecir?${suffix}`);
+        if (matches.length === 0) {
+          addBotMsg('Ya tienes predicciones para todos los partidos disponibles. ¿Quieres modificar alguna?');
+        } else {
+          const suffix = matches.length > PREDICT_PAGE_SIZE ? ` (${matches.length} sin predecir)` : '';
+          addBotMsg(`¿Para qué partido quieres predecir?${suffix}`);
+        }
       }
       const rows = page.map(m => [{
         label: `${m.home_team} vs ${m.away_team} · ${formatDate(m.kickoff_at)}`,
@@ -397,7 +406,34 @@
       if (remaining > 0) {
         rows.push([{
           label: `Ver ${remaining} más →`,
-          action: () => showMatchPage(matches, offset + PREDICT_PAGE_SIZE),
+          action: () => showMatchPage(matches, offset + PREDICT_PAGE_SIZE, predictedUpcoming),
+        }]);
+      }
+      if (offset === 0 && predictedUpcoming.length > 0) {
+        rows.push([{
+          label: `✏️ Modificar una predicción (${predictedUpcoming.length})`,
+          action: () => showModifyPage(predictedUpcoming, 0),
+          secondary: true,
+        }]);
+      }
+      rows.push([backButton()]);
+      showButtons(rows);
+    }
+
+    function showModifyPage(predictions, offset) {
+      const page = predictions.slice(offset, offset + PREDICT_PAGE_SIZE);
+      const remaining = predictions.length - offset - page.length;
+      if (offset === 0) {
+        addBotMsg('¿Qué predicción quieres modificar?');
+      }
+      const rows = page.map(p => [{
+        label: `${p.home_team} vs ${p.away_team} · ${formatDate(p.kickoff_at)} · (${p.predicted_home}-${p.predicted_away})`,
+        action: () => selectMatch({ id: p.match_id, home_team: p.home_team, away_team: p.away_team }),
+      }]);
+      if (remaining > 0) {
+        rows.push([{
+          label: `Ver ${remaining} más →`,
+          action: () => showModifyPage(predictions, offset + PREDICT_PAGE_SIZE),
         }]);
       }
       rows.push([backButton()]);
