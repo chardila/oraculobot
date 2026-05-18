@@ -182,7 +182,7 @@ export class SupabaseClient {
       method: 'POST',
       body: JSON.stringify({ ...data, predicted_at: new Date().toISOString() }),
       headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' },
-    });
+    }, { on_conflict: 'user_id,match_id' });
   }
 
   async updatePredictionPoints(id: string, points: number): Promise<void> {
