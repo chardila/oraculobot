@@ -333,4 +333,12 @@ export class SupabaseClient {
       headers: { 'Prefer': 'return=minimal' },
     }, { id: `eq.${userId}` });
   }
+
+  async insertQuestionLog(userId: string, question: string): Promise<void> {
+    await this.req<void>('question_logs', {
+      method: 'POST',
+      body: JSON.stringify({ user_id: userId, question }),
+      headers: { 'Prefer': 'return=minimal' },
+    });
+  }
 }
