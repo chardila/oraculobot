@@ -56,7 +56,11 @@ Points are calculated in the worker when admin enters a result and persisted to 
 
 **Site regeneration** is fire-and-forget: `worker/src/services/github.ts` calls `workflow_dispatch` on `build-site.yml` after every result. If it fails, data in Supabase is correct; re-run from GitHub Actions manually.
 
-**Matches page** (`site/src/generate.ts`) groups 104 matches by phase (group stage A-L, then knockout rounds). Each match shows the stadium, city and country via a `VENUE_MAP` lookup. The `ground` column in the `matches` table stores the venue key from `worldcup.json`. The generator also falls back to reading `worldcup.json` directly for venue data.
+**Matches page** (`site/src/generate.ts`) groups 104 matches by phase (group stage A-L, then knockout rounds). Each match shows the stadium, city and country via a `VENUE_MAP` lookup. The `ground` column in the `matches` table stores the venue key from `worldcup.json`. The generator also falls back to reading `worldcup.json` directly for venue data. `layout(title, body, activePage?)` accepts an optional third argument to mark the active nav link.
+
+**Question logging** is fire-and-forget: every question submitted via `/api/question` is inserted into `question_logs` (user_id, question, asked_at) without blocking the response. Queryable directly from Supabase for audit purposes.
+
+**Web UI** (`site/jugar.html`) uses a chat-style interface with two distinct visual modes: the home screen shows a 2×2 grid of app-card tiles (`.menu-card`), while active flows (predict, ranking, question) use pill quick-reply buttons (`.chat-btn`). All pages share a CSS variable design system (`--c-primary`, `--c-bg`, `--c-surface`, etc.) and a white surface panel on an off-white background.
 
 ## Project structure
 
@@ -79,6 +83,8 @@ worker/src/
     deepseek.ts         # DeepSeek chat completions API client
     github.ts           # GitHub Actions workflow_dispatch trigger
     worldcup-venues.ts  # Static stadium/venue context for DeepSeek prompts
+    worldcup-history.ts # Historical World Cup data (2014-2022) + 2026 bracket for DeepSeek prompts
+    sanitize.ts         # Username sanitization (strips control chars, trims)
   middleware/
     auth.ts             # Web API JWT authentication
     cors.ts             # CORS headers for web API responses
@@ -86,23 +92,27 @@ worker/src/
     matches.ts          # GET /api/matches — returns all matches from Supabase
     predict.ts          # POST /api/predict — submit prediction for a match
     ranking.ts          # GET /api/ranking — leaderboard for user's league
-    question.ts         # POST /api/question — DeepSeek NLQ
+    question.ts         # POST /api/question — DeepSeek NLQ (logs to question_logs)
+    my-predictions.ts   # GET /api/my-predictions — user's own predictions with results
     register.ts         # POST /api/register — web user registration
     login.ts            # POST /api/login — magic link email login
 site/
-  jugar.html            # Chat-style web UI (login, predict, ranking, search)
+  jugar.html            # Chat-style web UI (login, predict, ranking, question, my-predictions)
+                        # Home screen: 2×2 app-card grid. Active flows: chat pill buttons.
   src/
-    generate.ts         # Static site generator: queries Supabase → HTML
+    generate.ts         # Static site generator: queries Supabase → HTML (ranking, partidos, stats)
     generate.test.ts    # Tests for generator functions
 WorldCup2026/
   worldcup.json         # Master fixture data (104 matches, venues, times)
   import.ts             # CLI script: reads worldcup.json → inserts into Supabase
+  download-history.ts   # CLI script: fetches historical World Cup data for worldcup-history.ts
 supabase/migrations/
   001_initial.sql       # All tables + indexes + RLS
   002_leaderboard_rpc.sql
   003_increment_invite_rpc.sql
   009_add_match_venue.sql          # Adds ground column to matches
   010_leaderboard_exclude_admin.sql  # leaderboard() returns telegram_id; worker/generator filter admin
+  011_question_logs.sql            # Audit log: who asked what and when in the web chat
 .github/workflows/
   build-site.yml        # Triggered by Worker; builds and deploys to GitHub Pages
 ```
