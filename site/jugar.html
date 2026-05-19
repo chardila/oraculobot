@@ -6,68 +6,106 @@
   <title>Jugar — OraculoBot 2026</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 1rem; color: #1a1a1a; }
-    nav { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-    nav a { text-decoration: none; color: #0070f3; font-weight: 500; }
-    nav a:hover { text-decoration: underline; }
-    nav a.active { color: #1a1a1a; font-weight: 700; }
+
+    :root {
+      --c-primary: #0070f3;
+      --c-primary-dark: #005ecb;
+      --c-primary-light: #e8f0fe;
+      --c-text: #1a1a1a;
+      --c-muted: #666;
+      --c-bg: #f5f6f8;
+      --c-surface: #ffffff;
+      --c-border: #e5e5e5;
+      --r-sm: 8px;
+      --r-md: 12px;
+      --r-pill: 24px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md: 0 2px 8px rgba(0,0,0,0.12);
+    }
+
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 1rem; background: var(--c-bg); color: var(--c-text); }
+
+    /* Surface panel */
+    .surface { background: var(--c-surface); border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+
+    /* Nav */
+    nav { display: flex; gap: 0; padding: 0.75rem 1rem 0; border-bottom: 1px solid var(--c-border); }
+    nav a { text-decoration: none; font-size: 0.875rem; font-weight: 500; color: var(--c-muted); padding: 0.4rem 0.6rem 0.6rem; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+    nav a:hover { color: var(--c-text); }
+    nav a.active { color: var(--c-primary); font-weight: 600; border-bottom-color: var(--c-primary); }
 
     /* Login */
-    #login-screen { max-width: 360px; margin: 2rem auto; }
-    #login-screen h1 { font-size: 1.5rem; margin-bottom: 0.5rem; }
-    #login-screen p { color: #555; margin-bottom: 1.5rem; font-size: 0.95rem; }
-    .field { display: flex; flex-direction: column; gap: 0.35rem; margin-bottom: 1rem; }
-    .field label { font-size: 0.85rem; font-weight: 600; color: #333; }
-    .field input { padding: 0.6rem 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 1rem; width: 100%; }
-    .field input:focus { outline: none; border-color: #0070f3; }
-    #btn-submit { width: 100%; padding: 0.75rem; background: #0070f3; color: #fff; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; }
-    #btn-submit:hover { background: #005ecb; }
+    #login-screen { padding: 1.5rem 1rem; }
+    .login-card { max-width: 340px; margin: 0 auto; background: var(--c-surface); border-radius: var(--r-md); box-shadow: var(--shadow-md); padding: 1.75rem 1.5rem; }
+    .login-card h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; }
+    #login-subtitle { color: var(--c-muted); margin-bottom: 1.5rem; font-size: 0.9rem; line-height: 1.4; }
+    .field { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 0.875rem; }
+    .field label { font-size: 0.8rem; font-weight: 600; color: #444; }
+    .field input { padding: 0.6rem 0.75rem; border: 1px solid var(--c-border); border-radius: var(--r-sm); font-size: 0.95rem; width: 100%; color: var(--c-text); }
+    .field input:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-primary-light); }
+    #btn-submit { width: 100%; padding: 0.75rem; background: var(--c-primary); color: #fff; border: none; border-radius: var(--r-sm); font-size: 0.95rem; font-weight: 600; cursor: pointer; margin-top: 0.25rem; }
+    #btn-submit:hover { background: var(--c-primary-dark); }
     #btn-submit:disabled { background: #aaa; cursor: default; }
-    #login-msg { margin-top: 1rem; font-size: 0.9rem; padding: 0.6rem 0.75rem; border-radius: 8px; display: none; }
+    #login-msg { margin-top: 1rem; font-size: 0.875rem; padding: 0.6rem 0.75rem; border-radius: var(--r-sm); display: none; }
     #login-msg.ok  { background: #e6f4ea; color: #1e7e34; }
     #login-msg.err { background: #fdecea; color: #c0392b; }
-    .toggle-link { margin-top: 0.75rem; font-size: 0.85rem; color: #0070f3; cursor: pointer; text-align: center; }
+    .toggle-link { margin-top: 1rem; font-size: 0.82rem; color: var(--c-primary); cursor: pointer; text-align: center; }
     .toggle-link:hover { text-decoration: underline; }
 
     /* Chat */
-    #chat-screen { display: none; flex-direction: column; height: calc(100vh - 120px); min-height: 400px; }
-    #chat-header { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0 1rem; border-bottom: 1px solid #e5e5e5; }
-    #chat-header span { font-weight: 600; }
-    #btn-logout { font-size: 0.8rem; color: #888; background: none; border: none; cursor: pointer; padding: 0.25rem 0.5rem; }
+    #chat-screen { display: none; flex-direction: column; }
+    #chat-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid var(--c-border); }
+    .chat-header-left { display: flex; align-items: center; gap: 0.5rem; }
+    .bot-avatar { width: 28px; height: 28px; background: var(--c-primary-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+    #chat-header-name { font-weight: 600; font-size: 0.95rem; }
+    #btn-logout { font-size: 0.78rem; color: #aaa; background: none; border: none; cursor: pointer; padding: 0.25rem 0.4rem; }
     #btn-logout:hover { color: #c0392b; }
-    #messages { flex: 1; overflow-y: auto; padding: 1rem 0; display: flex; flex-direction: column; gap: 0.75rem; }
-    .bubble { max-width: 85%; padding: 0.6rem 0.9rem; border-radius: 16px; font-size: 0.95rem; line-height: 1.4; white-space: pre-wrap; }
-    .bubble.bot { background: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 4px; }
-    .bubble.user { background: #0070f3; color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
-    #btn-area { padding: 0.75rem 0; display: flex; flex-direction: column; gap: 0.5rem; }
+    #messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.65rem; min-height: calc(100vh - 280px); max-height: calc(100vh - 200px); }
+    .bubble { max-width: 85%; padding: 0.6rem 0.875rem; border-radius: 16px; font-size: 0.925rem; line-height: 1.4; white-space: pre-wrap; }
+    .bubble.bot { background: #f5f5f5; border: 1px solid var(--c-border); align-self: flex-start; border-bottom-left-radius: 4px; }
+    .bubble.user { background: var(--c-primary); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; letter-spacing: -0.01em; }
+    #btn-area { padding: 0.5rem 1rem 1rem; display: flex; flex-direction: column; gap: 0.5rem; }
     .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-    .chat-btn { padding: 0.6rem 1rem; border: 1px solid #0070f3; border-radius: 20px; background: #fff; color: #0070f3; font-size: 0.9rem; cursor: pointer; font-weight: 500; }
-    .chat-btn:hover { background: #e8f0fe; }
-    .chat-btn.secondary { border-color: #ccc; color: #555; }
+    .chat-btn { padding: 0.55rem 0.9rem; border: 1px solid var(--c-primary); border-radius: var(--r-pill); background: #fff; color: var(--c-primary); font-size: 0.875rem; cursor: pointer; font-weight: 500; }
+    .chat-btn:hover { background: var(--c-primary-light); }
+    .chat-btn.secondary { border-color: var(--c-border); color: var(--c-muted); }
     .chat-btn.secondary:hover { background: #f5f5f5; }
-    #text-input-area { display: none; flex-direction: column; gap: 0.5rem; }
-    #text-input-area textarea { width: 100%; padding: 0.6rem 0.75rem; border: 1px solid #ccc; border-radius: 8px; font-size: 0.95rem; resize: none; height: 72px; }
-    #text-input-area textarea:focus { outline: none; border-color: #0070f3; }
-    #btn-send { align-self: flex-end; padding: 0.5rem 1.25rem; background: #0070f3; color: #fff; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
-    #btn-send:hover { background: #005ecb; }
+
+    /* Menu grid (home state) */
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.65rem; padding: 0.25rem 0; }
+    .menu-card { display: flex; flex-direction: column; align-items: center; gap: 0.35rem; padding: 1.1rem 0.75rem; background: var(--c-surface); border: 1px solid var(--c-border); border-radius: var(--r-md); cursor: pointer; font-size: 0.825rem; font-weight: 600; color: var(--c-text); transition: border-color 0.15s, box-shadow 0.15s; user-select: none; text-align: center; }
+    .menu-card:hover { border-color: var(--c-primary); box-shadow: var(--shadow-sm); }
+    .menu-card:active { background: var(--c-primary-light); }
+    .menu-card .icon { font-size: 1.5rem; line-height: 1; }
+    .menu-card.wide { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 0.5rem; padding: 0.75rem; }
+    .menu-card.wide .icon { font-size: 1.1rem; }
+
+    /* Text input */
+    #text-input-area { display: none; flex-direction: column; gap: 0.5rem; padding: 0.5rem 1rem 1rem; }
+    #text-input-area textarea { width: 100%; padding: 0.65rem 0.875rem; border: 1px solid var(--c-border); border-radius: var(--r-sm); font-size: 0.925rem; resize: none; height: 72px; font-family: inherit; color: var(--c-text); }
+    #text-input-area textarea:focus { outline: none; border-color: var(--c-primary); box-shadow: 0 0 0 3px var(--c-primary-light); }
+    #btn-send { align-self: flex-end; padding: 0.5rem 1.25rem; background: var(--c-primary); color: #fff; border: none; border-radius: var(--r-pill); font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+    #btn-send:hover { background: var(--c-primary-dark); }
     #btn-send:disabled { background: #aaa; cursor: default; }
+
+    /* Score input */
     .score-inputs { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.25rem; }
-    .score-inputs input { width: 56px; padding: 0.5rem; text-align: center; font-size: 1.1rem; border: 1px solid #ccc; border-radius: 8px; }
-    .score-inputs span { font-size: 1.2rem; font-weight: 700; color: #555; }
-    #btn-confirm-score { padding: 0.5rem 1.25rem; background: #0070f3; color: #fff; border: none; border-radius: 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; }
-    #btn-confirm-score:hover { background: #005ecb; }
+    .score-inputs input { width: 56px; padding: 0.5rem; text-align: center; font-size: 1.1rem; border: 1px solid var(--c-border); border-radius: var(--r-sm); }
+    .score-inputs span { font-size: 1.2rem; font-weight: 700; color: var(--c-muted); }
+    #btn-confirm-score { padding: 0.5rem 1.25rem; background: var(--c-primary); color: #fff; border: none; border-radius: var(--r-pill); font-size: 0.875rem; font-weight: 600; cursor: pointer; }
+    #btn-confirm-score:hover { background: var(--c-primary-dark); }
   </style>
 </head>
 <body>
-  <nav>
-    <a href="index.html">🏆 Ranking</a>
-    <a href="partidos.html">📅 Partidos</a>
-    <a href="stats.html">📊 Stats</a>
-    <a class="active" href="jugar.html">🎯 Jugar</a>
-  </nav>
-
   <!-- Login -->
   <div id="login-screen">
+    <nav>
+      <a href="index.html">🏆 Ranking</a>
+      <a href="partidos.html">📅 Partidos</a>
+      <a href="stats.html">📊 Stats</a>
+      <a class="active" href="jugar.html">🎯 Jugar</a>
+    </nav>
+    <div class="login-card">
     <h1>🎯 Oraculobot</h1>
     <p id="login-subtitle">Ingresa tu correo y código de invitación para registrarte.</p>
     <div class="field">
@@ -85,12 +123,22 @@
     <button id="btn-submit">Entrar →</button>
     <div id="login-msg"></div>
     <p class="toggle-link" id="toggle-mode">¿Ya tienes cuenta? Entra solo con tu correo</p>
+    </div>
   </div>
 
   <!-- Chat -->
-  <div id="chat-screen">
+  <div id="chat-screen" class="surface">
+    <nav>
+      <a href="index.html">🏆 Ranking</a>
+      <a href="partidos.html">📅 Partidos</a>
+      <a href="stats.html">📊 Stats</a>
+      <a class="active" href="jugar.html">🎯 Jugar</a>
+    </nav>
     <div id="chat-header">
-      <span>🤖 Oraculobot</span>
+      <div class="chat-header-left">
+        <div class="bot-avatar">🤖</div>
+        <span id="chat-header-name">Oraculobot</span>
+      </div>
       <button id="btn-logout">Cerrar sesión</button>
     </div>
     <div id="messages"></div>
@@ -228,6 +276,7 @@
     function showChat() {
       loginScreen.style.display = 'none';
       chatScreen.style.display  = 'flex';
+      chatScreen.style.flexDirection = 'column';
       if (messages.children.length === 0) startConversation();
     }
 
@@ -265,6 +314,23 @@
         });
         btnArea.appendChild(rowEl);
       });
+    }
+
+    // items = [{ icon, label, action, wide }]
+    function showMenuCards(items) {
+      btnArea.innerHTML = '';
+      textInputArea.style.display = 'none';
+      scoreInputArea.style.display = 'none';
+      const grid = document.createElement('div');
+      grid.className = 'menu-grid';
+      items.forEach(({ icon, label, action, wide }) => {
+        const card = document.createElement('button');
+        card.className = 'menu-card' + (wide ? ' wide' : '');
+        card.innerHTML = `<span class="icon">${icon}</span>${label}`;
+        card.addEventListener('click', () => action());
+        grid.appendChild(card);
+      });
+      btnArea.appendChild(grid);
     }
 
     function clearInputs() {
@@ -318,18 +384,12 @@
 
     function showMainMenu() {
       chatState.step = 'menu';
-      showButtons([
-        [
-          { label: '🔮 Predecir', action: startPredict },
-          { label: '📊 Ranking',  action: showRanking },
-        ],
-        [
-          { label: '📅 Partidos', action: showPartidos },
-          { label: '❓ Preguntar', action: startQuestion },
-        ],
-        [
-          { label: '📋 Mis predicciones', action: showMyPredictions },
-        ],
+      showMenuCards([
+        { icon: '🔮', label: 'Predecir',          action: startPredict },
+        { icon: '📊', label: 'Ranking',            action: showRanking },
+        { icon: '📅', label: 'Partidos',           action: showPartidos },
+        { icon: '❓', label: 'Preguntar',          action: startQuestion },
+        { icon: '📋', label: 'Mis predicciones',   action: showMyPredictions, wide: true },
       ]);
     }
 
@@ -604,6 +664,7 @@
       chatScreen.style.display = 'none';
       loginScreen.style.display = 'block';
       messages.innerHTML = '';
+      btnArea.innerHTML = '';
       showLoginMsg('', '');
     });
 

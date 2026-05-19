@@ -119,11 +119,13 @@ function enrichMatch(m: Match, groundLookup: Map<string, string>): VenueMatch {
   return { ...m, ground, ...venue };
 }
 
-export function layout(title: string, body: string): string {
+export function layout(title: string, body: string, activePage: string = ''): string {
   const updated = new Date().toLocaleString('es-CO', {
     timeZone: 'America/Bogota', day: 'numeric', month: 'short',
     hour: '2-digit', minute: '2-digit',
   });
+  const navLink = (href: string, label: string, page: string) =>
+    `<a href="${href}"${activePage === page ? ' class="active"' : ''}>${label}</a>`;
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
@@ -132,13 +134,29 @@ export function layout(title: string, body: string): string {
   <title>${title} — OraculoBot 2026</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: system-ui, -apple-system, sans-serif; max-width: 880px; margin: 0 auto; padding: 1rem; color: #1a1a1a; background: #fafafa; }
-    nav { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-    nav a { text-decoration: none; color: #0070f3; font-weight: 500; padding: 0.25rem 0; }
-    nav a:hover { text-decoration: underline; }
+    :root {
+      --c-primary: #0070f3;
+      --c-primary-dark: #005ecb;
+      --c-primary-light: #e8f0fe;
+      --c-text: #1a1a1a;
+      --c-muted: #666;
+      --c-bg: #f5f6f8;
+      --c-surface: #ffffff;
+      --c-border: #e5e5e5;
+      --r-sm: 8px;
+      --r-md: 12px;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; max-width: 880px; margin: 0 auto; padding: 1rem; color: var(--c-text); background: var(--c-bg); }
+    .surface { background: var(--c-surface); border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1rem; }
+    nav { display: flex; gap: 0; padding: 0.75rem 1rem 0; border-bottom: 1px solid var(--c-border); }
+    nav a { text-decoration: none; font-size: 0.875rem; font-weight: 500; color: var(--c-muted); padding: 0.4rem 0.6rem 0.6rem; border-bottom: 2px solid transparent; margin-bottom: -1px; white-space: nowrap; }
+    nav a:hover { color: var(--c-text); }
+    nav a.active { color: var(--c-primary); font-weight: 600; border-bottom-color: var(--c-primary); }
+    .surface-body { padding: 1rem 1.25rem 1.25rem; }
     h1 { font-size: 1.5rem; margin: 0.5rem 0 1rem; }
     h2 { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
-    .phase-header { font-size: 1.05rem; font-weight: 700; padding: 0.5rem 0.75rem; border-radius: 8px; margin: 0.5rem 0 0; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; }
+    .phase-header { font-size: 1.05rem; font-weight: 700; padding: 0.5rem 0.75rem; border-radius: var(--r-sm); margin: 0.5rem 0 0; display: flex; align-items: center; gap: 0.5rem; cursor: pointer; user-select: none; }
     .phase-header:hover { filter: brightness(0.96); }
     .phase-header.grupos { background: #e8f4fd; color: #1a5a8c; }
     .phase-header.eliminatorias { background: #fef3e2; color: #8c6a1a; }
@@ -153,10 +171,10 @@ export function layout(title: string, body: string): string {
     .group-label.open .arrow { transform: rotate(180deg); }
     .group-content { overflow: hidden; max-height: 0; transition: max-height 0.2s ease; }
     .group-content.open { max-height: none; }
-    table { border-collapse: collapse; width: 100%; font-size: 0.88rem; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    table { border-collapse: collapse; width: 100%; font-size: 0.88rem; background: var(--c-surface); border-radius: var(--r-sm); overflow: hidden; box-shadow: var(--shadow-sm); }
     th, td { text-align: left; padding: 0.55rem 0.75rem; }
-    th { background: #f5f5f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; color: #666; }
-    td { border-bottom: 1px solid #eee; }
+    th { background: #f5f5f5; font-weight: 600; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--c-muted); }
+    td { border-bottom: 1px solid var(--c-border); }
     tr:last-child td { border-bottom: none; }
     .match-finished { background: #fafafa; }
     .badge { font-size: 0.72rem; background: #f0f0f0; padding: 2px 10px; border-radius: 12px; color: #888; font-weight: 500; }
@@ -164,13 +182,13 @@ export function layout(title: string, body: string): string {
     .result { font-weight: 700; font-size: 1rem; }
     .venue { font-size: 0.78rem; color: #888; }
     .time-col { white-space: nowrap; }
-    footer { margin-top: 2rem; font-size: 0.75rem; color: #888; text-align: center; }
+    footer { margin-top: 1.5rem; font-size: 0.75rem; color: #888; text-align: center; }
     .tz-note { font-size: 0.78rem; color: #999; margin: 0 0 0.75rem; text-align: right; }
     @media (max-width: 600px) {
       body { padding: 0.75rem; }
       thead { display: none; }
       table, tbody, tr { display: block; width: 100%; }
-      tr { border: 1px solid #e5e5e5; border-radius: 10px; margin-bottom: 0.75rem; padding: 0.6rem; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+      tr { border: 1px solid var(--c-border); border-radius: 10px; margin-bottom: 0.75rem; padding: 0.6rem; background: var(--c-surface); box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
       td { border-bottom: none; padding: 0.3rem 0; display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
       td::before { content: attr(data-label); font-weight: 600; color: #888; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.02em; flex-shrink: 0; }
       .match-finished td { background: transparent; }
@@ -179,13 +197,17 @@ export function layout(title: string, body: string): string {
   </style>
 </head>
 <body>
-  <nav>
-    <a href="index.html">🏆 Ranking</a>
-    <a href="partidos.html">📅 Partidos</a>
-    <a href="stats.html">📊 Stats</a>
-    <a href="jugar.html">🎯 Jugar</a>
-  </nav>
+  <div class="surface">
+    <nav>
+      ${navLink('index.html', '🏆 Ranking', 'ranking')}
+      ${navLink('partidos.html', '📅 Partidos', 'partidos')}
+      ${navLink('stats.html', '📊 Stats', 'stats')}
+      ${navLink('jugar.html', '🎯 Jugar', 'jugar')}
+    </nav>
+    <div class="surface-body">
   ${body}
+    </div>
+  </div>
   <footer>Actualizado: ${updated}</footer>
   <script>
     function togglePhase(header) {
@@ -244,7 +266,7 @@ export function generateIndex(): string {
     <h1>🏆 Ranking — Mundial 2026</h1>
     <div id="ranking-container"><p>Cargando ranking...</p></div>
     ${script}
-  `);
+  `, 'ranking');
 }
 
 const PHASE_ORDER = ['grupos', 'treintaidosavos', 'octavos', 'cuartos', 'semis', 'tercer_lugar', 'final'];
@@ -337,14 +359,14 @@ function groupByPhase(matches: VenueMatch[]): string {
 
 export function generatePartidos(matches: VenueMatch[]): string {
   if (matches.length === 0) {
-    return layout('Partidos', '<h1>📅 Partidos — Mundial 2026</h1><p>Sin partidos registrados.</p>');
+    return layout('Partidos', '<h1>📅 Partidos — Mundial 2026</h1><p>Sin partidos registrados.</p>', 'partidos');
   }
 
   return layout('Partidos', `
     <h1>📅 Partidos — Mundial 2026</h1>
     <div class="tz-note">🕐 Horarios en hora de Colombia (UTC-5)</div>
     ${groupByPhase(matches)}
-  `);
+  `, 'partidos');
 }
 
 export function generateStats(
@@ -546,7 +568,7 @@ export function generateStats(
     ${chartSection}
     ${userTable}
     ${diffTable}
-  `);
+  `, 'stats');
 }
 
 async function main() {
