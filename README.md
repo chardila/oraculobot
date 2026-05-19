@@ -11,7 +11,8 @@ A World Cup prediction bot for friends and family. Users make match predictions 
 - Predict match scores before kickoff (closes 5 min before kick)
 - Automatic point calculation when admin enters results
 - Leaderboard, match results, and stats on a static website (auto-regenerates on every push)
-- Natural language questions answered by DeepSeek AI
+- Natural language questions answered by DeepSeek AI (question history logged for audit)
+- View personal predictions history with scores and points earned
 - Admin controls via Telegram: enter results, generate invite codes, create matches, create pollas
 
 ## Scoring
@@ -66,6 +67,10 @@ In Supabase dashboard → SQL Editor, run in order:
 5. `supabase/migrations/005_try_consume_invite_rpc.sql`
 6. `supabase/migrations/006_leagues.sql`
 7. `supabase/migrations/007_rls_policies.sql`
+8. `supabase/migrations/008_invite_code_expiry.sql`
+9. `supabase/migrations/009_add_match_venue.sql`
+10. `supabase/migrations/010_leaderboard_exclude_admin.sql`
+11. `supabase/migrations/011_question_logs.sql`
 
 ### 2. Deploy the Worker
 
@@ -84,8 +89,8 @@ npx wrangler secret put DEEPSEEK_API_KEY
 npx wrangler secret put GITHUB_PAT               # fine-grained token with actions:write
 npx wrangler secret put GITHUB_REPO              # owner/repo-name
 npx wrangler secret put INVITE_CODE_SECRET       # any random string: openssl rand -hex 32
-npx wrangler secret put WEB_ORIGIN               # https://owner.github.io
-npx wrangler secret put WEB_REDIRECT_URL         # https://owner.github.io/oraculobot/jugar.html
+npx wrangler secret put WEB_ORIGIN               # https://owner.github.io (CORS origin)
+npx wrangler secret put WEB_REDIRECT_URL         # https://owner.github.io/oraculobot/jugar.html (magic link redirect)
 
 npx wrangler deploy
 ```
@@ -128,7 +133,7 @@ npx tsx import.ts
 1. Admin generates an invite code for a polla (via Telegram)
 2. Participant opens `jugar.html`, enters email + name + invite code → receives magic link
 3. Participant clicks the link → lands on the web app authenticated
-4. From the web app: predict match scores, view ranking, ask AI questions
+4. From the web app: predict match scores, view ranking, view personal predictions, ask AI questions
 
 ## Local development
 
@@ -161,7 +166,7 @@ Use [ngrok](https://ngrok.com) or a Cloudflare tunnel to expose the local port, 
 ```bash
 # Worker
 cd worker
-npm test              # run tests (44 tests)
+npm test              # run tests (34 tests)
 npm run dev           # local dev server
 npm run deploy        # deploy to Cloudflare
 
@@ -183,37 +188,38 @@ worker/src/
     auth.ts             # JWT authentication for web API
     cors.ts             # CORS headers
   handlers/
-    registration.ts     # Admin-only Telegram registration gate
-    menu.ts             # Inline keyboard menus + navigation
-    prediction.ts       # Prediction flow (Telegram)
-    ranking.ts          # Leaderboard view (Telegram)
-    matches.ts          # Match list view (Telegram)
-    question.ts         # DeepSeek natural language queries (Telegram)
+    registration.ts     # Telegram invite code validation + user creation
+    menu.ts             # Inline keyboard menus + callback routing
     web/
-      register.ts       # Web: register with email + name + invite code
-      login.ts          # Web: send magic link to existing user
-      predict.ts        # Web: submit prediction
-      ranking.ts        # Web: leaderboard filtered by user's polla
-      matches.ts        # Web: list matches
-      question.ts       # Web: ask AI question
+      register.ts       # POST /api/register — email + name + invite code
+      login.ts          # POST /api/login — magic link email login
+      predict.ts        # POST /api/predict — submit prediction
+      ranking.ts        # GET /api/ranking — leaderboard for user's polla
+      matches.ts        # GET /api/matches — all matches
+      question.ts       # POST /api/question — DeepSeek NLQ (logs to question_logs)
+      my-predictions.ts # GET /api/my-predictions — user's predictions with results
     admin/
       result.ts         # Admin: enter match result + calculate points
-      invite.ts         # Admin: generate invite code (with polla selection)
-      match.ts          # Admin: create match (multi-step flow)
+      invite.ts         # Admin: generate invite code
       league.ts         # Admin: create polla
   services/
     scoring.ts          # Pure calculatePoints() — tested
     deepseek.ts         # DeepSeek API client
     github.ts           # GitHub Actions trigger
+    worldcup-venues.ts  # Stadium/venue context for DeepSeek prompts
+    worldcup-history.ts # Historical World Cup data (2014-2022) for DeepSeek prompts
+    sanitize.ts         # Username sanitization utility
 site/
-  jugar.html            # Interactive web app (auth + predictions + ranking)
-  src/generate.ts       # Static site generator (Supabase → HTML, one section per polla)
-supabase/migrations/    # SQL migrations (apply in order)
+  jugar.html            # Web app: login, home menu (card grid), predict, ranking,
+                        # my predictions, ask AI (chat interface)
+  src/generate.ts       # Static site generator: ranking, partidos, stats pages
+supabase/migrations/    # SQL migrations (apply in order, 001–011)
 .github/workflows/
   build-site.yml        # Triggered on push to main and by Worker after results
 WorldCup2026/
-  worldcup.json         # Match schedule
-  import.ts             # Import script
+  worldcup.json         # Master fixture data (104 matches)
+  import.ts             # CLI: import worldcup.json → Supabase
+  download-history.ts   # CLI: fetch historical World Cup data
 ```
 
 ## License

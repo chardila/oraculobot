@@ -18,6 +18,10 @@ In Supabase dashboard → SQL Editor, run in order:
 5. `supabase/migrations/005_try_consume_invite_rpc.sql`
 6. `supabase/migrations/006_leagues.sql`
 7. `supabase/migrations/007_rls_policies.sql`
+8. `supabase/migrations/008_invite_code_expiry.sql`
+9. `supabase/migrations/009_add_match_venue.sql`
+10. `supabase/migrations/010_leaderboard_exclude_admin.sql`
+11. `supabase/migrations/011_question_logs.sql`
 
 ## 2. Create bootstrap admin invite code
 
@@ -43,6 +47,9 @@ wrangler secret put GITHUB_PAT               # fine-grained token: actions:write
 wrangler secret put GITHUB_REPO              # owner/repo-name
 wrangler secret put INVITE_CODE_SECRET       # any random 32-char string
 wrangler secret put TELEGRAM_BOT_USERNAME    # bot username without @
+wrangler secret put TELEGRAM_WEBHOOK_SECRET  # any random string: openssl rand -hex 32
+wrangler secret put WEB_ORIGIN               # https://owner.github.io (CORS origin)
+wrangler secret put WEB_REDIRECT_URL         # https://owner.github.io/repo/jugar.html (magic link redirect)
 
 wrangler deploy
 ```
@@ -53,7 +60,7 @@ wrangler deploy
 WORKER_URL="https://oraculobot-worker.<account>.workers.dev"
 BOT_TOKEN="<your-bot-token>"
 
-curl "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${WORKER_URL}"
+curl "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${WORKER_URL}&secret_token=${TELEGRAM_WEBHOOK_SECRET}"
 # Expected: {"ok":true,"result":true}
 ```
 
@@ -92,6 +99,9 @@ GITHUB_PAT=...
 GITHUB_REPO=...
 INVITE_CODE_SECRET=...
 TELEGRAM_BOT_USERNAME=...
+TELEGRAM_WEBHOOK_SECRET=...
+WEB_ORIGIN=http://localhost:3000
+WEB_REDIRECT_URL=http://localhost:3000/jugar.html
 ```
 
 ```bash
