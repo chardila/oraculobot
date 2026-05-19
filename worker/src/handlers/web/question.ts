@@ -35,6 +35,9 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
     return Response.json({ error: 'La pregunta no puede superar 500 caracteres' }, { status: 400 });
   }
 
+  // fire-and-forget: no bloquea ni falla la petición si el log falla
+  db.insertQuestionLog(user.id, body.question).catch(() => {});
+
   const today = new Date().toISOString().slice(0, 10);
   let questionsToday = user.questions_today;
 
