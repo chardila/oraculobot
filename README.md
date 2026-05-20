@@ -11,7 +11,7 @@ A World Cup prediction bot for friends and family. Users make match predictions 
 - Predict match scores before kickoff (closes 5 min before kick)
 - Automatic point calculation when admin enters results
 - Leaderboard, match results, and stats on a static website (auto-regenerates on every push)
-- Natural language questions answered by DeepSeek AI (question history logged for audit)
+- Natural language questions answered by DeepSeek AI — AI has context of the user's own predictions, the leaderboard, and the full match schedule (question history logged for audit)
 - View personal predictions history with scores and points earned
 - Admin controls via Telegram: enter results, generate invite codes, create matches, create pollas
 
@@ -196,7 +196,7 @@ worker/src/
       predict.ts        # POST /api/predict — submit prediction
       ranking.ts        # GET /api/ranking — leaderboard for user's polla
       matches.ts        # GET /api/matches — all matches
-      question.ts       # POST /api/question — DeepSeek NLQ (logs to question_logs)
+      question.ts       # POST /api/question — DeepSeek NLQ (user predictions + leaderboard + schedule in context; logs to question_logs)
       my-predictions.ts # GET /api/my-predictions — user's predictions with results
     admin/
       result.ts         # Admin: enter match result + calculate points
