@@ -53,10 +53,11 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
   await db.setQuestionsToday(user.id, questionsToday + 1);
 
   try {
-    const [leaderboard, allMatches, recent] = await Promise.all([
+    const [leaderboard, allMatches, recent, myPredictions] = await Promise.all([
       db.getLeaderboard(user.league_id),
       db.getAllMatches(),
       db.getRecentFinished(5),
+      db.getUserPredictions(user.id),
     ]);
 
     const leaderboardText = leaderboard.slice(0, 10)
@@ -78,6 +79,19 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       .map(m => `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team}`)
       .join('\n');
 
+    const myPredictionsText = myPredictions.length === 0
+      ? 'Sin predicciones aún.'
+      : myPredictions.map(p => {
+          const d = new Date(p.kickoff_at).toLocaleString('es-CO', {
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+            timeZone: 'America/Bogota',
+          });
+          const result = p.status === 'finished'
+            ? ` | Resultado: ${p.actual_home}-${p.actual_away} | Puntos: ${p.points ?? 'pendiente'}`
+            : ' | Pendiente';
+          return `${p.home_team} vs ${p.away_team} (${d}): predije ${p.predicted_home}-${p.predicted_away}${result}`;
+        }).join('\n');
+
     const systemPrompt =
       `Eres el asistente del torneo de predicciones del Mundial 2026 de un grupo de amigos.\n` +
       `Responde siempre en español, de forma breve y directa. No uses markdown.\n` +
@@ -85,6 +99,8 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       `Todas las horas son en horario de Colombia (UTC-5). Cuando respondas preguntas sobre horarios de partidos, siempre indica la hora en horario colombiano.\n\n` +
       `CONTEXTO ACTUAL:\n` +
       `Fecha: ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })}\n\n` +
+      `Usuario actual: ${sanitizeUsername(user.username)}\n` +
+      `Predicciones del usuario actual:\n${myPredictionsText}\n\n` +
       `Leaderboard:\n${leaderboardText || 'Sin puntos aún.'}\n\n` +
       `Calendario completo del Mundial 2026:\n${scheduleText || 'Sin partidos.'}\n\n` +
       `Resultados recientes:\n${recentText || 'Sin resultados aún.'}\n\n` +

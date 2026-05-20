@@ -58,7 +58,7 @@ Points are calculated in the worker when admin enters a result and persisted to 
 
 **Matches page** (`site/src/generate.ts`) groups 104 matches by phase (group stage A-L, then knockout rounds). Each match shows the stadium, city and country via a `VENUE_MAP` lookup. The `ground` column in the `matches` table stores the venue key from `worldcup.json`. The generator also falls back to reading `worldcup.json` directly for venue data. `layout(title, body, activePage?)` accepts an optional third argument to mark the active nav link.
 
-**Question logging** is fire-and-forget: every question submitted via `/api/question` is inserted into `question_logs` (user_id, question, asked_at) without blocking the response. Queryable directly from Supabase for audit purposes.
+**Question logging** is fire-and-forget: every question submitted via `/api/question` is inserted into `question_logs` (user_id, question, asked_at) without blocking the response. Queryable directly from Supabase for audit purposes. The DeepSeek system prompt includes the current user's predictions (match, predicted score, result, points) so the AI can answer questions like "what did I predict?" accurately.
 
 **Web UI** (`site/jugar.html`) uses a chat-style interface with two distinct visual modes: the home screen shows a 2×2 grid of app-card tiles (`.menu-card`), while active flows (predict, ranking, question) use pill quick-reply buttons (`.chat-btn`). All pages share a CSS variable design system (`--c-primary`, `--c-bg`, `--c-surface`, etc.) and a white surface panel on an off-white background.
 
@@ -92,7 +92,7 @@ worker/src/
     matches.ts          # GET /api/matches — returns all matches from Supabase
     predict.ts          # POST /api/predict — submit prediction for a match
     ranking.ts          # GET /api/ranking — leaderboard for user's league
-    question.ts         # POST /api/question — DeepSeek NLQ (logs to question_logs)
+    question.ts         # POST /api/question — DeepSeek NLQ (logs to question_logs; includes user's predictions in context)
     my-predictions.ts   # GET /api/my-predictions — user's own predictions with results
     register.ts         # POST /api/register — web user registration
     login.ts            # POST /api/login — magic link email login
