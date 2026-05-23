@@ -8,6 +8,7 @@ import { handleWebRanking } from './handlers/web/ranking';
 import { handleWebPredict } from './handlers/web/predict';
 import { handleWebQuestion } from './handlers/web/question';
 import { handleWebMyPredictions } from './handlers/web/my-predictions';
+import { handleWebReminders } from './handlers/web/reminders';
 
 export function timingSafeEqual(a: string | null, b: string): boolean {
   if (!a) return false;
@@ -51,6 +52,8 @@ export default {
           response = await handleWebQuestion(request, env);
         } else if (pathname === '/api/my-predictions' && method === 'GET') {
           response = await handleWebMyPredictions(request, env);
+        } else if (pathname === '/api/reminders' && method === 'GET') {
+          response = await handleWebReminders(request, env);
         } else {
           response = Response.json({ error: 'Not found' }, { status: 404 });
         }
