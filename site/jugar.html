@@ -80,6 +80,21 @@
     .menu-card.wide { grid-column: 1 / -1; flex-direction: row; justify-content: center; gap: 0.5rem; padding: 0.75rem; }
     .menu-card.wide .icon { font-size: 1.1rem; }
 
+    /* Reminders modal */
+    #reminder-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
+    #reminder-overlay.visible { display: flex; }
+    #reminder-modal { background: var(--c-surface); border-radius: var(--r-md); box-shadow: var(--shadow-md); max-width: 420px; width: 100%; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; max-height: 85vh; overflow-y: auto; }
+    #reminder-modal h2 { font-size: 1.1rem; font-weight: 700; margin: 0; }
+    #reminder-modal p { font-size: 0.875rem; color: var(--c-muted); margin: 0; }
+    .reminder-item { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; padding: 0.65rem 0; border-top: 1px solid var(--c-border); }
+    .reminder-match { display: flex; flex-direction: column; gap: 0.15rem; }
+    .reminder-match strong { font-size: 0.9rem; }
+    .reminder-match span { font-size: 0.78rem; color: var(--c-muted); }
+    .reminder-predict-btn { flex-shrink: 0; padding: 0.4rem 0.85rem; background: var(--c-primary); color: #fff; border: none; border-radius: var(--r-pill); font-size: 0.8rem; font-weight: 600; cursor: pointer; }
+    .reminder-predict-btn:hover { background: var(--c-primary-dark); }
+    #btn-reminder-dismiss { align-self: flex-end; background: none; border: none; color: var(--c-muted); font-size: 0.875rem; cursor: pointer; padding: 0.25rem 0; }
+    #btn-reminder-dismiss:hover { color: var(--c-text); }
+
     /* Text input */
     #text-input-area { display: none; flex-direction: column; gap: 0.5rem; padding: 0.5rem 1rem 1rem; }
     #text-input-area textarea { width: 100%; padding: 0.65rem 0.875rem; border: 1px solid var(--c-border); border-radius: var(--r-sm); font-size: 0.925rem; resize: none; height: 72px; font-family: inherit; color: var(--c-text); }
