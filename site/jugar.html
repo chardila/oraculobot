@@ -217,6 +217,9 @@
     const btnSend       = document.getElementById('btn-send');
     const btnConfirmScore = document.getElementById('btn-confirm-score');
     const btnLogout     = document.getElementById('btn-logout');
+    const reminderOverlay    = document.getElementById('reminder-overlay');
+    const reminderList       = document.getElementById('reminder-list');
+    const btnReminderDismiss = document.getElementById('btn-reminder-dismiss');
 
     // Pre-fill invite code from URL ?code=
     const urlCode = new URLSearchParams(location.search).get('code');
@@ -303,6 +306,7 @@
       chatScreen.style.display  = 'flex';
       chatScreen.style.flexDirection = 'column';
       if (messages.children.length === 0) startConversation();
+      checkReminders();
     }
 
     function addBotMsg(text) {
@@ -400,6 +404,58 @@
       return data;
     }
 
+    // ── Reminders ──
+    function formatKickoff(isoString) {
+      const d = new Date(isoString);
+      return d.toLocaleString('es-CO', { weekday: 'short', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    async function checkReminders() {
+      try {
+        const reminders = await api('/api/reminders');
+        if (!Array.isArray(reminders) || reminders.length === 0) return;
+
+        reminderList.innerHTML = '';
+        reminders.forEach(match => {
+          const item = document.createElement('div');
+          item.className = 'reminder-item';
+          const matchInfo = document.createElement('div');
+          matchInfo.className = 'reminder-match';
+          const strong = document.createElement('strong');
+          strong.textContent = `${match.home_team} vs ${match.away_team}`;
+          const span = document.createElement('span');
+          span.textContent = formatKickoff(match.kickoff_at);
+          matchInfo.appendChild(strong);
+          matchInfo.appendChild(span);
+          const btn = document.createElement('button');
+          btn.className = 'reminder-predict-btn';
+          btn.textContent = 'Predecir';
+          btn.dataset.id   = match.id;
+          btn.dataset.home = match.home_team;
+          btn.dataset.away = match.away_team;
+          item.appendChild(matchInfo);
+          item.appendChild(btn);
+          reminderList.appendChild(item);
+        });
+
+        reminderList.querySelectorAll('.reminder-predict-btn').forEach(btn => {
+          btn.addEventListener('click', () => {
+            reminderOverlay.classList.remove('visible');
+            if (messages.children.length === 0) startConversation();
+            startPredictForMatch({ id: btn.dataset.id, home_team: btn.dataset.home, away_team: btn.dataset.away });
+          });
+        });
+
+        reminderOverlay.classList.add('visible');
+      } catch {
+        // Silently ignore — reminders are non-critical
+      }
+    }
+
+    btnReminderDismiss.addEventListener('click', () => {
+      reminderOverlay.classList.remove('visible');
+    });
+
     // ── Flows ──
     function startConversation() {
       chatState = { step: 'menu', context: {} };
@@ -436,6 +492,30 @@
 
     // ── Predecir ──
     const PREDICT_PAGE_SIZE = 10;
+
+    async function startPredictForMatch(match) {
+      addUserMsg(`🔮 Predecir: ${match.home_team} vs ${match.away_team}`);
+      clearInputs();
+      chatState = { step: 'predict_score', context: { matchId: match.id, home: match.home_team, away: match.away_team } };
+      addBotMsg(`Ingresa tu predicción para ${match.home_team} vs ${match.away_team}:`);
+      showScoreInput(async () => {
+        const h = parseInt(document.getElementById('score-home').value, 10);
+        const a = parseInt(document.getElementById('score-away').value, 10);
+        clearInputs();
+        addUserMsg(`${h} - ${a}`);
+        const loading = addBotMsg('⏳ Guardando...');
+        try {
+          await api('/api/predict', {
+            method: 'POST',
+            body: JSON.stringify({ match_id: match.id, home_score: h, away_score: a }),
+          });
+          loading.textContent = `✅ Predicción guardada: ${match.home_team} ${h} – ${a} ${match.away_team}`;
+        } catch (e) {
+          loading.textContent = '❌ ' + e.message;
+        }
+        appendBackButton();
+      });
+    }
 
     async function startPredict() {
       addUserMsg('🔮 Predecir');
