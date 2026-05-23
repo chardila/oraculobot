@@ -119,6 +119,13 @@ export interface UserPredictionItem {
   points: number | null;
 }
 
+export interface ReminderMatch {
+  id: string;
+  home_team: string;
+  away_team: string;
+  kickoff_at: string;
+}
+
 export interface DbInviteCode {
   code: string;
   created_by: string;
