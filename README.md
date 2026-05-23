@@ -13,6 +13,7 @@ A World Cup prediction bot for friends and family. Users make match predictions 
 - Leaderboard, match results, and stats on a static website (auto-regenerates on every push)
 - Natural language questions answered by DeepSeek AI — AI has context of the user's own predictions, the leaderboard, and the full match schedule (question history logged for audit)
 - View personal predictions history with scores and points earned
+- Reminders modal: on login, if any match kicks off within 24h and hasn't been predicted, a modal prompts the user to predict directly from the alert
 - Admin controls via Telegram: enter results, generate invite codes, create matches, create pollas
 
 ## Scoring
@@ -166,7 +167,7 @@ Use [ngrok](https://ngrok.com) or a Cloudflare tunnel to expose the local port, 
 ```bash
 # Worker
 cd worker
-npm test              # run tests (34 tests)
+npm test              # run tests (40 tests)
 npm run dev           # local dev server
 npm run deploy        # deploy to Cloudflare
 
@@ -198,6 +199,7 @@ worker/src/
       matches.ts        # GET /api/matches — all matches
       question.ts       # POST /api/question — DeepSeek NLQ (user predictions + leaderboard + schedule in context; logs to question_logs)
       my-predictions.ts # GET /api/my-predictions — user's predictions with results
+      reminders.ts      # GET /api/reminders — upcoming unpredicted matches within 24h
     admin/
       result.ts         # Admin: enter match result + calculate points
       invite.ts         # Admin: generate invite code
@@ -212,6 +214,7 @@ worker/src/
 site/
   jugar.html            # Web app: login, home menu (card grid), predict, ranking,
                         # my predictions, ask AI (chat interface)
+                        # Reminders modal: shows on login if matches kick off within 24h
   src/generate.ts       # Static site generator: ranking, partidos, stats pages
 supabase/migrations/    # SQL migrations (apply in order, 001–011)
 .github/workflows/
