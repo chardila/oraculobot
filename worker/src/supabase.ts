@@ -11,7 +11,7 @@ export class SupabaseClient {
     this.key = key;
   }
 
-  private async req<T>(
+  async req<T>(
     path: string,
     options: RequestInit = {},
     query: Record<string, string> = {}
