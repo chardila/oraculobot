@@ -33,7 +33,7 @@ curl "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${WORKER_URL}"
 
 ## Architecture
 
-See `docs/plans/2026-04-10-oraculobot-design.md` for the full system design.
+See `docs/plans/archived/2026-04-10-oraculobot-design.md` for the full system design.
 See `docs/setup.md` for first-time deployment instructions.
 
 **Request flow:**
