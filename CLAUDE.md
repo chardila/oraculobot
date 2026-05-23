@@ -46,6 +46,8 @@ Telegram POST → worker/src/index.ts
 
 **Multi-step conversation flows** (predicting, entering results, creating matches) store state in the `conversation_state` Supabase table. The `step` field acts as an FSM state; `context` holds intermediate values (match ID, team names, etc.). Users can exit any active flow at any time by sending `/cancel`, which clears the state and shows the main menu.
 
+**User channels**: Regular users interact exclusively through the web UI (`site/jugar.html`). The Telegram bot is admin-only — it is used by the admin to enter match results, generate invite codes, and manage leagues. Regular users do NOT receive Telegram messages; all user-facing communication happens in the web UI.
+
 **Admin authorization** is done by comparing `telegram_id` against the `ADMIN_TELEGRAM_ID` environment variable — no DB lookup needed, cannot be spoofed.
 
 **Scoring logic** is a pure function in `worker/src/services/scoring.ts`:
