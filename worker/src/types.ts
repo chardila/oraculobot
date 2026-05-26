@@ -93,6 +93,8 @@ export interface DbMatch {
   away_score: number | null;
   status: 'scheduled' | 'finished';
   ground: string | null;
+  match_num: number | null;
+  winner: 'home' | 'away' | null;
 }
 
 export interface DbPrediction {
