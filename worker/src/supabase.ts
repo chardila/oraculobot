@@ -146,6 +146,31 @@ export class SupabaseClient {
     }, { id: `eq.${id}` });
   }
 
+  async getMatchByNum(matchNum: number): Promise<DbMatch | null> {
+    const rows = await this.req<DbMatch[]>('matches', {}, {
+      match_num: `eq.${matchNum}`,
+      limit: '1',
+    });
+    return rows?.[0] ?? null;
+  }
+
+  async setMatchWinner(id: string, winner: 'home' | 'away'): Promise<void> {
+    await this.req('matches', {
+      method: 'PATCH',
+      body: JSON.stringify({ winner }),
+      headers: { 'Prefer': 'return=minimal' },
+    }, { id: `eq.${id}` });
+  }
+
+  async updateMatchTeam(id: string, side: 'home' | 'away', team: string): Promise<void> {
+    const field = side === 'home' ? 'home_team' : 'away_team';
+    await this.req('matches', {
+      method: 'PATCH',
+      body: JSON.stringify({ [field]: team }),
+      headers: { 'Prefer': 'return=minimal' },
+    }, { id: `eq.${id}` });
+  }
+
   async getRecentFinished(limit = 5): Promise<DbMatch[]> {
     return this.req<DbMatch[]>('matches', {}, {
       status: 'eq.finished',
