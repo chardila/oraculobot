@@ -1,7 +1,7 @@
 import type { TelegramCallbackQuery, Env, DbUser, InlineKeyboardButton } from '../types';
 import type { SupabaseClient } from '../supabase';
 import { sendMessage, sendMenu, editMenu } from '../telegram';
-import { startAdminResult, handleAdminResultSelect } from './admin/result';
+import { startAdminResult, handleAdminResultSelect, handleAdminPenaltyWinner } from './admin/result';
 import { generateInviteCode, handleInviteLeagueCallback } from './admin/invite';
 import { startAdminLeague } from './admin/league';
 
@@ -57,6 +57,13 @@ export async function handleMenuCallback(
     if (!admin) return;
     const matchId = data.replace('admin:result:', '');
     await handleAdminResultSelect(matchId, chatId, user, db, env);
+    return;
+  }
+
+  if (data === 'admin:penalty:home' || data === 'admin:penalty:away') {
+    if (!admin) return;
+    const winner = data === 'admin:penalty:home' ? 'home' : 'away';
+    await handleAdminPenaltyWinner(winner, chatId, user, db, env);
     return;
   }
 
