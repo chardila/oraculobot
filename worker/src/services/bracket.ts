@@ -75,6 +75,8 @@ export async function propagateBracket(
     const target = await db.getMatchByNum(entry.nextMatchNum);
     if (target) {
       await db.updateMatchTeam(target.id, entry.as, team);
+    } else {
+      console.warn(`propagateBracket: no match found for match_num=${entry.nextMatchNum}`);
     }
   }));
 }
