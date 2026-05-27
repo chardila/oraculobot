@@ -16,6 +16,7 @@ import groups2018 from '../data/history/2018-worldcup.groups.json';
 import standings2018 from '../data/history/2018-worldcup.standings.json';
 import wc2022 from '../data/history/2022-worldcup.json';
 import groups2022 from '../data/history/2022-worldcup.groups.json';
+import stadiums2022 from '../data/history/2022-worldcup.stadiums.json';
 import wc2026bracket from '../data/history/2026-worldcup.json';
 import teams2026 from '../data/history/2026-worldcup.teams_meta.json';
 import stadiums2026 from '../data/history/2026-worldcup.stadiums.json';
@@ -35,7 +36,8 @@ export const HISTORY_CONTEXT =
   `Estadios: ${JSON.stringify(stadiums2018)}\n\n` +
   `=== MUNDIAL 2022 ===\n` +
   `Grupos: ${JSON.stringify(groups2022)}\n` +
-  `Partidos y goles: ${JSON.stringify(wc2022)}\n\n` +
+  `Partidos y goles: ${JSON.stringify(wc2022)}\n` +
+  `Estadios: ${JSON.stringify(stadiums2022)}\n\n` +
   `=== MUNDIAL 2026 - Equipos, Estadios y Bracket ===\n` +
   `Equipos y confederaciones: ${JSON.stringify(teams2026)}\n` +
   `Estadios sede: ${JSON.stringify(stadiums2026)}\n` +

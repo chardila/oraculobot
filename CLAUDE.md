@@ -119,6 +119,14 @@ supabase/migrations/
   build-site.yml        # Triggered by Worker; builds and deploys to GitHub Pages
 ```
 
+## Database migrations — security checklist
+
+**Every `create table` migration MUST include `alter table <name> enable row level security;`** in the same migration file, immediately after the table definition. This has been missed twice in this project (`question_logs`, `knockout_bracket`) and caused Supabase security alerts.
+
+- Tables accessed only by the worker (service role) need RLS enabled but no policies — service role bypasses RLS by design.
+- Tables accessed by web users need RLS enabled + explicit policies (see `007_rls_policies.sql` for examples).
+- After adding any migration, run `mcp__supabase__get_advisors` with `type: "security"` to verify no new ERRORs.
+
 ## Local dev setup
 
 Create `worker/.dev.vars` (gitignored) with all secrets listed in `worker/wrangler.toml` comments. Wrangler reads this file automatically in `npm run dev`.

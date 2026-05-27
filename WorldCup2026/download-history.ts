@@ -19,6 +19,7 @@ const FILES = [
   { year: 2018, file: 'worldcup.standings.json' },
   { year: 2022, file: 'worldcup.json' },
   { year: 2022, file: 'worldcup.groups.json' },
+  { year: 2022, file: 'worldcup.stadiums.json' },
   { year: 2026, file: 'worldcup.json' },
   { year: 2026, file: 'worldcup.teams_meta.json' },
   { year: 2026, file: 'worldcup.stadiums.json' },
