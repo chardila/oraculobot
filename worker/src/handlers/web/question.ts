@@ -4,7 +4,7 @@ import { authenticate, AuthError } from '../../middleware/auth';
 import { askDeepSeek } from '../../services/deepseek';
 import { sanitizeUsername } from '../../services/sanitize';
 import { VENUE_CONTEXT } from '../../services/worldcup-venues';
-import { HISTORY_CONTEXT } from '../../services/worldcup-history';
+import { WC_SCHEMA_PROMPT, executeWcQuery } from '../../services/wc-sql';
 
 const QUESTIONS_PER_DAY = 20;
 
@@ -35,21 +35,17 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
     return Response.json({ error: 'La pregunta no puede superar 500 caracteres' }, { status: 400 });
   }
 
-  // fire-and-forget: no bloquea ni falla la petición si el log falla
   db.insertQuestionLog(user.id, body.question).catch(() => {});
 
   const today = new Date().toISOString().slice(0, 10);
   let questionsToday = user.questions_today;
-
   if (!user.questions_reset_at || user.questions_reset_at < today) {
     await db.setQuestionsToday(user.id, 0, today);
     questionsToday = 0;
   }
-
   if (questionsToday >= QUESTIONS_PER_DAY) {
     return Response.json({ error: `Alcanzaste el límite de ${QUESTIONS_PER_DAY} preguntas por día` }, { status: 429 });
   }
-
   await db.setQuestionsToday(user.id, questionsToday + 1);
 
   try {
@@ -64,16 +60,15 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       .map((r, i) => `${i + 1}. ${sanitizeUsername(r.username)}: ${r.total_points} pts`)
       .join('\n');
 
-    const scheduleText = allMatches
-      .map(m => {
-        const d = new Date(m.kickoff_at).toLocaleString('es-CO', {
-          day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-          timeZone: 'America/Bogota',
-        });
-        return m.status === 'finished'
-          ? `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team} (${d}) [finalizado]`
-          : `${m.home_team} vs ${m.away_team} (${d}) [${m.phase}${m.group_name ? ' Grupo ' + m.group_name : ''}]`;
-      }).join('\n');
+    const scheduleText = allMatches.map(m => {
+      const d = new Date(m.kickoff_at).toLocaleString('es-CO', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+        timeZone: 'America/Bogota',
+      });
+      return m.status === 'finished'
+        ? `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team} (${d}) [finalizado]`
+        : `${m.home_team} vs ${m.away_team} (${d}) [${m.phase}${m.group_name ? ' Grupo ' + m.group_name : ''}]`;
+    }).join('\n');
 
     const recentText = recent
       .map(m => `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team}`)
@@ -92,23 +87,68 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
           return `${p.home_team} vs ${p.away_team} (${d}): predije ${p.predicted_home}-${p.predicted_away}${result}`;
         }).join('\n');
 
-    const systemPrompt =
-      `Eres el asistente del torneo de predicciones del Mundial 2026 de un grupo de amigos.\n` +
+    // ── Primera llamada: clasificar pregunta y/o generar SQL ─────────────────
+    const systemPrompt1 =
+      `Eres el asistente del torneo de predicciones del Mundial 2026.\n` +
       `Responde siempre en español, de forma breve y directa. No uses markdown.\n` +
-      `IMPORTANTE: Solo puedes responder preguntas sobre Mundiales de fútbol (2014, 2018, 2022 y 2026: partidos, goles, equipos, grupos, resultados, estadios, confederaciones) y sobre la polla (puntos, predicciones, ranking). Si te preguntan algo diferente, responde exactamente: "Solo puedo responder preguntas sobre Mundiales de fútbol y la polla."\n` +
-      `Todas las horas son en horario de Colombia (UTC-5). Cuando respondas preguntas sobre horarios de partidos, siempre indica la hora en horario colombiano.\n\n` +
-      `CONTEXTO ACTUAL:\n` +
-      `Fecha: ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })}\n\n` +
-      `Usuario actual: ${sanitizeUsername(user.username)}\n` +
-      `Predicciones del usuario actual:\n${myPredictionsText}\n\n` +
+      `Solo puedes responder sobre Mundiales de fútbol o la polla. Si te preguntan otra cosa, responde exactamente: "Solo puedo responder preguntas sobre Mundiales de fútbol y la polla."\n\n` +
+      `REGLA IMPORTANTE: Si la pregunta es sobre historia de Mundiales (partidos, goles, goleadores, grupos, clasificaciones, estadios, eliminatorias), responde ÚNICAMENTE con:\n` +
+      `SQL: <consulta SQL aquí>\n` +
+      `No añadas nada más. El SQL debe usar solo las tablas disponibles.\n\n` +
+      `Si la pregunta es sobre la polla (predicciones, puntos, ranking), responde directamente usando el contexto.\n\n` +
+      `${WC_SCHEMA_PROMPT}\n\n` +
+      `CONTEXTO POLLA:\n` +
+      `Fecha: ${new Date().toLocaleString('es-CO', { timeZone: 'America/Bogota' })}\n` +
+      `Usuario: ${sanitizeUsername(user.username)}\n` +
+      `Mis predicciones:\n${myPredictionsText}\n\n` +
       `Leaderboard:\n${leaderboardText || 'Sin puntos aún.'}\n\n` +
-      `Calendario completo del Mundial 2026:\n${scheduleText || 'Sin partidos.'}\n\n` +
+      `Calendario 2026:\n${scheduleText || 'Sin partidos.'}\n\n` +
       `Resultados recientes:\n${recentText || 'Sin resultados aún.'}\n\n` +
-      `Estadios sede del torneo:\n${VENUE_CONTEXT}\n\n` +
-      `Datos históricos de Mundiales anteriores (2014-2022) y bracket 2026:\n${HISTORY_CONTEXT}`;
+      `Estadios 2026:\n${VENUE_CONTEXT}`;
 
-    const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt, body.question);
-    return Response.json({ answer });
+    const response1 = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt1, body.question);
+
+    // ── Si el modelo generó SQL, ejecutarlo y hacer segunda llamada ──────────
+    if (response1.trimStart().toUpperCase().startsWith('SQL:')) {
+      const sql = response1.replace(/^SQL:\s*/i, '').trim();
+      let { rows, error } = await executeWcQuery(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY, sql);
+
+      // Reintentar una vez si hubo error
+      if (error) {
+        const retry = await askDeepSeek(
+          env.DEEPSEEK_API_KEY,
+          systemPrompt1,
+          `${body.question}\n\n(El SQL anterior falló con error: ${error}. Genera un SQL corregido.)`
+        );
+        if (retry.trimStart().toUpperCase().startsWith('SQL:')) {
+          const retrySql = retry.replace(/^SQL:\s*/i, '').trim();
+          ({ rows, error } = await executeWcQuery(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY, retrySql));
+        }
+      }
+
+      if (error || rows.length === 0) {
+        const systemPrompt2 =
+          `Eres el asistente del torneo de predicciones del Mundial 2026. Responde en español, breve y directo. No uses markdown.\n` +
+          `La consulta no devolvió resultados. Informa al usuario que no tienes esa información.`;
+        const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt2, body.question);
+        return Response.json({ answer });
+      }
+
+      // Segunda llamada: convertir resultados a respuesta en español
+      const resultsText = JSON.stringify(rows, null, 2);
+      const systemPrompt2 =
+        `Eres el asistente del torneo de predicciones del Mundial 2026. Responde en español, breve y directo. No uses markdown.\n` +
+        `El usuario preguntó: "${body.question}"\n` +
+        `Los datos de la base de datos son:\n${resultsText}\n` +
+        `Responde la pregunta usando solo esos datos.`;
+
+      const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt2, body.question);
+      return Response.json({ answer });
+    }
+
+    // ── Respuesta directa (preguntas de polla) ───────────────────────────────
+    return Response.json({ answer: response1 });
+
   } catch (e) {
     console.error('question web error:', e);
     return Response.json({ error: 'No pude procesar tu pregunta, intenta de nuevo' }, { status: 500 });
