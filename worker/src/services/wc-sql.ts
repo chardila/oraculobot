@@ -32,7 +32,7 @@ wc_bookings(id, match_id, team, player_name, shirt_number, minute_regulation, mi
   - Tarjetas desde 1970. match_id referencia wc_matches.id
 
 wc_substitutions(id, match_id, team, player_name, shirt_number, minute_regulation, minute_stoppage, match_period, going_off, coming_on)
-  - Sustituciones desde 1970. going_off=true: jugador que sale; coming_on=true: jugador que entra
+  - Sustituciones desde 1970. IMPORTANTE: cada sustitución genera DOS filas — una con going_off=true (jugador que sale) y otra con coming_on=true (jugador que entra). Para contar sustituciones usa WHERE going_off = true. Para listar jugadores que entraron usa WHERE coming_on = true.
 
 wc_player_appearances(id, match_id, team, player_name, shirt_number, position_name, position_code, starter, substitute)
   - Apariciones por partido desde 1930. position_code: 'GK', 'DF', 'MF', 'FW'
