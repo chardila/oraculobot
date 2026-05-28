@@ -22,15 +22,43 @@ In Supabase dashboard → SQL Editor, run in order:
 9. `supabase/migrations/009_add_match_venue.sql`
 10. `supabase/migrations/010_leaderboard_exclude_admin.sql`
 11. `supabase/migrations/011_question_logs.sql`
+12. `supabase/migrations/012_knockout_bracket.sql`
+13. `supabase/migrations/013_rls_question_logs.sql`
+14. `supabase/migrations/014_wc_history_tables.sql`
+15. `supabase/migrations/015_jfjelstul_enrichment.sql`
+16. `supabase/migrations/016_normalize_phase_names.sql`
+17. `supabase/migrations/017_normalize_third_place_phase.sql`
 
-## 2. Create bootstrap admin invite code
+## 2. Load World Cup fixture and history data
+
+Requires `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` env vars set.
+
+```bash
+cd WorldCup2026
+
+# Load 2026 fixtures (104 matches) into the matches table
+npx tsx import.ts
+
+# Load historical WC matches + goals (1930-2022) + 2026 qualifying
+# Also normalizes scorer names across sources (e.g. "Ronaldo" → "Cristiano Ronaldo")
+npx tsx load-wc-history.ts
+
+# Enrich WC data with jfjelstul dataset (~35MB download):
+# referees, bookings, substitutions, player appearances, penalty kicks,
+# group standings, award winners, and full goals for 1954-2013
+npx tsx load-jfjelstul-history.ts
+```
+
+Both `load-wc-history.ts` and `load-jfjelstul-history.ts` are idempotent — safe to re-run.
+
+## 3. Create bootstrap admin invite code
 
 ```sql
 insert into invite_codes (code, created_by, max_uses, use_count)
 values ('ADMIN2026', null, 1, 0);
 ```
 
-## 3. Deploy the Worker
+## 4. Deploy the Worker
 
 ```bash
 cd worker
@@ -54,7 +82,7 @@ wrangler secret put WEB_REDIRECT_URL         # https://owner.github.io/repo/juga
 wrangler deploy
 ```
 
-## 4. Register the Telegram webhook
+## 5. Register the Telegram webhook
 
 ```bash
 WORKER_URL="https://oraculobot-worker.<account>.workers.dev"
@@ -64,7 +92,7 @@ curl "https://api.telegram.org/bot${BOT_TOKEN}/setWebhook?url=${WORKER_URL}&secr
 # Expected: {"ok":true,"result":true}
 ```
 
-## 5. Register as admin
+## 6. Register as admin
 
 1. Send `ADMIN2026` to the bot in Telegram
 2. The bot registers you as a normal user
@@ -76,7 +104,7 @@ update users set is_admin = true where telegram_id = <your-telegram-id>;
 
 4. Send any message to the bot — the admin menu (✅ Resultado, 🎟 Invitar, ➕ Partido) should appear.
 
-## 6. Enable GitHub Pages
+## 7. Enable GitHub Pages
 
 In repo Settings → Pages → Source: **GitHub Actions**
 
@@ -85,7 +113,7 @@ Add repository secrets (Settings → Secrets → Actions):
 - `SUPABASE_SERVICE_KEY`
 - `SUPABASE_ANON_KEY`
 
-## 7. Local development
+## 8. Local development
 
 Create `worker/.dev.vars` (gitignored):
 ```
