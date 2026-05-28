@@ -13,7 +13,7 @@ Tienes acceso a las siguientes tablas de base de datos con historia de Mundiales
 wc_matches(id, year, tournament, phase, home_team, away_team, home_score, away_score, home_ht, away_ht, match_date, ground, extra_time, penalty_shootout, home_penalties, away_penalties)
   - year: número entero (1930, 1934, ..., 2022)
   - tournament: 'FIFA World Cup' o 'FIFA World Cup qualification'
-  - phase: 'Group A'..'Group H', 'Round of 16', 'Quarter-finals', 'Semi-finals', 'Final', 'Qualifying', etc.
+  - phase valores exactos (usar siempre estos): 'Group A'..'Group H', 'Round of 16', 'Quarter-finals', 'Semi-finals', 'Final', 'Third-place match'. Históricos: 'First round', 'Final Round', 'Preliminary round'.
   - IMPORTANTE: home_score/away_score es el marcador al final de los 90 minutos, NO incluye goles de prórroga. Para el resultado completo de partidos con extra_time=true, contar goles desde wc_goals.
   - extra_time: true si el partido fue a prórroga
   - penalty_shootout: true si hubo penales; home_penalties/away_penalties tienen los goles de shootout (no están en home_score/away_score)
