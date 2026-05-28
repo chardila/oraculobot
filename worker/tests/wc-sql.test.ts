@@ -28,4 +28,21 @@ describe('validateWcSql', () => {
     );
     expect(r.valid).toBe(true);
   });
+
+  it('accepts new tables in ALLOWED_TABLES', () => {
+    const queries = [
+      'SELECT * FROM wc_bookings WHERE yellow_card = true',
+      'SELECT * FROM wc_substitutions JOIN wc_matches ON wc_substitutions.match_id = wc_matches.id',
+      'SELECT * FROM wc_group_standings WHERE year = 2022',
+      "SELECT * FROM wc_award_winners WHERE award_name = 'Golden Boot'",
+      'SELECT * FROM wc_penalty_kicks WHERE converted = true',
+      "SELECT * FROM wc_player_appearances WHERE position_code = 'GK'",
+      'SELECT * FROM wc_referees',
+      'SELECT * FROM wc_referee_appearances JOIN wc_referees ON wc_referee_appearances.referee_id = wc_referees.id',
+    ];
+    for (const q of queries) {
+      const r = validateWcSql(q);
+      expect(r.valid, q).toBe(true);
+    }
+  });
 });
