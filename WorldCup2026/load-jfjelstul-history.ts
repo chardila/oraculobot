@@ -59,7 +59,10 @@ async function supaDelete(path: string) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function playerName(given: string, family: string): string {
-  return [given, family].filter(Boolean).join(' ').trim();
+  return [given, family]
+    .filter(s => s && s.toLowerCase() !== 'not applicable')
+    .join(' ')
+    .trim();
 }
 
 function wcYear(tournamentId: string): number {
