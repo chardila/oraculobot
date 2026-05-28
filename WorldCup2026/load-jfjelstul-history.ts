@@ -66,6 +66,19 @@ function wcYear(tournamentId: string): number {
   return parseInt(tournamentId.replace('WC-', ''));
 }
 
+// jfjelstul uses different team names than openfootball in some cases
+const TEAM_NAME_MAP: Record<string, string> = {
+  'United States':        'USA',
+  'Republic of Ireland':  'Ireland',
+  'Ivory Coast':          "Côte d'Ivoire",
+  'Bosnia and Herzegovina': 'Bosnia-Herzegovina',
+  'Korea DPR':            'North Korea',
+};
+
+function norm(name: string): string {
+  return TEAM_NAME_MAP[name] ?? name;
+}
+
 // ── Build match lookup ───────────────────────────────────────────────────────
 
 type OurMatch = { id: number; year: number; match_date: string; home_team: string; away_team: string };
@@ -82,11 +95,17 @@ async function buildMatchLookup(jfMatches: JfMatch[]): Promise<Map<string, numbe
     `wc_matches?tournament=eq.FIFA%20World%20Cup&select=id,year,match_date,home_team,away_team`
   );
 
-  // Primary key: "year|home|away"  (both orderings for safety)
+  // Primary: year|date|home|away — precise, resolves teams that meet twice (e.g. England-Belgium 2018)
+  const byDate = new Map<string, number>();
+  // Fallback: year|home|away — for edge cases where date might differ; first entry wins
   const byTeams = new Map<string, number>();
   for (const m of ourMatches) {
-    byTeams.set(`${m.year}|${m.home_team}|${m.away_team}`, m.id);
-    byTeams.set(`${m.year}|${m.away_team}|${m.home_team}`, m.id);
+    byDate.set(`${m.year}|${m.match_date}|${m.home_team}|${m.away_team}`, m.id);
+    byDate.set(`${m.year}|${m.match_date}|${m.away_team}|${m.home_team}`, m.id);
+    if (!byTeams.has(`${m.year}|${m.home_team}|${m.away_team}`)) {
+      byTeams.set(`${m.year}|${m.home_team}|${m.away_team}`, m.id);
+      byTeams.set(`${m.year}|${m.away_team}|${m.home_team}`, m.id);
+    }
   }
 
   const lookup = new Map<string, number>();
@@ -95,7 +114,11 @@ async function buildMatchLookup(jfMatches: JfMatch[]): Promise<Map<string, numbe
   for (const jfm of jfMatches) {
     if (jfm.replay === 1) { skipped++; continue; }
     const year = wcYear(jfm.tournament_id);
-    const ourId = byTeams.get(`${year}|${jfm.home_team_name}|${jfm.away_team_name}`);
+    const home = norm(jfm.home_team_name);
+    const away = norm(jfm.away_team_name);
+    const ourId = byDate.get(`${year}|${jfm.match_date}|${home}|${away}`)
+               ?? byDate.get(`${year}|${jfm.match_date}|${away}|${home}`)
+               ?? byTeams.get(`${year}|${home}|${away}`);
     if (ourId) {
       lookup.set(jfm.match_id, ourId);
       linked++;
@@ -145,7 +168,8 @@ type JfRefApp = {
 async function loadReferees(referees: JfReferee[], appearances: JfRefApp[], lookup: Map<string, number>) {
   process.stdout.write('Loading referees... ');
 
-  // Referees: full replace
+  // Delete appearances first (they reference referees via FK), then referees
+  await supaDelete('wc_referee_appearances?id=gte.1');
   await supaDelete('wc_referees?id=gte.1');
   const refRows = referees.map(r => ({
     jfjelstul_referee_id: r.referee_id,
@@ -162,7 +186,6 @@ async function loadReferees(referees: JfReferee[], appearances: JfRefApp[], look
   );
   const refLookup = new Map(insertedRefs.map(r => [r.jfjelstul_referee_id, r.id]));
 
-  await supaDelete('wc_referee_appearances?id=gte.1');
   const appRows: object[] = [];
   for (const a of appearances) {
     const matchId = lookup.get(a.match_id);
@@ -366,8 +389,18 @@ async function main() {
   const jf = await res.json() as Record<string, any[]>;
   console.log(`Downloaded. Top-level keys: ${Object.keys(jf).join(', ')}`);
 
-  const matches   = jf.matches   as JfMatch[];
-  const lookup    = await buildMatchLookup(matches);
+  // jfjelstul names: "1930 FIFA Men's World Cup" / "1991 FIFA Women's World Cup"
+  const mensWCIds = new Set(
+    (jf.tournaments as Array<{ tournament_id: string; tournament_name: string }>)
+      .filter(t => t.tournament_name.includes("Men's"))
+      .map(t => t.tournament_id)
+  );
+  console.log(`Men's WC tournaments: ${mensWCIds.size}`);
+
+  const isMens = (tid: string) => mensWCIds.has(tid);
+
+  const matches = (jf.matches as JfMatch[]).filter(m => isMens(m.tournament_id));
+  const lookup  = await buildMatchLookup(matches);
 
   await enrichMatches(matches, lookup);
   await loadReferees(jf.referees as JfReferee[], jf.referee_appearances as JfRefApp[], lookup);
@@ -375,8 +408,8 @@ async function main() {
   await loadSubstitutions(jf.substitutions as JfSubstitution[], lookup);
   await loadPlayerAppearances(jf.player_appearances as JfPlayerAppearance[], lookup);
   await loadPenaltyKicks(jf.penalty_kicks as JfPenaltyKick[], lookup);
-  await loadGroupStandings(jf.group_standings as JfGroupStanding[]);
-  await loadAwardWinners(jf.award_winners as JfAwardWinner[]);
+  await loadGroupStandings((jf.group_standings as JfGroupStanding[]).filter(s => isMens(s.tournament_id)));
+  await loadAwardWinners((jf.award_winners as JfAwardWinner[]).filter(w => isMens(w.tournament_id)));
 
   console.log('\nDone.');
 }
