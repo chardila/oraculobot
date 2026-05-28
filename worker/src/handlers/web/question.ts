@@ -6,7 +6,7 @@ import { sanitizeUsername } from '../../services/sanitize';
 import { VENUE_CONTEXT } from '../../services/worldcup-venues';
 import { WC_SCHEMA_PROMPT, executeWcQuery } from '../../services/wc-sql';
 
-const QUESTIONS_PER_DAY = 20;
+const QUESTIONS_PER_DAY = 100;
 
 export async function handleWebQuestion(request: Request, env: Env): Promise<Response> {
   const db = new SupabaseClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_KEY);
@@ -92,7 +92,7 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       `Eres el asistente del torneo de predicciones del Mundial 2026.\n` +
       `Responde siempre en español, de forma breve y directa. No uses markdown.\n` +
       `Solo puedes responder sobre Mundiales de fútbol o la polla. Si te preguntan otra cosa, responde exactamente: "Solo puedo responder preguntas sobre Mundiales de fútbol y la polla."\n\n` +
-      `REGLA IMPORTANTE: Si la pregunta es sobre historia de Mundiales (partidos, goles, goleadores, grupos, clasificaciones, estadios, eliminatorias), responde ÚNICAMENTE con:\n` +
+      `REGLA IMPORTANTE: Si la pregunta es sobre historia de Mundiales (partidos, goles, goleadores, grupos, clasificaciones, estadios, eliminatorias, penales, shootout, tarjetas, sustituciones, árbitros, alineaciones, jugadores, premios, Golden Boot, Golden Ball, tabla de posiciones, resultados históricos de mundiales anteriores), responde ÚNICAMENTE con:\n` +
       `SQL: <consulta SQL aquí>\n` +
       `No añadas nada más. El SQL debe usar solo las tablas disponibles.\n\n` +
       `Si la pregunta es sobre la polla (predicciones, puntos, ranking), responde directamente usando el contexto.\n\n` +
