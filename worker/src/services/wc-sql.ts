@@ -64,6 +64,9 @@ Ejemplos de consultas:
 - Partidos de Colombia en eliminatorias: SELECT match_date, home_team, home_score, away_score, away_team FROM wc_matches WHERE year = 2026 AND tournament = 'FIFA World Cup qualification' AND (home_team = 'Colombia' OR away_team = 'Colombia') ORDER BY match_date
 - Árbitro con más partidos dirigidos: SELECT family_name, given_name, country_name, COUNT(*) as partidos FROM wc_referee_appearances GROUP BY family_name, given_name, country_name ORDER BY partidos DESC LIMIT 5
 - Árbitros de la final 2022: SELECT family_name, given_name, country_name FROM wc_referee_appearances ra JOIN wc_matches m ON ra.match_id = m.id WHERE m.year = 2022 AND m.phase = 'Final'
+- Goles de Maradona en mundiales: SELECT m.year, COUNT(*) as goles FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.tournament = 'FIFA World Cup' AND g.scorer ILIKE '%Maradona%' AND g.own_goal = false GROUP BY m.year ORDER BY m.year
+- Goleador del Mundial 1958: SELECT scorer, COUNT(*) as goles FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.year = 1958 AND m.tournament = 'FIFA World Cup' AND g.own_goal = false GROUP BY scorer ORDER BY goles DESC LIMIT 5
+- Cuántas veces se enfrentaron Brasil y Argentina: SELECT COUNT(*) as partidos FROM wc_matches WHERE tournament = 'FIFA World Cup' AND ((home_team = 'Brazil' AND away_team = 'Argentina') OR (home_team = 'Argentina' AND away_team = 'Brazil'))
 `.trim();
 
 export function validateWcSql(sql: string): { valid: boolean; error?: string } {

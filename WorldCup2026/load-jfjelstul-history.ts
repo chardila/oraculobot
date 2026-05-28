@@ -364,6 +364,46 @@ async function loadGroupStandings(standings: JfGroupStanding[]) {
   console.log(`${rows.length} group standings rows`);
 }
 
+// ── Load goals (gap years 1954-2013) ─────────────────────────────────────────
+// wc_goals already has data for 1930-1950 (openfootball) and 2014+ (openfootball/live).
+// jfjelstul covers the gap: 1954-2013. Only insert for those years to avoid duplicates.
+
+type JfGoal = {
+  tournament_id: string;
+  match_id: string;
+  team_name: string;
+  family_name: string;
+  given_name: string;
+  shirt_number: number | null;
+  minute_regulation: number | null;
+  minute_stoppage: number | null;
+  match_period: string | null;
+  goal_type: string; // 'regular', 'own goal', 'penalty'
+};
+
+async function loadGoals(goals: JfGoal[], lookup: Map<string, number>) {
+  process.stdout.write('Loading goals for gap years 1954-2013... ');
+  const rows: object[] = [];
+  for (const g of goals) {
+    const year = wcYear(g.tournament_id);
+    if (year < 1954 || year > 2013) continue;
+    const matchId = lookup.get(g.match_id);
+    if (!matchId) continue;
+    rows.push({
+      match_id:        matchId,
+      team:            norm(g.team_name),
+      scorer:          playerName(g.given_name, g.family_name),
+      minute:          g.minute_regulation ?? null,
+      minute_stoppage: g.minute_stoppage ?? null,
+      match_period:    g.match_period ?? null,
+      penalty:         g.goal_type === 'penalty',
+      own_goal:        g.goal_type === 'own goal',
+    });
+  }
+  await supaPost('wc_goals', rows);
+  console.log(`${rows.length} goals`);
+}
+
 // ── Load award winners ────────────────────────────────────────────────────────
 
 type JfAwardWinner = {
@@ -419,6 +459,11 @@ async function main() {
   await loadPenaltyKicks(jf.penalty_kicks as JfPenaltyKick[], lookup);
   await loadGroupStandings((jf.group_standings as JfGroupStanding[]).filter(s => isMens(s.tournament_id)));
   await loadAwardWinners((jf.award_winners as JfAwardWinner[]).filter(w => isMens(w.tournament_id)));
+  if (jf.goals) {
+    await loadGoals((jf.goals as JfGoal[]).filter(g => isMens(g.tournament_id)), lookup);
+  } else {
+    console.log('No goals key found in jfjelstul dataset — skipping gap-year goals');
+  }
 
   console.log('\nDone.');
 }
