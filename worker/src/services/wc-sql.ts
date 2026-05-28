@@ -39,7 +39,8 @@ wc_player_appearances(id, match_id, team, player_name, shirt_number, position_na
   - Apariciones por partido desde 1930. position_code: 'GK', 'DF', 'MF', 'FW'
 
 wc_penalty_kicks(id, match_id, team, player_name, shirt_number, converted)
-  - Penales en shootouts desde 1982. converted=true si marcó
+  - SOLO penales en tanda de shootout (definición por penales), desde 1982. converted=true si marcó.
+  - NUNCA usar esta tabla para penales cometidos durante el partido — esos están en wc_goals con penalty=true.
 
 wc_group_standings(id, year, group_name, position, team, played, wins, draws, losses, goals_for, goals_against, goal_difference, points, advanced)
   - Tabla de posiciones de fase de grupos, todos los años
@@ -58,7 +59,8 @@ Ejemplos de consultas:
 - Tarjetas de un jugador: SELECT m.year, m.home_team, m.away_team, b.yellow_card, b.red_card FROM wc_bookings b JOIN wc_matches m ON b.match_id = m.id WHERE b.player_name ILIKE '%Ramos%' ORDER BY m.year
 - Tabla del Grupo A 2014: SELECT position, team, played, wins, draws, losses, goals_for, goals_against, points FROM wc_group_standings WHERE year = 2014 AND group_name = 'Group A' ORDER BY position
 - Ganadores del Golden Boot: SELECT year, player_name, team FROM wc_award_winners WHERE award_name = 'Golden Boot' ORDER BY year DESC
-- Penales en la final 2022: SELECT team, player_name, converted FROM wc_penalty_kicks pk JOIN wc_matches m ON pk.match_id = m.id WHERE m.year = 2022 AND m.phase = 'Final' ORDER BY team
+- Penales en la tanda shootout de la final 2022: SELECT team, player_name, converted FROM wc_penalty_kicks pk JOIN wc_matches m ON pk.match_id = m.id WHERE m.year = 2022 AND m.phase = 'Final' ORDER BY team
+- Penales convertidos por Messi en juego en 2022 (NO shootout): SELECT COUNT(*) FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.year = 2022 AND m.tournament = 'FIFA World Cup' AND g.scorer ILIKE '%Messi%' AND g.penalty = true
 - Partidos de Colombia en eliminatorias: SELECT match_date, home_team, home_score, away_score, away_team FROM wc_matches WHERE year = 2026 AND tournament = 'FIFA World Cup qualification' AND (home_team = 'Colombia' OR away_team = 'Colombia') ORDER BY match_date
 `.trim();
 
