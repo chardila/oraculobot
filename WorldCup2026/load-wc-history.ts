@@ -236,6 +236,47 @@ async function loadQualifying() {
   console.log(`${goalRows.length} qualifying goals`);
 }
 
+// ── Scorer name normalization ────────────────────────────────────────────────
+// openfootball uses abbreviated/nickname forms; normalize to full names so
+// queries by name work consistently across all years.
+
+const SCORER_NORMALIZATIONS = [
+  { from: 'Ronaldo',          team: 'Portugal',     to: 'Cristiano Ronaldo' },
+  { from: 'Messi',            team: 'Argentina',    to: 'Lionel Messi' },
+  { from: 'J. Hernández',     team: 'Mexico',       to: 'Javier Hernández' },
+  { from: 'E. Cavani',        team: 'Uruguay',      to: 'Edinson Cavani' },
+  { from: 'L. Suárez',        team: 'Uruguay',      to: 'Luis Suárez' },
+  { from: 'Cahill',           team: 'Australia',    to: 'Tim Cahill' },
+  { from: 'Honda',            team: 'Japan',        to: 'Keisuke Honda' },
+  { from: 'Robin Van Persie', team: 'Netherlands',  to: 'Robin van Persie' },
+  { from: 'Klaas Jan Huntelaar', team: 'Netherlands', to: 'Klaas-Jan Huntelaar' },
+];
+
+async function normalizeScorerNames() {
+  process.stdout.write('Normalizing scorer names... ');
+  let total = 0;
+  for (const n of SCORER_NORMALIZATIONS) {
+    const params = `scorer=eq.${encodeURIComponent(n.from)}&team=eq.${encodeURIComponent(n.team)}`;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/wc_goals?${params}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SERVICE_KEY,
+        'Authorization': `Bearer ${SERVICE_KEY}`,
+        'Prefer': 'return=representation',
+      },
+      body: JSON.stringify({ scorer: n.to }),
+    });
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`PATCH wc_goals scorer ${n.from}: ${res.status} ${txt}`);
+    }
+    const updated = await res.json() as object[];
+    total += updated.length;
+  }
+  console.log(`${total} rows updated`);
+}
+
 // ── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -248,6 +289,7 @@ async function main() {
   }
 
   await loadQualifying();
+  await normalizeScorerNames();
 
   console.log('\nDone.');
 }

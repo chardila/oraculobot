@@ -383,6 +383,23 @@ type JfGoal = {
 
 async function loadGoals(goals: JfGoal[], lookup: Map<string, number>) {
   process.stdout.write('Loading goals for gap years 1954-2013... ');
+
+  // Collect DB match IDs for 1954-2013 so we can clear any partial openfootball data first
+  const matchIds = new Set<number>();
+  for (const g of goals) {
+    const year = wcYear(g.tournament_id);
+    if (year < 1954 || year > 2013) continue;
+    const matchId = lookup.get(g.match_id);
+    if (matchId) matchIds.add(matchId);
+  }
+
+  // Delete existing goals for these matches (idempotent — clears openfootball surname-only entries)
+  const ids = [...matchIds];
+  for (let i = 0; i < ids.length; i += 500) {
+    const batch = ids.slice(i, i + 500);
+    await supaDelete(`wc_goals?match_id=in.(${batch.join(',')})`);
+  }
+
   const rows: object[] = [];
   for (const g of goals) {
     const year = wcYear(g.tournament_id);
