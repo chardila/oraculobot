@@ -12,6 +12,13 @@ describe('validateWcSql', () => {
     expect(r.valid).toBe(false);
   });
 
+  it('accepts CTE (WITH ... SELECT)', () => {
+    const r = validateWcSql(
+      'WITH ranked AS (SELECT family_name, COUNT(*) as cnt FROM wc_referee_appearances GROUP BY family_name) SELECT * FROM ranked ORDER BY cnt DESC LIMIT 1'
+    );
+    expect(r.valid).toBe(true);
+  });
+
   it('rejects disallowed table', () => {
     const r = validateWcSql('SELECT * FROM users');
     expect(r.valid).toBe(false);

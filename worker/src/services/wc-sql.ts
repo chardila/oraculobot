@@ -62,13 +62,15 @@ Ejemplos de consultas:
 - Penales en la tanda shootout de la final 2022: SELECT team, player_name, converted FROM wc_penalty_kicks pk JOIN wc_matches m ON pk.match_id = m.id WHERE m.year = 2022 AND m.phase = 'Final' ORDER BY team
 - Penales convertidos por Messi en juego en 2022 (NO shootout): SELECT COUNT(*) FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.year = 2022 AND m.tournament = 'FIFA World Cup' AND g.scorer ILIKE '%Messi%' AND g.penalty = true
 - Partidos de Colombia en eliminatorias: SELECT match_date, home_team, home_score, away_score, away_team FROM wc_matches WHERE year = 2026 AND tournament = 'FIFA World Cup qualification' AND (home_team = 'Colombia' OR away_team = 'Colombia') ORDER BY match_date
+- Árbitro con más partidos dirigidos: SELECT family_name, given_name, country_name, COUNT(*) as partidos FROM wc_referee_appearances GROUP BY family_name, given_name, country_name ORDER BY partidos DESC LIMIT 5
+- Árbitros de la final 2022: SELECT family_name, given_name, country_name FROM wc_referee_appearances ra JOIN wc_matches m ON ra.match_id = m.id WHERE m.year = 2022 AND m.phase = 'Final'
 `.trim();
 
 export function validateWcSql(sql: string): { valid: boolean; error?: string } {
   const trimmed = sql.trim().toLowerCase();
 
-  if (!trimmed.startsWith('select')) {
-    return { valid: false, error: 'Query must start with SELECT' };
+  if (!trimmed.startsWith('select') && !trimmed.startsWith('with')) {
+    return { valid: false, error: 'Query must start with SELECT or WITH' };
   }
 
   const forbidden = /\b(insert|update|delete|drop|create|alter|truncate|grant|revoke|copy|pg_)\b/;
@@ -76,10 +78,16 @@ export function validateWcSql(sql: string): { valid: boolean; error?: string } {
     return { valid: false, error: 'Query contains forbidden keywords' };
   }
 
+  // Collect CTE alias names so they can be referenced in FROM/JOIN without failing
+  const cteNames = new Set<string>();
+  const cteMatches = trimmed.matchAll(/\b(\w+)\s+as\s*\(/gi);
+  for (const m of cteMatches) cteNames.add(m[1].toLowerCase());
+
   // Check all referenced table names are in the allowed list
   const tableRefs = trimmed.match(/\bfrom\s+(\w+)|\bjoin\s+(\w+)/gi) ?? [];
   for (const ref of tableRefs) {
     const table = ref.replace(/\b(from|join)\s+/i, '').trim();
+    if (cteNames.has(table)) continue;
     if (!ALLOWED_TABLES.includes(table)) {
       return { valid: false, error: `Table "${table}" is not allowed` };
     }

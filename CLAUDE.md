@@ -60,7 +60,11 @@ Points are calculated in the worker when admin enters a result and persisted to 
 
 **Matches page** (`site/src/generate.ts`) groups 104 matches by phase (group stage A-L, then knockout rounds). Each match shows the stadium, city and country via a `VENUE_MAP` lookup. The `ground` column in the `matches` table stores the venue key from `worldcup.json`. The generator also falls back to reading `worldcup.json` directly for venue data. `layout(title, body, activePage?)` accepts an optional third argument to mark the active nav link.
 
-**Question logging** is fire-and-forget: every question submitted via `/api/question` is inserted into `question_logs` (user_id, question, asked_at) without blocking the response. Queryable directly from Supabase for audit purposes. The DeepSeek system prompt includes the current user's predictions (match, predicted score, result, points) so the AI can answer questions like "what did I predict?" accurately.
+**Question logging** is fire-and-forget: every question submitted via `/api/question` is inserted into `question_logs` (user_id, question, asked_at) without blocking the response. Queryable directly from Supabase for audit purposes.
+
+**Question answering** uses a two-call DeepSeek flow. The first call classifies the question: if it's about polla (ranking, predictions), it answers directly using context. If it's about World Cup history (goals, referees, bookings, standings, awards, etc.), it responds with `SQL: <query>`. The worker executes the query against the `wc_*` tables via the `exec_wc_query` RPC, then a second DeepSeek call converts the rows to a Spanish answer. On SQL error, one retry is attempted with the error message. On empty results, the user is told there's no data. `wc-sql.ts` defines `ALLOWED_TABLES`, `WC_SCHEMA_PROMPT` (schema + examples for DeepSeek), and `validateWcSql` (blocks non-SELECT and disallowed tables; supports CTEs).
+
+**Historical WC data** comes from two sources: openfootball (basic match results 2014–2022, loaded via `download-history.ts`) and the jfjelstul/world-cup-data dataset (enriched data 1930–2022: referees, bookings, substitutions, player appearances, penalty kicks, group standings, awards — loaded via `load-jfjelstul-history.ts`). The jfjelstul script matches records to existing `wc_matches` rows by date + team names and is idempotent.
 
 **Web UI** (`site/jugar.html`) uses a chat-style interface with two distinct visual modes: the home screen shows a 2×2 grid of app-card tiles (`.menu-card`), while active flows (predict, ranking, question) use pill quick-reply buttons (`.chat-btn`). All pages share a CSS variable design system (`--c-primary`, `--c-bg`, `--c-surface`, etc.) and a white surface panel on an off-white background.
 
@@ -85,7 +89,7 @@ worker/src/
     deepseek.ts         # DeepSeek chat completions API client
     github.ts           # GitHub Actions workflow_dispatch trigger
     worldcup-venues.ts  # Static stadium/venue context for DeepSeek prompts
-    worldcup-history.ts # Historical World Cup data (2014-2022) + 2026 bracket for DeepSeek prompts
+    wc-sql.ts           # ALLOWED_TABLES, WC_SCHEMA_PROMPT, validateWcSql, executeWcQuery for text-to-SQL
     sanitize.ts         # Username sanitization (strips control chars, trims)
   middleware/
     auth.ts             # Web API JWT authentication
@@ -105,9 +109,10 @@ site/
     generate.ts         # Static site generator: queries Supabase → HTML (ranking, partidos, stats)
     generate.test.ts    # Tests for generator functions
 WorldCup2026/
-  worldcup.json         # Master fixture data (104 matches, venues, times)
-  import.ts             # CLI script: reads worldcup.json → inserts into Supabase
-  download-history.ts   # CLI script: fetches historical World Cup data for worldcup-history.ts
+  worldcup.json              # Master fixture data (104 matches, venues, times)
+  import.ts                  # CLI script: reads worldcup.json → inserts into Supabase
+  download-history.ts        # CLI script: fetches openfootball history → commits JSON to worker/src/data/history/
+  load-jfjelstul-history.ts  # CLI script: downloads jfjelstul/world-cup-data (~35MB), enriches wc_* tables (idempotent)
 supabase/migrations/
   001_initial.sql       # All tables + indexes + RLS
   002_leaderboard_rpc.sql
@@ -115,6 +120,13 @@ supabase/migrations/
   009_add_match_venue.sql          # Adds ground column to matches
   010_leaderboard_exclude_admin.sql  # leaderboard() returns telegram_id; worker/generator filter admin
   011_question_logs.sql            # Audit log: who asked what and when in the web chat
+  012_knockout_bracket.sql         # knockout_bracket table for bracket propagation
+  014_wc_history_tables.sql        # wc_matches, wc_goals, wc_teams, wc_stadiums + exec_wc_query RPC
+  015_jfjelstul_enrichment.sql     # Enriches wc_matches/wc_goals; adds wc_referees, wc_referee_appearances,
+                                   #   wc_bookings, wc_substitutions, wc_player_appearances,
+                                   #   wc_penalty_kicks, wc_group_standings, wc_award_winners
+  016_normalize_phase_names.sql    # Normalizes phase values (Semifinals→Semi-finals, etc.)
+  017_normalize_third_place_phase.sql  # Normalizes third-place match phase label
 .github/workflows/
   build-site.yml        # Triggered by Worker; builds and deploys to GitHub Pages
 ```
