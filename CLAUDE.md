@@ -141,6 +141,41 @@ supabase/migrations/
 - Tables accessed by web users need RLS enabled + explicit policies (see `007_rls_policies.sql` for examples).
 - After adding any migration, run `mcp__supabase__get_advisors` with `type: "security"` to verify no new ERRORs.
 
+## Git workflow
+
+### Starting a feature
+Always create a feature branch before multi-step work so it can be submitted as a PR:
+```bash
+git checkout -b feature/my-feature   # or fix/my-fix
+```
+Use a worktree when working in parallel with the main branch:
+```bash
+git worktree add .worktrees/my-feature -b feature/my-feature
+```
+
+### After a PR is merged
+GitHub is configured to **auto-delete the remote branch on merge**. Still run these locally after every merge:
+```bash
+git checkout main
+git pull                          # pull the merged commit
+git branch -d feature/my-feature  # delete local branch (-D if squash-merged)
+git worktree remove .worktrees/my-feature  # if a worktree was used
+```
+
+To quickly verify everything is clean:
+```bash
+git branch -a          # should show only main (and remotes/origin/main)
+git worktree list      # should show only the main worktree
+```
+
+### Periodic sync check
+If in doubt about whether local is in sync with remote:
+```bash
+git fetch --prune      # removes stale remote-tracking refs for deleted branches
+git branch -a          # review any lingering local branches
+git status             # confirm main is up to date with origin/main
+```
+
 ## Local dev setup
 
 Create `worker/.dev.vars` (gitignored) with all secrets listed in `worker/wrangler.toml` comments. Wrangler reads this file automatically in `npm run dev`.
