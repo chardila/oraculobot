@@ -37,7 +37,7 @@ wc_substitutions(id, match_id, team, player_name, shirt_number, minute_regulatio
 
 wc_player_appearances(id, match_id, team, player_name, shirt_number, position_name, position_code, starter, substitute)
   - Apariciones por partido. position_code: 'GK', 'DF', 'MF', 'FW'
-  - IMPORTANTE: datos completos solo desde 1970. Para contar en cuántos mundiales participó un jugador histórico (pre-1970), usa wc_goals en su lugar: COUNT(DISTINCT m.year) WHERE scorer ILIKE '%nombre%' AND own_goal = false.
+  - IMPORTANTE: datos completos solo desde 1970. Para jugadores pre-1970 (ej. Pelé, Eusébio), NO uses esta tabla para contar mundiales — usa wc_goals con el nombre del jugador en su lugar (ver ejemplo abajo).
 
 wc_penalty_kicks(id, match_id, team, player_name, shirt_number, converted)
   - SOLO penales en tanda de shootout (definición por penales), desde 1982. converted=true si marcó.
