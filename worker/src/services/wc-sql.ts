@@ -14,8 +14,9 @@ wc_matches(id, year, tournament, phase, home_team, away_team, home_score, away_s
   - year: número entero (1930, 1934, ..., 2022)
   - tournament: 'FIFA World Cup' o 'FIFA World Cup qualification'
   - phase: 'Group A'..'Group H', 'Round of 16', 'Quarter-finals', 'Semi-finals', 'Final', 'Qualifying', etc.
+  - IMPORTANTE: home_score/away_score es el marcador al final de los 90 minutos, NO incluye goles de prórroga. Para el resultado completo de partidos con extra_time=true, contar goles desde wc_goals.
   - extra_time: true si el partido fue a prórroga
-  - penalty_shootout: true si hubo penales; home_penalties/away_penalties tienen los goles de shootout
+  - penalty_shootout: true si hubo penales; home_penalties/away_penalties tienen los goles de shootout (no están en home_score/away_score)
 
 wc_goals(id, match_id, team, scorer, minute, minute_stoppage, match_period, penalty, own_goal)
   - match_id: referencia a wc_matches.id
@@ -52,7 +53,8 @@ wc_referee_appearances(id, match_id, referee_id, family_name, given_name, countr
 
 Ejemplos de consultas:
 - Goles de Messi en 2022: SELECT scorer, COUNT(*) as goles FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.year = 2022 AND m.tournament = 'FIFA World Cup' AND g.scorer ILIKE '%Messi%' GROUP BY scorer
-- Resultado final 2018: SELECT home_team, home_score, away_score, away_team FROM wc_matches WHERE year = 2018 AND phase = 'Final'
+- Resultado final 2018 (sin prórroga): SELECT home_team, home_score, away_score, away_team FROM wc_matches WHERE year = 2018 AND phase = 'Final'
+- Resultado completo final 2022 (con prórroga y penales): SELECT m.home_team, COUNT(*) FILTER (WHERE g.team = m.home_team) as home_goals, COUNT(*) FILTER (WHERE g.team = m.away_team) as away_goals, m.away_team, m.home_penalties, m.away_penalties FROM wc_matches m JOIN wc_goals g ON g.match_id = m.id WHERE m.year = 2022 AND m.phase = 'Final' GROUP BY m.id, m.home_team, m.away_team, m.home_penalties, m.away_penalties
 - Tarjetas de un jugador: SELECT m.year, m.home_team, m.away_team, b.yellow_card, b.red_card FROM wc_bookings b JOIN wc_matches m ON b.match_id = m.id WHERE b.player_name ILIKE '%Ramos%' ORDER BY m.year
 - Tabla del Grupo A 2014: SELECT position, team, played, wins, draws, losses, goals_for, goals_against, points FROM wc_group_standings WHERE year = 2014 AND group_name = 'Group A' ORDER BY position
 - Ganadores del Golden Boot: SELECT year, player_name, team FROM wc_award_winners WHERE award_name = 'Golden Boot' ORDER BY year DESC
