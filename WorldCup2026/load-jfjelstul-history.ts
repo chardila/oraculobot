@@ -116,9 +116,15 @@ async function buildMatchLookup(jfMatches: JfMatch[]): Promise<Map<string, numbe
     const year = wcYear(jfm.tournament_id);
     const home = norm(jfm.home_team_name);
     const away = norm(jfm.away_team_name);
+    // Try normalized names first, then fall back to original jfjelstul names
+    // (openfootball uses "United States" pre-1994 but "USA" from 1994 onward)
+    const jfHome = jfm.home_team_name, jfAway = jfm.away_team_name;
     const ourId = byDate.get(`${year}|${jfm.match_date}|${home}|${away}`)
                ?? byDate.get(`${year}|${jfm.match_date}|${away}|${home}`)
-               ?? byTeams.get(`${year}|${home}|${away}`);
+               ?? byDate.get(`${year}|${jfm.match_date}|${jfHome}|${jfAway}`)
+               ?? byDate.get(`${year}|${jfm.match_date}|${jfAway}|${jfHome}`)
+               ?? byTeams.get(`${year}|${home}|${away}`)
+               ?? byTeams.get(`${year}|${jfHome}|${jfAway}`);
     if (ourId) {
       lookup.set(jfm.match_id, ourId);
       linked++;
