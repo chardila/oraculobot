@@ -74,18 +74,20 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       .map(m => `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team}`)
       .join('\n');
 
-    const myPredictionsText = myPredictions.length === 0
-      ? 'Sin predicciones aún.'
-      : myPredictions.map(p => {
-          const d = new Date(p.kickoff_at).toLocaleString('es-CO', {
-            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
-            timeZone: 'America/Bogota',
-          });
-          const result = p.status === 'finished'
-            ? ` | Resultado: ${p.actual_home}-${p.actual_away} | Puntos: ${p.points ?? 'pendiente'}`
-            : ' | Pendiente';
-          return `${p.home_team} vs ${p.away_team} (${d}): predije ${p.predicted_home}-${p.predicted_away}${result}`;
-        }).join('\n');
+    const predByMatchId = new Map(myPredictions.map(p => [p.match_id, p]));
+    const myPredictionsText = allMatches.map(m => {
+      const d = new Date(m.kickoff_at).toLocaleString('es-CO', {
+        day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
+        timeZone: 'America/Bogota',
+      });
+      const phaseInfo = `[${m.phase}${m.group_name ? ' Grupo ' + m.group_name : ''}]`;
+      const pred = predByMatchId.get(m.id);
+      if (!pred) return `${m.home_team} vs ${m.away_team} (${d}) ${phaseInfo}: SIN PREDICCIÓN`;
+      const result = m.status === 'finished'
+        ? ` | Resultado: ${m.home_score}-${m.away_score} | Puntos: ${pred.points ?? 'pendiente'}`
+        : ' | Pendiente';
+      return `${m.home_team} vs ${m.away_team} (${d}) ${phaseInfo}: predije ${pred.predicted_home}-${pred.predicted_away}${result}`;
+    }).join('\n');
 
     // ── Primera llamada: clasificar pregunta y/o generar SQL ─────────────────
     const systemPrompt1 =
