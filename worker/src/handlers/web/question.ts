@@ -60,14 +60,26 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       .map((r, i) => `${i + 1}. ${sanitizeUsername(r.username)}: ${r.total_points} pts`)
       .join('\n');
 
+    const PHASE_LABEL: Record<string, string> = {
+      grupos: 'Fase de Grupos',
+      treintaidosavos: 'Treintaidosavos de Final',
+      octavos: 'Octavos de Final',
+      cuartos: 'Cuartos de Final',
+      semis: 'Semifinales',
+      final: 'Final',
+      tercer_lugar: 'Tercer Lugar',
+    };
+    const phaseLabel = (phase: string) => PHASE_LABEL[phase] ?? phase;
+
     const scheduleText = allMatches.map(m => {
       const d = new Date(m.kickoff_at).toLocaleString('es-CO', {
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
         timeZone: 'America/Bogota',
       });
+      const label = `${phaseLabel(m.phase)}${m.group_name ? ' Grupo ' + m.group_name : ''}`;
       return m.status === 'finished'
-        ? `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team} (${d}) [finalizado]`
-        : `${m.home_team} vs ${m.away_team} (${d}) [${m.phase}${m.group_name ? ' Grupo ' + m.group_name : ''}]`;
+        ? `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team} (${d}) [${label} - finalizado]`
+        : `${m.home_team} vs ${m.away_team} (${d}) [${label}]`;
     }).join('\n');
 
     const recentText = recent
@@ -80,7 +92,7 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
         day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit',
         timeZone: 'America/Bogota',
       });
-      const phaseInfo = `[${m.phase}${m.group_name ? ' Grupo ' + m.group_name : ''}]`;
+      const phaseInfo = `[${phaseLabel(m.phase)}${m.group_name ? ' Grupo ' + m.group_name : ''}]`;
       const pred = predByMatchId.get(m.id);
       if (!pred) return `${m.home_team} vs ${m.away_team} (${d}) ${phaseInfo}: SIN PREDICCIÓN`;
       const result = m.status === 'finished'
