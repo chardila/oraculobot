@@ -86,8 +86,8 @@ Ejemplos:
 - Club con más jugadores en el Mundial: SELECT club_name, club_country, COUNT(*) as jugadores FROM wc_squads_2026 WHERE preliminary = false GROUP BY club_name, club_country ORDER BY jugadores DESC LIMIT 10
 - Jugadores más jóvenes del torneo: SELECT player_name, team, born, age_at_tournament FROM wc_squads_2026 WHERE born IS NOT NULL AND preliminary = false ORDER BY born DESC LIMIT 10
 - Equipos con convocatoria confirmada: SELECT DISTINCT team FROM wc_squads_2026 WHERE preliminary = false ORDER BY team
-- Jugadores que juegan fuera de su país (equipo con más): SELECT team, COUNT(*) AS en_exterior FROM wc_squads_2026 WHERE club_country IS NOT NULL AND club_country != '' AND club_country != CASE WHEN team = 'USA' THEN 'United States' ELSE team END AND preliminary = false GROUP BY team ORDER BY en_exterior DESC LIMIT 10
-  NOTA: club_country usa 'United States' para clubes de USA pero team usa 'USA' — usar CASE WHEN team='USA' THEN 'United States' ELSE team END al comparar. Las columnas son club_country y team, NO 'country'.
+- Jugadores que juegan fuera de su país (equipos con convocatoria final de 26): WITH sz AS (SELECT team, COUNT(*) as total FROM wc_squads_2026 GROUP BY team) SELECT s.team, COUNT(*) AS en_exterior FROM wc_squads_2026 s JOIN sz ON s.team = sz.team WHERE sz.total = 26 AND s.club_country IS NOT NULL AND s.club_country != '' AND s.club_country != CASE WHEN s.team = 'USA' THEN 'United States' ELSE s.team END GROUP BY s.team ORDER BY en_exterior DESC LIMIT 10
+  NOTAS IMPORTANTES sobre wc_squads_2026: (1) Algunos equipos tienen listas preliminares extendidas (>26 jugadores) no marcadas como preliminary — filtrar siempre con sz.total = 26 en preguntas de comparación entre equipos. (2) club_country usa 'United States' para USA; usar CASE WHEN team='USA' THEN 'United States' ELSE team END. (3) Las columnas son club_country y team, NUNCA 'country'.
 `.trim();
 
 export function validateWcSql(sql: string): { valid: boolean; error?: string } {
