@@ -20,7 +20,13 @@ jobs:
           node-version: '24'
 
       - name: Update squad data from Zafronix
-        run: npx tsx WorldCup2026/load-zafronix-squads.ts
+        run: |
+          if [[ "$(date -u +%Y-%m-%d)" > "2026-06-11" ]] && [[ "${{ github.event_name }}" == "schedule" ]]; then
+            echo "El Mundial ya comenzó — convocatorias bloqueadas. Omitiendo actualización programada."
+            echo "Para forzar una actualización manual usa workflow_dispatch."
+            exit 0
+          fi
+          npx tsx WorldCup2026/load-zafronix-squads.ts
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
