@@ -86,8 +86,8 @@ Ejemplos:
 - Club con más jugadores en el Mundial: SELECT club_name, club_country, COUNT(*) as jugadores FROM wc_squads_2026 WHERE preliminary = false GROUP BY club_name, club_country ORDER BY jugadores DESC LIMIT 10
 - Jugadores más jóvenes del torneo: SELECT player_name, team, born, age_at_tournament FROM wc_squads_2026 WHERE born IS NOT NULL AND preliminary = false ORDER BY born DESC LIMIT 10
 - Equipos con convocatoria confirmada: SELECT DISTINCT team FROM wc_squads_2026 WHERE preliminary = false ORDER BY team
-- Jugadores que juegan fuera de su país (equipo con más): WITH home AS (SELECT team, CASE team WHEN 'USA' THEN 'United States' ELSE team END AS home_country FROM wc_squads_2026 GROUP BY team) SELECT s.team, COUNT(*) AS en_exterior FROM wc_squads_2026 s JOIN home h ON s.team = h.team WHERE s.club_country IS NOT NULL AND s.club_country != '' AND s.club_country != h.home_country AND s.preliminary = false GROUP BY s.team ORDER BY en_exterior DESC LIMIT 10
-  NOTA: club_country usa 'United States' para clubes de USA; el campo team usa 'USA'. Usar siempre el CTE 'home' con CASE para comparar correctamente.
+- Jugadores que juegan fuera de su país (equipo con más): SELECT team, COUNT(*) AS en_exterior FROM wc_squads_2026 WHERE club_country IS NOT NULL AND club_country != '' AND club_country != CASE WHEN team = 'USA' THEN 'United States' ELSE team END AND preliminary = false GROUP BY team ORDER BY en_exterior DESC LIMIT 10
+  NOTA: club_country usa 'United States' para clubes de USA pero team usa 'USA' — usar CASE WHEN team='USA' THEN 'United States' ELSE team END al comparar. Las columnas son club_country y team, NO 'country'.
 `.trim();
 
 export function validateWcSql(sql: string): { valid: boolean; error?: string } {
