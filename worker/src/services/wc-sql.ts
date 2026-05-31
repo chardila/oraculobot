@@ -5,6 +5,7 @@ const ALLOWED_TABLES = [
   'wc_referees', 'wc_referee_appearances',
   'wc_bookings', 'wc_substitutions', 'wc_player_appearances',
   'wc_penalty_kicks', 'wc_group_standings', 'wc_award_winners',
+  'wc_squads_2026',
 ];
 
 export const WC_SCHEMA_PROMPT = `
@@ -69,6 +70,22 @@ Ejemplos de consultas:
 - Goles de Maradona en mundiales: SELECT m.year, COUNT(*) as goles FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.tournament = 'FIFA World Cup' AND g.scorer ILIKE '%Maradona%' AND g.own_goal = false GROUP BY m.year ORDER BY m.year
 - Goleador del Mundial 1958: SELECT scorer, COUNT(*) as goles FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.year = 1958 AND m.tournament = 'FIFA World Cup' AND g.own_goal = false GROUP BY scorer ORDER BY goles DESC LIMIT 5
 - Cuántas veces se enfrentaron Brasil y Argentina: SELECT COUNT(*) as partidos FROM wc_matches WHERE tournament = 'FIFA World Cup' AND ((home_team = 'Brazil' AND away_team = 'Argentina') OR (home_team = 'Argentina' AND away_team = 'Brazil'))
+
+wc_squads_2026(id, team, jersey_number, player_name, position, born, age_at_tournament, club_name, club_country, goals, captain, preliminary)
+  - team: nombre exacto como en la tabla matches (ej. 'Colombia', 'USA', 'South Korea', 'Bosnia & Herzegovina', 'Ivory Coast')
+  - position: 'GK', 'DF', 'MF', 'FW'
+  - captain: true si es el capitán del equipo
+  - preliminary: true si es lista preliminar aún no cortada al squad final de 26; false si es la convocatoria final
+  - jersey_number: null hasta que la FIFA asigne dorsales (~días antes del torneo)
+  - Sin datos aún: Australia, Ecuador, Uruguay, Algeria
+
+Ejemplos:
+- Convocados de Colombia: SELECT player_name, position, club_name, club_country FROM wc_squads_2026 WHERE team = 'Colombia' ORDER BY position, player_name
+- Porteros de España: SELECT player_name, club_name FROM wc_squads_2026 WHERE team = 'Spain' AND position = 'GK'
+- Jugadores del Real Madrid en el Mundial: SELECT team, player_name, position FROM wc_squads_2026 WHERE club_name ILIKE '%Real Madrid%' ORDER BY team
+- Club con más jugadores en el Mundial: SELECT club_name, club_country, COUNT(*) as jugadores FROM wc_squads_2026 WHERE preliminary = false GROUP BY club_name, club_country ORDER BY jugadores DESC LIMIT 10
+- Jugadores más jóvenes del torneo: SELECT player_name, team, born, age_at_tournament FROM wc_squads_2026 WHERE born IS NOT NULL AND preliminary = false ORDER BY born DESC LIMIT 10
+- Equipos con convocatoria confirmada: SELECT DISTINCT team FROM wc_squads_2026 WHERE preliminary = false ORDER BY team
 `.trim();
 
 export function validateWcSql(sql: string): { valid: boolean; error?: string } {
