@@ -1,0 +1,27 @@
+name: Update WC 2026 squads
+
+on:
+  schedule:
+    - cron: '0 11 * * *'  # daily at 11:00 UTC (6am Bogotá)
+  workflow_dispatch:       # manual run desde GitHub Actions
+
+concurrency:
+  group: update-squads
+  cancel-in-progress: true
+
+jobs:
+  update-squads:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+
+      - name: Update squad data from Zafronix
+        run: npx tsx WorldCup2026/load-zafronix-squads.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          ZAFRONIX_API_KEY: ${{ secrets.ZAFRONIX_API_KEY }}
