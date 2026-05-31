@@ -54,6 +54,11 @@ interface ZafronixPlayer {
 
 interface ZafronixTeam {
   name: string;
+  code?: string;
+  confederation?: string;
+  groupStage?: { group?: string };
+  coach?: { name?: string; country?: string };
+  squadKind?: string;   // 'final' | 'preliminary'
   squad: ZafronixPlayer[];
 }
 
@@ -89,7 +94,9 @@ async function main() {
   console.log(`Received ${data.teams.length} teams from Zafronix`);
 
   let totalPlayers = 0;
+  let totalCoaches = 0;
   const skippedTeams: string[] = [];
+  const coachRows: object[] = [];
 
   for (const team of data.teams) {
     const dbTeam = norm(team.name);
@@ -105,6 +112,8 @@ async function main() {
     // Delete-then-insert for idempotency
     await supaDelete(`wc_squads_2026?team=eq.${encodeURIComponent(dbTeam)}`);
 
+    const isPreliminary = team.squadKind !== 'final';
+
     const rows = team.squad.map((p: ZafronixPlayer) => ({
       team:              dbTeam,
       jersey_number:     p.jersey ?? null,
@@ -116,16 +125,36 @@ async function main() {
       club_country:      p.club?.country ?? null,
       goals:             p.goals ?? 0,
       captain:           p.captain ?? false,
-      preliminary:       p.preliminary ?? false,
+      preliminary:       isPreliminary,
     }));
 
     await supaPost('wc_squads_2026', rows);
     totalPlayers += rows.length;
     console.log('done');
+
+    // Accumulate coach data for upsert
+    coachRows.push({
+      team:          dbTeam,
+      fifa_code:     team.code ?? null,
+      confederation: team.confederation ?? null,
+      group_name:    team.groupStage?.group ?? null,
+      coach_name:    team.coach?.name ?? null,
+      coach_country: team.coach?.country ?? null,
+      squad_kind:    team.squadKind ?? null,
+    });
+  }
+
+  // Upsert all coaches at once (ON CONFLICT (team) DO UPDATE)
+  if (coachRows.length > 0) {
+    process.stdout.write(`\n  Upserting ${coachRows.length} coaches into wc_coaches_2026... `);
+    await supaPost('wc_coaches_2026', coachRows, 'resolution=merge-duplicates');
+    totalCoaches = coachRows.length;
+    console.log('done');
   }
 
   console.log('\n── Summary ─────────────────────────────────────────────────');
   console.log(`  Total players loaded : ${totalPlayers}`);
+  console.log(`  Coaches loaded       : ${totalCoaches}`);
   console.log(`  Teams skipped        : ${skippedTeams.length} (${skippedTeams.join(', ') || 'none'})`);
   console.log(`  API requests used    : 1`);
   console.log('Done.');

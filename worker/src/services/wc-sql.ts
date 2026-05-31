@@ -6,6 +6,7 @@ const ALLOWED_TABLES = [
   'wc_bookings', 'wc_substitutions', 'wc_player_appearances',
   'wc_penalty_kicks', 'wc_group_standings', 'wc_award_winners',
   'wc_squads_2026',
+  'wc_coaches_2026',
 ];
 
 export const WC_SCHEMA_PROMPT = `
@@ -88,6 +89,21 @@ Ejemplos:
 - Equipos con convocatoria confirmada: SELECT DISTINCT team FROM wc_squads_2026 WHERE preliminary = false ORDER BY team
 - Jugadores que juegan fuera de su país (equipos con convocatoria final de 26): WITH sz AS (SELECT team, COUNT(*) as total FROM wc_squads_2026 GROUP BY team) SELECT s.team, COUNT(*) AS en_exterior FROM wc_squads_2026 s JOIN sz ON s.team = sz.team WHERE sz.total = 26 AND s.club_country IS NOT NULL AND s.club_country != '' AND s.club_country != CASE WHEN s.team = 'USA' THEN 'United States' ELSE s.team END GROUP BY s.team ORDER BY en_exterior DESC LIMIT 10
   NOTAS IMPORTANTES sobre wc_squads_2026: (1) Algunos equipos tienen listas preliminares extendidas (>26 jugadores) no marcadas como preliminary — filtrar siempre con sz.total = 26 en preguntas de comparación entre equipos. (2) club_country usa 'United States' para USA; usar CASE WHEN team='USA' THEN 'United States' ELSE team END. (3) Las columnas son club_country y team, NUNCA 'country'.
+
+wc_coaches_2026(id, team, fifa_code, confederation, group_name, coach_name, coach_country, squad_kind)
+  - team: nombre exacto como en matches (ej. 'Colombia', 'USA', 'Bosnia & Herzegovina')
+  - confederation: 'UEFA', 'CONMEBOL', 'CONCACAF', 'CAF', 'AFC', 'OFC'
+  - group_name: 'A' .. 'L' (12 grupos en 2026)
+  - squad_kind: 'final' si la convocatoria está cerrada, 'preliminary' si aún es lista extendida
+  - 48 equipos del Mundial 2026 con su técnico y grupo
+
+Ejemplos:
+- Técnico de Colombia: SELECT coach_name, coach_country FROM wc_coaches_2026 WHERE team = 'Colombia'
+- Técnicos extranjeros en el Mundial: SELECT team, coach_name, coach_country FROM wc_coaches_2026 WHERE coach_country != team ORDER BY coach_country
+  NOTA: Para USA usar: WHERE coach_country NOT IN ('United States') AND team = 'USA' — coach_country usa nombre completo de país
+- Equipos del Grupo B: SELECT team, coach_name FROM wc_coaches_2026 WHERE group_name = 'B' ORDER BY team
+- Cuántos técnicos europeos hay: SELECT coach_country, COUNT(*) as equipos FROM wc_coaches_2026 WHERE coach_country IS NOT NULL GROUP BY coach_country ORDER BY equipos DESC
+- Equipos con convocatoria final por confederación: SELECT confederation, COUNT(*) as equipos FROM wc_coaches_2026 WHERE squad_kind = 'final' GROUP BY confederation ORDER BY equipos DESC
 `.trim();
 
 export function validateWcSql(sql: string): { valid: boolean; error?: string } {
