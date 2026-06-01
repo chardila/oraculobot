@@ -144,10 +144,12 @@ async function main() {
     });
   }
 
-  // Upsert all coaches at once (ON CONFLICT (team) DO UPDATE)
+  // Delete all existing coaches then insert fresh (table PK is serial id, not team,
+  // so PostgREST merge-duplicates upsert doesn't work against the team unique constraint)
   if (coachRows.length > 0) {
-    process.stdout.write(`\n  Upserting ${coachRows.length} coaches into wc_coaches_2026... `);
-    await supaPost('wc_coaches_2026', coachRows, 'resolution=merge-duplicates');
+    process.stdout.write(`\n  Refreshing ${coachRows.length} coaches in wc_coaches_2026... `);
+    await supaDelete('wc_coaches_2026?id=gt.0');
+    await supaPost('wc_coaches_2026', coachRows);
     totalCoaches = coachRows.length;
     console.log('done');
   }
