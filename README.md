@@ -51,29 +51,21 @@ The Worker receives Telegram webhooks (admin only) and web API requests (partici
 
 ## Prerequisites
 
-- [Cloudflare account](https://cloudflare.com) (free)
-- [Supabase project](https://supabase.com) (free)
-- Telegram bot token from [@BotFather](https://t.me/BotFather)
-- [DeepSeek API key](https://platform.deepseek.com)
-- GitHub repository with Pages enabled
+- [Cloudflare account](https://cloudflare.com) (free) — hosts the Worker backend
+- [Supabase project](https://supabase.com) (free) — Postgres database + auth
+- Telegram bot token from [@BotFather](https://t.me/BotFather) — admin control interface
+- [DeepSeek API key](https://platform.deepseek.com) — AI question answering
+- [football-data.org API token](https://www.football-data.org/client/register) (free tier) — polls finished match scores for auto-results
+- [Zafronix API key](https://zafronix.com) — squad/player data for the 2026 World Cup
+- GitHub repository with Pages enabled — hosts the static leaderboard site
 
 ## Setup
 
+See [docs/setup.md](docs/setup.md) for the full step-by-step guide. Quick reference below.
+
 ### 1. Apply database migrations
 
-In Supabase dashboard → SQL Editor, run in order:
-
-1. `supabase/migrations/001_initial.sql`
-2. `supabase/migrations/002_leaderboard_rpc.sql`
-3. `supabase/migrations/003_increment_invite_rpc.sql`
-4. `supabase/migrations/004_web_auth.sql`
-5. `supabase/migrations/005_try_consume_invite_rpc.sql`
-6. `supabase/migrations/006_leagues.sql`
-7. `supabase/migrations/007_rls_policies.sql`
-8. `supabase/migrations/008_invite_code_expiry.sql`
-9. `supabase/migrations/009_add_match_venue.sql`
-10. `supabase/migrations/010_leaderboard_exclude_admin.sql`
-11. `supabase/migrations/011_question_logs.sql`
+In Supabase dashboard → SQL Editor, run all files in `supabase/migrations/` in numeric order (001 through 025).
 
 ### 2. Deploy the Worker
 
@@ -83,16 +75,16 @@ npm install
 
 npx wrangler secret put TELEGRAM_BOT_TOKEN       # from @BotFather
 npx wrangler secret put TELEGRAM_BOT_USERNAME    # bot username without @
-npx wrangler secret put TELEGRAM_WEBHOOK_SECRET  # any random string: openssl rand -hex 32
-npx wrangler secret put ADMIN_TELEGRAM_ID        # your numeric Telegram ID (get it from @userinfobot)
+npx wrangler secret put TELEGRAM_WEBHOOK_SECRET  # random string: openssl rand -hex 32
+npx wrangler secret put ADMIN_TELEGRAM_ID        # your numeric Telegram ID (from @userinfobot)
 npx wrangler secret put SUPABASE_URL             # https://<ref>.supabase.co (no trailing slash)
 npx wrangler secret put SUPABASE_SERVICE_KEY     # service_role key from Supabase Settings → API
 npx wrangler secret put SUPABASE_ANON_KEY        # anon public key from Supabase Settings → API
-npx wrangler secret put DEEPSEEK_API_KEY
-npx wrangler secret put GITHUB_PAT               # fine-grained token with actions:write
-npx wrangler secret put GITHUB_REPO              # owner/repo-name
-npx wrangler secret put WORKER_ADMIN_SECRET      # any random string — protects /api/admin/propose-result
-npx wrangler secret put INVITE_CODE_SECRET       # any random string: openssl rand -hex 32
+npx wrangler secret put DEEPSEEK_API_KEY         # from platform.deepseek.com
+npx wrangler secret put GITHUB_PAT               # fine-grained PAT with actions:write on this repo
+npx wrangler secret put GITHUB_REPO              # owner/repo-name (e.g. chardila/oraculobot)
+npx wrangler secret put WORKER_ADMIN_SECRET      # random string — protects /api/admin/propose-result
+npx wrangler secret put INVITE_CODE_SECRET       # random string: openssl rand -hex 32
 npx wrangler secret put WEB_ORIGIN               # https://owner.github.io (CORS origin)
 npx wrangler secret put WEB_REDIRECT_URL         # https://owner.github.io/oraculobot/jugar.html (magic link redirect)
 
@@ -110,30 +102,49 @@ curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=<WORKER_URL>&secret
 
 Send any message to the bot on Telegram — the admin menu will appear. Use **🏆 Crear polla** to create your first league (e.g. "Polla Principal"), then use **🎟 Invitar** to generate invite codes for participants.
 
-### 5. Enable GitHub Pages
+### 5. Create the private backup repo
+
+Before GitHub Actions can push backups, you need to create the target repo and a PAT:
+
+1. On GitHub, create a **private** repo named `oraculobot-backup` (empty)
+2. Create a fine-grained PAT: GitHub Settings → Developer settings → Fine-grained tokens → Only `oraculobot-backup` → Contents: Read and Write
+3. Save the token as `BACKUP_REPO_PAT` in step 6 below
+
+### 6. Enable GitHub Pages and configure secrets
 
 In repo Settings → Pages → Source: **GitHub Actions**
 
 Add repository secrets (Settings → Secrets → Actions):
-- `SUPABASE_URL`
-- `SUPABASE_SERVICE_KEY`
-- `FOOTBALL_DATA_TOKEN` — API key from [football-data.org](https://www.football-data.org) (free tier), used by `check-results.yml` to poll finished match scores
-- `WORKER_URL` — deployed Worker URL, used by `check-results.yml` to call `/api/admin/propose-result`
-- `WORKER_ADMIN_SECRET` — must match the value set as a Worker secret
-- `BACKUP_REPO_PAT` — fine-grained PAT with Contents: read+write on `oraculobot-backup`
+
+| Secret | Description |
+|--------|-------------|
+| `SUPABASE_URL` | Same as Worker secret |
+| `SUPABASE_SERVICE_KEY` | Same as Worker secret |
+| `SUPABASE_ANON_KEY` | Same as Worker secret |
+| `FOOTBALL_DATA_TOKEN` | Free API token from [football-data.org](https://www.football-data.org/client/register). Used by `check-results.yml` every 30 min to detect finished matches and auto-propose results to admin. |
+| `WORKER_URL` | Deployed Worker URL. Used by `check-results.yml` to call `/api/admin/propose-result`. |
+| `WORKER_ADMIN_SECRET` | Must match the value set in step 2. |
+| `BACKUP_REPO_PAT` | PAT created in step 5. |
+| `ZAFRONIX_API_KEY` | API key from Zafronix. Used by `update-squads.yml` to refresh 2026 player rosters daily until the tournament starts. |
 
 The static site rebuilds automatically on every push to `main` and when the admin enters a match result.
 
-### 6. Import matches (optional)
-
-The `WorldCup2026/` folder contains match data for the 2026 World Cup. To import it:
+### 7. Import fixtures and historical data (optional)
 
 ```bash
 cd WorldCup2026
 
-SUPABASE_URL="https://xxxx.supabase.co" \
-SUPABASE_SERVICE_KEY="your-service-role-key" \
-npx tsx import.ts
+# 2026 fixtures (104 matches)
+SUPABASE_URL=... SUPABASE_SERVICE_KEY=... npx tsx import.ts
+
+# Historical WC data 1930-2022 (matches, goals)
+SUPABASE_URL=... SUPABASE_SERVICE_KEY=... npx tsx load-wc-history.ts
+
+# Enriched data from jfjelstul dataset (~35 MB): referees, bookings, player appearances, etc.
+SUPABASE_URL=... SUPABASE_SERVICE_KEY=... npx tsx load-jfjelstul-history.ts
+
+# 2026 squad data (player rosters) from Zafronix
+SUPABASE_URL=... SUPABASE_SERVICE_KEY=... ZAFRONIX_API_KEY=... npx tsx load-zafronix-squads.ts
 ```
 
 ## Participant flow
@@ -158,6 +169,7 @@ SUPABASE_ANON_KEY=...
 DEEPSEEK_API_KEY=...
 GITHUB_PAT=...
 GITHUB_REPO=...
+WORKER_ADMIN_SECRET=...
 INVITE_CODE_SECRET=...
 WEB_ORIGIN=http://localhost:3000
 WEB_REDIRECT_URL=http://localhost:3000/jugar.html
