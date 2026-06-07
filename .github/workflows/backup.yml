@@ -12,6 +12,9 @@ concurrency:
 jobs:
   backup:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
     steps:
       - uses: actions/checkout@v4
 
@@ -33,9 +36,15 @@ jobs:
           GIT_COMMITTER_NAME: GitHub Actions Backup
           GIT_COMMITTER_EMAIL: backup@github-actions.local
         run: |
-          git clone https://x-access-token:${BACKUP_REPO_PAT}@github.com/chardila/oraculobot-backup.git /tmp/backup-repo
-          cp -r backup-output/. /tmp/backup-repo/
+          set -euo pipefail
+          git clone https://github.com/chardila/oraculobot-backup.git /tmp/backup-repo
           cd /tmp/backup-repo
+          git remote set-url origin "https://x-access-token:${BACKUP_REPO_PAT}@github.com/chardila/oraculobot-backup.git"
+          cp -r "${GITHUB_WORKSPACE}/backup-output/." .
+          for table in users predictions leagues invite_codes; do
+            date_dir=$(date -u +%Y-%m-%d)
+            [[ -f "${date_dir}/${table}.json" ]] || { echo "Missing ${date_dir}/${table}.json"; exit 1; }
+          done
           git add .
           git diff --staged --quiet && echo "No changes to commit" && exit 0
           git commit -m "backup: $(date -u +%Y-%m-%d)"
