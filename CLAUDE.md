@@ -58,6 +58,10 @@ Points are calculated in the worker when admin enters a result and persisted to 
 
 **Site regeneration** is fire-and-forget: `worker/src/services/github.ts` calls `workflow_dispatch` on `build-site.yml` after every result. If it fails, data in Supabase is correct; re-run from GitHub Actions manually.
 
+**Auto-results flow** polls football-data.org every 30 minutes via `.github/workflows/check-results.yml` → `WorldCup2026/check-results.ts`. The script finds matches with `status='scheduled'` that kicked off 150+ minutes ago, fetches the finished score from football-data.org (with team name normalization, e.g. "United States" → "USA"), and calls `POST /api/admin/propose-result` (protected by `WORKER_ADMIN_SECRET`). The handler (`handlers/web/propose-result.ts`) inserts a row in `proposed_results` with `status='pending'` and sends a Telegram confirmation menu to the admin. When admin taps Confirm, `handlers/admin/propose.ts` finalizes the match, recalculates points, propagates the bracket, and triggers site rebuild. Skips if a proposal is already pending for that match. Secrets required in GitHub Actions: `FOOTBALL_DATA_TOKEN`, `WORKER_URL`, `WORKER_ADMIN_SECRET`.
+
+**Recalculate flow** lets the admin correct a match result after it was finalized. Accessible from the Telegram admin menu: admin selects a finished match, enters the corrected score, confirms, and all predictions for that match are re-scored with `calculatePoints()`. For knockout matches ending 0-0 after correction, it also prompts for the penalty winner. Points are updated and the site regenerates. Handler: `handlers/admin/recalculate.ts`.
+
 **Matches page** (`site/src/generate.ts`) groups 104 matches by phase (group stage A-L, then knockout rounds). Each match shows the stadium, city and country via a `VENUE_MAP` lookup. The `ground` column in the `matches` table stores the venue key from `worldcup.json`. The generator also falls back to reading `worldcup.json` directly for venue data. `layout(title, body, activePage?)` accepts an optional third argument to mark the active nav link.
 
 **Question logging** is fire-and-forget: every question submitted via `/api/question` is inserted into `question_logs` (user_id, question, asked_at) without blocking the response. Queryable directly from Supabase for audit purposes.
@@ -88,6 +92,8 @@ worker/src/
       result.ts         # Admin: enter match result + calculate points
       invite.ts         # Admin: generate invite code
       league.ts         # Admin: create league (polla)
+      recalculate.ts    # Admin: correct a finished match result and re-score all predictions
+      propose.ts        # Admin: confirm/reject auto-proposed result from football-data.org
   services/
     scoring.ts          # Pure calculatePoints() function
     deepseek.ts         # DeepSeek chat completions API client
@@ -106,6 +112,7 @@ worker/src/
     my-predictions.ts   # GET /api/my-predictions — user's own predictions with results
     register.ts         # POST /api/register — web user registration
     login.ts            # POST /api/login — magic link email login
+    propose-result.ts   # POST /api/admin/propose-result — receives auto-detected result, stores proposal, notifies admin via Telegram
 site/
   jugar.html            # Chat-style web UI (login, predict, ranking, question, my-predictions)
                         # Home screen: 2×2 app-card grid. Active flows: chat pill buttons.
@@ -118,6 +125,7 @@ WorldCup2026/
   download-history.ts        # CLI script: fetches openfootball history → commits JSON to worker/src/data/history/
   load-jfjelstul-history.ts  # CLI script: downloads jfjelstul/world-cup-data (~35MB), enriches wc_* tables (idempotent)
   backup.ts                  # CLI script: exports users/predictions/leagues/invite_codes as JSON to backup-output/YYYY-MM-DD/
+  check-results.ts           # CLI script: polls football-data.org, matches finished scores to DB, calls /api/admin/propose-result
 supabase/migrations/
   001_initial.sql       # All tables + indexes + RLS
   002_leaderboard_rpc.sql
@@ -134,7 +142,8 @@ supabase/migrations/
   017_normalize_third_place_phase.sql  # Normalizes third-place match phase label
 .github/workflows/
   build-site.yml        # Triggered by Worker; builds and deploys to GitHub Pages
-  backup.yml            # Cron 03:00 UTC daily; runs backup.ts → pushes JSON to chardila/oraculobot-backup (private)
+  check-results.yml     # Cron every 30min; runs check-results.ts → calls /api/admin/propose-result (needs FOOTBALL_DATA_TOKEN, WORKER_URL, WORKER_ADMIN_SECRET)
+  backup.yml            # Cron 03:00 UTC daily; runs backup.ts → pushes JSON to chardila/oraculobot-backup (private, needs BACKUP_REPO_PAT)
 ```
 
 ## Database migrations — security checklist

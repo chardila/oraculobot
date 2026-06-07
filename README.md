@@ -15,6 +15,8 @@ A World Cup prediction bot for friends and family. Users make match predictions 
 - View personal predictions history with scores and points earned
 - Reminders modal: on login, if any match kicks off within 24h and hasn't been predicted, a modal prompts the user to predict directly from the alert
 - Admin controls via Telegram: enter results, generate invite codes, create matches, create pollas
+- **Auto-results:** GitHub Actions polls football-data.org every 30 min, detects finished matches, and sends the admin a Telegram confirmation prompt — no manual score lookup needed
+- **Recalculate:** admin can correct a previously entered result and all predictions are re-scored automatically
 
 ## Scoring
 
@@ -89,6 +91,7 @@ npx wrangler secret put SUPABASE_ANON_KEY        # anon public key from Supabase
 npx wrangler secret put DEEPSEEK_API_KEY
 npx wrangler secret put GITHUB_PAT               # fine-grained token with actions:write
 npx wrangler secret put GITHUB_REPO              # owner/repo-name
+npx wrangler secret put WORKER_ADMIN_SECRET      # any random string — protects /api/admin/propose-result
 npx wrangler secret put INVITE_CODE_SECRET       # any random string: openssl rand -hex 32
 npx wrangler secret put WEB_ORIGIN               # https://owner.github.io (CORS origin)
 npx wrangler secret put WEB_REDIRECT_URL         # https://owner.github.io/oraculobot/jugar.html (magic link redirect)
@@ -114,6 +117,10 @@ In repo Settings → Pages → Source: **GitHub Actions**
 Add repository secrets (Settings → Secrets → Actions):
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_KEY`
+- `FOOTBALL_DATA_TOKEN` — API key from [football-data.org](https://www.football-data.org) (free tier), used by `check-results.yml` to poll finished match scores
+- `WORKER_URL` — deployed Worker URL, used by `check-results.yml` to call `/api/admin/propose-result`
+- `WORKER_ADMIN_SECRET` — must match the value set as a Worker secret
+- `BACKUP_REPO_PAT` — fine-grained PAT with Contents: read+write on `oraculobot-backup`
 
 The static site rebuilds automatically on every push to `main` and when the admin enters a match result.
 
@@ -222,6 +229,8 @@ worker/src/
       result.ts         # Admin: enter match result + calculate points
       invite.ts         # Admin: generate invite code
       league.ts         # Admin: create polla
+      recalculate.ts    # Admin: correct a finished result and re-score all predictions
+      propose.ts        # Admin: confirm/reject auto-proposed result from football-data.org
   services/
     scoring.ts          # Pure calculatePoints() — tested
     deepseek.ts         # DeepSeek API client
@@ -237,9 +246,13 @@ site/
 supabase/migrations/    # SQL migrations (apply in order, 001–011)
 .github/workflows/
   build-site.yml        # Triggered on push to main and by Worker after results
+  check-results.yml     # Cron every 30min: polls football-data.org, proposes finished results to admin
+  backup.yml            # Cron 03:00 UTC daily: exports critical tables to private backup repo
 WorldCup2026/
   worldcup.json         # Master fixture data (104 matches)
   import.ts             # CLI: import worldcup.json → Supabase
+  check-results.ts      # CLI: polls football-data.org, matches scores, calls /api/admin/propose-result
+  backup.ts             # CLI: exports users/predictions/leagues/invite_codes as JSON
   download-history.ts   # CLI: fetch historical World Cup data
 ```
 
