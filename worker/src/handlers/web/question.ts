@@ -35,8 +35,6 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
     return Response.json({ error: 'La pregunta no puede superar 500 caracteres' }, { status: 400 });
   }
 
-  db.insertQuestionLog(user.id, body.question).catch(() => {});
-
   const today = new Date().toISOString().slice(0, 10);
   let questionsToday = user.questions_today;
   if (!user.questions_reset_at || user.questions_reset_at < today) {
@@ -106,7 +104,7 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       `Eres el asistente del torneo de predicciones del Mundial 2026.\n` +
       `Responde siempre en español, de forma breve y directa. No uses markdown.\n` +
       `Solo puedes responder sobre Mundiales de fútbol o la polla. Si te preguntan otra cosa, responde exactamente: "Solo puedo responder preguntas sobre Mundiales de fútbol y la polla."\n\n` +
-      `REGLA IMPORTANTE: Si la pregunta es sobre Mundiales de fútbol (historia, partidos, goles, goleadores, grupos, clasificaciones, estadios, eliminatorias, penales, shootout, tarjetas, sustituciones, árbitros, alineaciones, jugadores, premios, Golden Boot, Golden Ball, tabla de posiciones, resultados) O sobre convocatorias del Mundial 2026 (convocados, nómina, plantel, jugadores de un equipo, porteros, delanteros, clubes representados), responde ÚNICAMENTE con:\n` +
+      `REGLA IMPORTANTE: Si la pregunta es sobre Mundiales de fútbol (historia, partidos, goles, goleadores, grupos, clasificaciones, estadios, eliminatorias, penales, shootout, tarjetas, sustituciones, árbitros, alineaciones, jugadores, técnicos, entrenadores, premios, Golden Boot, Golden Ball, tabla de posiciones, resultados, convocados, nómina, plantel, jugadores de un equipo, porteros, delanteros, clubes representados) O menciona un nombre propio que pueda ser un jugador, técnico o selección del Mundial 2026, responde ÚNICAMENTE con:\n` +
       `SQL: <consulta SQL aquí>\n` +
       `No añadas nada más. El SQL debe usar solo las tablas disponibles.\n\n` +
       `Si la pregunta es sobre la polla (predicciones, puntos, ranking), responde directamente usando el contexto.\n\n` +
@@ -145,6 +143,7 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
           `Eres el asistente del torneo de predicciones del Mundial 2026. Responde en español, breve y directo. No uses markdown.\n` +
           `La consulta no devolvió resultados. Informa al usuario que no tienes esa información.`;
         const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt2, body.question);
+        db.insertQuestionLog(user.id, body.question, 'no_data', answer).catch(() => {});
         return Response.json({ answer });
       }
 
@@ -157,14 +156,18 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
         `Responde la pregunta usando solo esos datos.`;
 
       const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt2, body.question);
+      db.insertQuestionLog(user.id, body.question, 'answered', answer).catch(() => {});
       return Response.json({ answer });
     }
 
-    // ── Respuesta directa (preguntas de polla) ───────────────────────────────
+    // ── Respuesta directa (preguntas de polla o fuera de tema) ──────────────
+    const outcome = response1.includes('Solo puedo responder') ? 'out_of_scope' : 'answered';
+    db.insertQuestionLog(user.id, body.question, outcome, response1).catch(() => {});
     return Response.json({ answer: response1 });
 
   } catch (e) {
     console.error('question web error:', e);
+    db.insertQuestionLog(user.id, body.question, 'exception').catch(() => {});
     return Response.json({ error: 'No pude procesar tu pregunta, intenta de nuevo' }, { status: 500 });
   }
 }

@@ -19,6 +19,7 @@ wc_matches(id, year, tournament, phase, home_team, away_team, home_score, away_s
   - IMPORTANTE: home_score/away_score es el marcador al final de los 90 minutos, NO incluye goles de prórroga. Para el resultado completo de partidos con extra_time=true, contar goles desde wc_goals.
   - extra_time: true si el partido fue a prórroga
   - penalty_shootout: true si hubo penales; home_penalties/away_penalties tienen los goles de shootout (no están en home_score/away_score)
+  - ground: formato "Nombre Estadio, Ciudad". Para extraer ciudad: SPLIT_PART(ground, ', ', 2). Para el país sede usar: CASE year WHEN 1930 THEN 'Uruguay' WHEN 1934 THEN 'Italy' WHEN 1938 THEN 'France' WHEN 1950 THEN 'Brazil' WHEN 1954 THEN 'Switzerland' WHEN 1958 THEN 'Sweden' WHEN 1962 THEN 'Chile' WHEN 1966 THEN 'England' WHEN 1970 THEN 'Mexico' WHEN 1974 THEN 'West Germany' WHEN 1978 THEN 'Argentina' WHEN 1982 THEN 'Spain' WHEN 1986 THEN 'Mexico' WHEN 1990 THEN 'Italy' WHEN 1994 THEN 'United States' WHEN 1998 THEN 'France' WHEN 2002 THEN 'Japan/South Korea' WHEN 2006 THEN 'Germany' WHEN 2010 THEN 'South Africa' WHEN 2014 THEN 'Brazil' WHEN 2018 THEN 'Russia' WHEN 2022 THEN 'Qatar' END
 
 wc_goals(id, match_id, team, scorer, minute, minute_stoppage, match_period, penalty, own_goal)
   - match_id: referencia a wc_matches.id
@@ -71,6 +72,8 @@ Ejemplos de consultas:
 - Goles de Maradona en mundiales: SELECT m.year, COUNT(*) as goles FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.tournament = 'FIFA World Cup' AND g.scorer ILIKE '%Maradona%' AND g.own_goal = false GROUP BY m.year ORDER BY m.year
 - Goleador del Mundial 1958: SELECT scorer, COUNT(*) as goles FROM wc_goals g JOIN wc_matches m ON g.match_id = m.id WHERE m.year = 1958 AND m.tournament = 'FIFA World Cup' AND g.own_goal = false GROUP BY scorer ORDER BY goles DESC LIMIT 5
 - Cuántas veces se enfrentaron Brasil y Argentina: SELECT COUNT(*) as partidos FROM wc_matches WHERE tournament = 'FIFA World Cup' AND ((home_team = 'Brazil' AND away_team = 'Argentina') OR (home_team = 'Argentina' AND away_team = 'Brazil'))
+- Ciudad y país de la final 2018: SELECT ground, SPLIT_PART(ground, ', ', 2) as ciudad, CASE year WHEN 2018 THEN 'Russia' END as pais FROM wc_matches WHERE year = 2018 AND phase = 'Final'
+- País donde se jugaron los partidos de Argentina en 2014: SELECT DISTINCT CASE year WHEN 2014 THEN 'Brazil' END as pais, SPLIT_PART(ground, ', ', 2) as ciudad, ground FROM wc_matches WHERE year = 2014 AND tournament = 'FIFA World Cup' AND (home_team = 'Argentina' OR away_team = 'Argentina') ORDER BY ciudad
 
 wc_squads_2026(id, team, jersey_number, player_name, position, born, age_at_tournament, club_name, club_country, goals, captain, preliminary)
   - team: nombre exacto como en la tabla matches (ej. 'Colombia', 'USA', 'South Korea', 'Bosnia & Herzegovina', 'Ivory Coast')
