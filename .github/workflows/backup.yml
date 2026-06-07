@@ -37,9 +37,8 @@ jobs:
           GIT_COMMITTER_EMAIL: backup@github-actions.local
         run: |
           set -euo pipefail
-          git clone https://github.com/chardila/oraculobot-backup.git /tmp/backup-repo
+          git clone "https://x-access-token:${BACKUP_REPO_PAT}@github.com/chardila/oraculobot-backup.git" /tmp/backup-repo
           cd /tmp/backup-repo
-          git remote set-url origin "https://x-access-token:${BACKUP_REPO_PAT}@github.com/chardila/oraculobot-backup.git"
           cp -r "${GITHUB_WORKSPACE}/backup-output/." .
           for table in users predictions leagues invite_codes; do
             date_dir=$(date -u +%Y-%m-%d)
