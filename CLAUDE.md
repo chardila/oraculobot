@@ -68,6 +68,8 @@ Points are calculated in the worker when admin enters a result and persisted to 
 
 **wc_goals coverage**: complete for all World Cups. Goals for 1930–1950 came from an earlier load; goals for 1954–2013 were added from jfjelstul; 2014–2022 came from openfootball; 2026 is live. `wc_player_appearances` is only complete from 1970 onwards — for pre-1970 players (Pelé, Eusébio, etc.), use `wc_goals` to infer World Cup participation (count distinct years where scorer ILIKE the name).
 
+**Database backups** run daily at 03:00 UTC via `.github/workflows/backup.yml`. The script `WorldCup2026/backup.ts` exports `users`, `predictions`, `leagues`, and `invite_codes` as JSON (paginated, 1000 rows/page) to the private repo `chardila/oraculobot-backup` under `YYYY-MM-DD/`. Supabase free plan has no built-in backups; this is the only recovery mechanism. To restore: clone the backup repo, find the date folder, re-insert the JSON data via Supabase Studio. Requires secret `BACKUP_REPO_PAT` (fine-grained PAT with Contents: read+write on `oraculobot-backup`).
+
 **Web UI** (`site/jugar.html`) uses a chat-style interface with two distinct visual modes: the home screen shows a 2×2 grid of app-card tiles (`.menu-card`), while active flows (predict, ranking, question) use pill quick-reply buttons (`.chat-btn`). All pages share a CSS variable design system (`--c-primary`, `--c-bg`, `--c-surface`, etc.) and a white surface panel on an off-white background.
 
 ## Project structure
@@ -115,6 +117,7 @@ WorldCup2026/
   import.ts                  # CLI script: reads worldcup.json → inserts into Supabase
   download-history.ts        # CLI script: fetches openfootball history → commits JSON to worker/src/data/history/
   load-jfjelstul-history.ts  # CLI script: downloads jfjelstul/world-cup-data (~35MB), enriches wc_* tables (idempotent)
+  backup.ts                  # CLI script: exports users/predictions/leagues/invite_codes as JSON to backup-output/YYYY-MM-DD/
 supabase/migrations/
   001_initial.sql       # All tables + indexes + RLS
   002_leaderboard_rpc.sql
@@ -131,6 +134,7 @@ supabase/migrations/
   017_normalize_third_place_phase.sql  # Normalizes third-place match phase label
 .github/workflows/
   build-site.yml        # Triggered by Worker; builds and deploys to GitHub Pages
+  backup.yml            # Cron 03:00 UTC daily; runs backup.ts → pushes JSON to chardila/oraculobot-backup (private)
 ```
 
 ## Database migrations — security checklist
