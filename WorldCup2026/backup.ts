@@ -21,6 +21,7 @@ async function fetchAllRows(table: string): Promise<unknown[]> {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/${table}?select=*`,
       {
+        signal: AbortSignal.timeout(30_000),
         headers: {
           apikey: SUPABASE_SERVICE_KEY,
           Authorization: `Bearer ${SUPABASE_SERVICE_KEY}`,
@@ -48,6 +49,7 @@ async function main() {
   const date = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
   const outDir = path.join('backup-output', date);
   fs.mkdirSync(outDir, { recursive: true });
+  console.log(`Output directory: ${path.resolve(outDir)}`);
 
   for (const table of TABLES) {
     console.log(`Fetching ${table}...`);
