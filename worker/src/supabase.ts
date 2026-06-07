@@ -1,5 +1,5 @@
 import type {
-  DbUser, DbMatch, DbPrediction, DbInviteCode, DbLeague, ConversationState, UserPredictionItem
+  DbUser, DbMatch, DbPrediction, DbInviteCode, DbLeague, ConversationState, UserPredictionItem, ProposedResult
 } from './types';
 
 export class SupabaseClient {
@@ -365,6 +365,42 @@ export class SupabaseClient {
       body: JSON.stringify(patch),
       headers: { 'Prefer': 'return=minimal' },
     }, { id: `eq.${userId}` });
+  }
+
+  // Proposed results
+  async insertProposedResult(proposal: Omit<ProposedResult, 'id' | 'status'>): Promise<ProposedResult> {
+    const rows = await this.req<ProposedResult[]>('proposed_results', {
+      method: 'POST',
+      body: JSON.stringify(proposal),
+    });
+    return rows[0];
+  }
+
+  async getProposedResult(id: string): Promise<ProposedResult | null> {
+    const rows = await this.req<ProposedResult[]>('proposed_results', {}, {
+      id: `eq.${id}`,
+      status: 'eq.pending',
+      limit: '1',
+    });
+    return rows[0] ?? null;
+  }
+
+  async hasPendingProposal(matchId: string): Promise<boolean> {
+    const rows = await this.req<{ id: string }[]>('proposed_results', {}, {
+      match_id: `eq.${matchId}`,
+      status: 'eq.pending',
+      select: 'id',
+      limit: '1',
+    });
+    return rows.length > 0;
+  }
+
+  async decideProposedResult(id: string, status: 'confirmed' | 'rejected'): Promise<void> {
+    await this.req('proposed_results', {
+      method: 'PATCH',
+      body: JSON.stringify({ status, decided_at: new Date().toISOString() }),
+      headers: { 'Prefer': 'return=minimal' },
+    }, { id: `eq.${id}` });
   }
 
   async insertQuestionLog(userId: string, question: string, outcome: string, answer?: string): Promise<void> {
