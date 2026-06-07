@@ -143,7 +143,7 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
           `Eres el asistente del torneo de predicciones del Mundial 2026. Responde en español, breve y directo. No uses markdown.\n` +
           `La consulta no devolvió resultados. Informa al usuario que no tienes esa información.`;
         const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt2, body.question);
-        db.insertQuestionLog(user.id, body.question, 'no_data', answer).catch(() => {});
+        await db.insertQuestionLog(user.id, body.question, 'no_data', answer).catch(() => {});
         return Response.json({ answer });
       }
 
@@ -156,18 +156,18 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
         `Responde la pregunta usando solo esos datos.`;
 
       const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt2, body.question);
-      db.insertQuestionLog(user.id, body.question, 'answered', answer).catch(() => {});
+      await db.insertQuestionLog(user.id, body.question, 'answered', answer).catch(() => {});
       return Response.json({ answer });
     }
 
     // ── Respuesta directa (preguntas de polla o fuera de tema) ──────────────
     const outcome = response1.includes('Solo puedo responder') ? 'out_of_scope' : 'answered';
-    db.insertQuestionLog(user.id, body.question, outcome, response1).catch(() => {});
+    await db.insertQuestionLog(user.id, body.question, outcome, response1).catch(() => {});
     return Response.json({ answer: response1 });
 
   } catch (e) {
     console.error('question web error:', e);
-    db.insertQuestionLog(user.id, body.question, 'exception').catch(() => {});
+    await db.insertQuestionLog(user.id, body.question, 'exception').catch(() => {});
     return Response.json({ error: 'No pude procesar tu pregunta, intenta de nuevo' }, { status: 500 });
   }
 }
