@@ -43,8 +43,9 @@ export interface Env {
   INVITE_CODE_SECRET: string;
   TELEGRAM_BOT_USERNAME: string;
   TELEGRAM_WEBHOOK_SECRET: string;
-  WEB_ORIGIN: string;       // CORS origin, e.g. https://owner.github.io
-  WEB_REDIRECT_URL: string; // Magic link redirect, e.g. https://owner.github.io/oraculobot/jugar.html
+  WEB_ORIGIN: string;          // CORS origin, e.g. https://owner.github.io
+  WEB_REDIRECT_URL: string;    // Magic link redirect, e.g. https://owner.github.io/oraculobot/jugar.html
+  WORKER_ADMIN_SECRET: string; // Shared secret for GitHub Actions → worker calls
 }
 
 export interface DbLeague {
@@ -146,3 +147,17 @@ export interface ConversationState {
 }
 
 export type InlineKeyboardButton = { text: string; callback_data?: string; url?: string };
+
+export interface ProposedResult {
+  id: string;
+  match_id: string;
+  home_score_90: number;
+  away_score_90: number;
+  home_score_et: number | null;
+  away_score_et: number | null;
+  home_penalties: number | null;
+  away_penalties: number | null;
+  penalty_winner: 'home' | 'away' | null;
+  status: 'pending' | 'confirmed' | 'rejected';
+  telegram_message_id: number | null;
+}
