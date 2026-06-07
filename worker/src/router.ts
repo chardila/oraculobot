@@ -5,6 +5,7 @@ import { handleRegistration } from './handlers/registration';
 import { showMainMenu, handleMenuCallback } from './handlers/menu';
 import { handleAdminResultText } from './handlers/admin/result';
 import { handleAdminLeagueText } from './handlers/admin/league';
+import { handleAdminRecalcText } from './handlers/admin/recalculate';
 
 const CONVERSATION_TTL_MS = 4 * 60 * 60 * 1000; // 4 hours
 
@@ -70,6 +71,9 @@ export async function route(update: TelegramUpdate, env: Env): Promise<void> {
     switch (state.step) {
       case 'awaiting_result_score':
         await handleAdminResultText(msg, state, user, db, env);
+        return;
+      case 'awaiting_recalc_score':
+        await handleAdminRecalcText(msg, state, user, db, env);
         return;
       case 'awaiting_league_name':
         await handleAdminLeagueText(msg, state, user, db, env);

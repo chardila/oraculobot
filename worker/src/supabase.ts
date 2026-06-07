@@ -122,6 +122,14 @@ export class SupabaseClient {
     });
   }
 
+  async getFinishedMatches(): Promise<DbMatch[]> {
+    return this.req<DbMatch[]>('matches', {}, {
+      status: 'eq.finished',
+      order: 'kickoff_at.desc',
+      limit: '30',
+    });
+  }
+
   async getMatchById(id: string): Promise<DbMatch | null> {
     const rows = await this.req<DbMatch[]>('matches', {}, {
       id: `eq.${id}`,

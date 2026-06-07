@@ -2,6 +2,7 @@ import type { TelegramCallbackQuery, Env, DbUser, InlineKeyboardButton } from '.
 import type { SupabaseClient } from '../supabase';
 import { sendMessage, sendMenu, editMenu } from '../telegram';
 import { startAdminResult, handleAdminResultSelect, handleAdminPenaltyWinner } from './admin/result';
+import { startAdminRecalculate, handleAdminRecalcSelect, handleAdminRecalcConfirm, handleAdminRecalcPenaltyWinner } from './admin/recalculate';
 import { generateInviteCode, handleInviteLeagueCallback } from './admin/invite';
 import { startAdminLeague } from './admin/league';
 
@@ -16,6 +17,7 @@ export function buildAdminButtons(): InlineKeyboardButton[][] {
       { text: '🎟 Invitar',   callback_data: 'menu:admin_invite' },
     ],
     [
+      { text: '🔄 Recalcular', callback_data: 'menu:admin_recalc' },
       { text: '🏆 Crear polla', callback_data: 'menu:admin_league' },
     ],
   ];
@@ -67,6 +69,27 @@ export async function handleMenuCallback(
     return;
   }
 
+  // Admin recalculate flow
+  if (data.startsWith('admin:recalc:')) {
+    if (!admin) return;
+    const sub = data.replace('admin:recalc:', '');
+    if (sub === 'confirm') {
+      await handleAdminRecalcConfirm(chatId, user, db, env);
+      return;
+    }
+    if (sub === 'penalty:home') {
+      await handleAdminRecalcPenaltyWinner('home', chatId, user, db, env);
+      return;
+    }
+    if (sub === 'penalty:away') {
+      await handleAdminRecalcPenaltyWinner('away', chatId, user, db, env);
+      return;
+    }
+    // sub is a match ID
+    await handleAdminRecalcSelect(sub, chatId, user, db, env);
+    return;
+  }
+
   // Admin invite league selection
   if (data.startsWith('admin:invite:league:')) {
     if (!admin) return;
@@ -81,6 +104,9 @@ export async function handleMenuCallback(
   switch (action) {
     case 'admin_result':
       if (admin) await startAdminResult(chatId, msgId, db, env);
+      break;
+    case 'admin_recalc':
+      if (admin) await startAdminRecalculate(chatId, msgId, db, env);
       break;
     case 'admin_invite':
       if (admin) await generateInviteCode(chatId, msgId, user, db, env);
