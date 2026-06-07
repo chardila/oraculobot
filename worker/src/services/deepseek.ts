@@ -6,7 +6,7 @@ export async function askDeepSeek(apiKey: string, systemPrompt: string, userQues
       'Authorization': `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: 'deepseek-chat',
+      model: 'deepseek-v4-flash',
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userQuestion },
