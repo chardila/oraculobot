@@ -162,6 +162,24 @@ cd worker && npm run dev
 
 Use [ngrok](https://ngrok.com) or a Cloudflare tunnel to expose the local port, then point the Telegram webhook at it for testing.
 
+## Database backups
+
+El plan gratuito de Supabase no incluye backups automáticos. Un GitHub Action corre diariamente a las 03:00 UTC y exporta las tablas críticas al repo privado [`chardila/oraculobot-backup`](https://github.com/chardila/oraculobot-backup).
+
+**Tablas incluidas:** `users`, `predictions`, `leagues`, `invite_codes`
+
+**Backup manual:**
+```bash
+SUPABASE_URL=... SUPABASE_SERVICE_KEY=... npx tsx WorldCup2026/backup.ts
+```
+
+**Restaurar desde un backup:**
+1. Clonar el repo privado: `git clone https://github.com/chardila/oraculobot-backup.git`
+2. Abrir la carpeta de la fecha deseada (`YYYY-MM-DD/`)
+3. Re-insertar los datos en Supabase Studio (Table Editor → Import) o con SQL manual
+
+**Secret requerido en GitHub Actions:** `BACKUP_REPO_PAT` — fine-grained PAT con Contents: read+write sobre `oraculobot-backup`.
+
 ## Commands
 
 ```bash
