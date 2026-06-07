@@ -3,6 +3,7 @@ import type { SupabaseClient } from '../supabase';
 import { sendMessage, sendMenu, editMenu } from '../telegram';
 import { startAdminResult, handleAdminResultSelect, handleAdminPenaltyWinner } from './admin/result';
 import { startAdminRecalculate, handleAdminRecalcSelect, handleAdminRecalcConfirm, handleAdminRecalcPenaltyWinner } from './admin/recalculate';
+import { handleProposeDecision } from './admin/propose';
 import { generateInviteCode, handleInviteLeagueCallback } from './admin/invite';
 import { startAdminLeague } from './admin/league';
 
@@ -66,6 +67,17 @@ export async function handleMenuCallback(
     if (!admin) return;
     const winner = data === 'admin:penalty:home' ? 'home' : 'away';
     await handleAdminPenaltyWinner(winner, chatId, user, db, env);
+    return;
+  }
+
+  // Auto-result proposal confirm/reject
+  if (data.startsWith('admin:propose:')) {
+    if (!admin) return;
+    // format: admin:propose:confirm:<uuid> or admin:propose:reject:<uuid>
+    const parts = data.split(':');
+    const decision = parts[2] as 'confirm' | 'reject';
+    const proposalId = parts[3];
+    await handleProposeDecision(decision, proposalId, chatId, msgId, db, env);
     return;
   }
 
