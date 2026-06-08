@@ -46,6 +46,7 @@ describe('validateWcSql', () => {
       "SELECT * FROM wc_player_appearances WHERE position_code = 'GK'",
       'SELECT * FROM wc_referees',
       'SELECT * FROM wc_referee_appearances JOIN wc_referees ON wc_referee_appearances.referee_id = wc_referees.id',
+      'SELECT position, team, points FROM wc_standings_2026 WHERE group_name = \'A\' ORDER BY position',
     ];
     for (const q of queries) {
       const r = validateWcSql(q);

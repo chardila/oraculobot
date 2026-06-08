@@ -7,6 +7,7 @@ const ALLOWED_TABLES = [
   'wc_penalty_kicks', 'wc_group_standings', 'wc_award_winners',
   'wc_squads_2026',
   'wc_coaches_2026',
+  'wc_standings_2026',
 ];
 
 export const WC_SCHEMA_PROMPT = `
@@ -107,6 +108,18 @@ Ejemplos:
 - Equipos del Grupo B: SELECT team, coach_name FROM wc_coaches_2026 WHERE group_name = 'B' ORDER BY team
 - Cuántos técnicos europeos hay: SELECT coach_country, COUNT(*) as equipos FROM wc_coaches_2026 WHERE coach_country IS NOT NULL GROUP BY coach_country ORDER BY equipos DESC
 - Equipos con convocatoria final por confederación: SELECT confederation, COUNT(*) as equipos FROM wc_coaches_2026 WHERE squad_kind = 'final' GROUP BY confederation ORDER BY equipos DESC
+
+wc_standings_2026(group_name, position, team, played, wins, draws, losses, goals_for, goals_against, goal_difference, points, updated_at)
+  - group_name: 'A'..'L' (12 grupos en el Mundial 2026)
+  - position: 1..4 dentro del grupo
+  - team: nombre exacto como en la tabla matches (ej. 'Colombia', 'USA', 'Bosnia & Herzegovina')
+  - updated_at: cuándo se sincronizó por última vez desde football-data.org
+
+Ejemplos:
+- Tabla del Grupo A: SELECT position, team, played, wins, draws, losses, goals_for, goals_against, points FROM wc_standings_2026 WHERE group_name = 'A' ORDER BY position
+- Cómo va Colombia en el grupo: SELECT group_name, position, points, played, wins, draws, losses FROM wc_standings_2026 WHERE team = 'Colombia'
+- Top 2 de cada grupo (clasificados directos): SELECT group_name, position, team, points FROM wc_standings_2026 WHERE position <= 2 ORDER BY group_name, position
+- Grupos donde todos han jugado al menos 1 partido: SELECT group_name, MIN(played) as min_played FROM wc_standings_2026 GROUP BY group_name HAVING MIN(played) >= 1 ORDER BY group_name
 `.trim();
 
 export function validateWcSql(sql: string): { valid: boolean; error?: string } {
