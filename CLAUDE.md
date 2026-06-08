@@ -134,7 +134,7 @@ WorldCup2026/
   download-history.ts        # CLI script: fetches openfootball history → commits JSON to worker/src/data/history/
   load-jfjelstul-history.ts  # CLI script: downloads jfjelstul/world-cup-data (~35MB), enriches wc_* tables (idempotent)
   backup.ts                  # CLI script: exports users/predictions/leagues/invite_codes as JSON to backup-output/YYYY-MM-DD/
-  check-results.ts           # CLI script: polls football-data.org, matches finished scores to DB, calls /api/admin/propose-result
+  check-results.ts           # CLI script: polls football-data.org, matches finished scores to DB, calls /api/admin/propose-result; also syncs wc_standings_2026 every run
 supabase/migrations/
   001_initial.sql       # All tables + indexes + RLS
   002_leaderboard_rpc.sql
@@ -149,6 +149,10 @@ supabase/migrations/
                                    #   wc_penalty_kicks, wc_group_standings, wc_award_winners
   016_normalize_phase_names.sql    # Normalizes phase values (Semifinals→Semi-finals, etc.)
   017_normalize_third_place_phase.sql  # Normalizes third-place match phase label
+  019_wc_squads_2026.sql           # 2026 player squads (48 teams × 26 players, position, club, born)
+  021_wc_coaches_2026.sql          # 2026 coaches with group assignments and confederation
+  025_proposed_results.sql         # Auto-result proposals from football-data.org (pending/confirmed/rejected)
+  026_wc_standings_2026.sql        # Live 2026 group standings synced every 30 min via check-results.ts
 .github/workflows/
   build-site.yml        # Triggered by Worker; builds and deploys to GitHub Pages
   check-results.yml     # Cron every 30min; runs check-results.ts → calls /api/admin/propose-result (needs FOOTBALL_DATA_TOKEN, WORKER_URL, WORKER_ADMIN_SECRET)

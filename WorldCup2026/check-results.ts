@@ -86,7 +86,7 @@ async function syncStandings(): Promise<void> {
     console.error(`standings fetch failed: ${res.status}`);
     return;
   }
-  const { standings } = await res.json() as { standings: Array<{ group: string; table: Array<{
+  const { standings } = await res.json() as { standings: Array<{ group: string | null; table: Array<{
     team: { name: string };
     playedGames: number;
     won: number;
@@ -98,8 +98,16 @@ async function syncStandings(): Promise<void> {
     points: number;
   }> }> };
 
+  // Before tournament starts, API returns group: null with all 48 teams in one table.
+  // Only process once groups are populated (GROUP_A .. GROUP_L).
+  const grouped = standings.filter(s => s.group !== null);
+  if (grouped.length === 0) {
+    console.log('Standings: no group data yet (tournament not started)');
+    return;
+  }
+
   const now = new Date().toISOString();
-  const rows = standings.flatMap((group) =>
+  const rows = grouped.flatMap((group) =>
     group.table.map((entry, i) => ({
       group_name: group.group.replace('GROUP_', ''),
       position: i + 1,
@@ -117,7 +125,7 @@ async function syncStandings(): Promise<void> {
   );
 
   await supaUpsert('wc_standings_2026', rows, 'group_name,team');
-  console.log(`✅ Standings sincronizados: ${rows.length} filas`);
+  console.log(`✅ Standings sincronizados: ${rows.length} filas (${grouped.length} grupos)`);
 }
 
 // ── Match lookup ──────────────────────────────────────────────────────────────

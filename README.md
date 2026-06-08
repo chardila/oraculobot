@@ -11,11 +11,12 @@ A World Cup prediction bot for friends and family. Users make match predictions 
 - Predict match scores before kickoff (closes 5 min before kick)
 - Automatic point calculation when admin enters results
 - Leaderboard, match results, and stats on a static website (auto-regenerates on every push)
-- Natural language questions answered by DeepSeek AI — AI has context of the user's own predictions, the leaderboard, and the full match schedule (question history logged for audit)
+- Natural language questions answered by DeepSeek AI — AI has context of the user's own predictions, the leaderboard, full match schedule, live 2026 group standings, and 2026 player squads/coaches (question history logged for audit)
 - View personal predictions history with scores and points earned
 - Reminders modal: on login, if any match kicks off within 24h and hasn't been predicted, a modal prompts the user to predict directly from the alert
 - Admin controls via Telegram: enter results, generate invite codes, create matches, create pollas
 - **Auto-results:** GitHub Actions polls football-data.org every 30 min, detects finished matches, and sends the admin a Telegram confirmation prompt — no manual score lookup needed
+- **Live standings:** same cron syncs group standings to `wc_standings_2026` so the AI can answer "¿cómo va el grupo A?" with up-to-date data
 - **Recalculate:** admin can correct a previously entered result and all predictions are re-scored automatically
 
 ## Scoring
@@ -65,7 +66,7 @@ See [docs/setup.md](docs/setup.md) for the full step-by-step guide. Quick refere
 
 ### 1. Apply database migrations
 
-In Supabase dashboard → SQL Editor, run all files in `supabase/migrations/` in numeric order (001 through 025).
+In Supabase dashboard → SQL Editor, run all files in `supabase/migrations/` in numeric order (001 through 026).
 
 ### 2. Deploy the Worker
 
@@ -255,7 +256,7 @@ site/
                         # my predictions, ask AI (chat interface)
                         # Reminders modal: shows on login if matches kick off within 24h
   src/generate.ts       # Static site generator: ranking, partidos, stats pages
-supabase/migrations/    # SQL migrations (apply in order, 001–011)
+supabase/migrations/    # SQL migrations (apply in order, 001–026)
 .github/workflows/
   build-site.yml        # Triggered on push to main and by Worker after results
   check-results.yml     # Cron every 30min: polls football-data.org, proposes finished results to admin
