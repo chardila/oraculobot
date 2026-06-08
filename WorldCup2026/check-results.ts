@@ -61,6 +61,65 @@ async function supaGet<T>(path: string, query: Record<string, string> = {}): Pro
   return res.json() as Promise<T>;
 }
 
+async function supaUpsert(path: string, rows: Record<string, unknown>[], onConflict: string): Promise<void> {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${path}`);
+  url.searchParams.set('on_conflict', onConflict);
+  const res = await fetch(url.toString(), {
+    method: 'POST',
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'resolution=merge-duplicates',
+    },
+    body: JSON.stringify(rows),
+  });
+  if (!res.ok) throw new Error(`Supabase upsert ${path}: ${res.status} ${await res.text()}`);
+}
+
+async function syncStandings(): Promise<void> {
+  const res = await fetch(
+    'https://api.football-data.org/v4/competitions/WC/standings?season=2026',
+    { headers: { 'X-Auth-Token': FOOTBALL_DATA_TOKEN } }
+  );
+  if (!res.ok) {
+    console.error(`standings fetch failed: ${res.status}`);
+    return;
+  }
+  const { standings } = await res.json() as { standings: Array<{ group: string; table: Array<{
+    team: { name: string };
+    playedGames: number;
+    won: number;
+    draw: number;
+    lost: number;
+    goalsScored: number;
+    goalsConceded: number;
+    goalDifference: number;
+    points: number;
+  }> }> };
+
+  const now = new Date().toISOString();
+  const rows = standings.flatMap((group) =>
+    group.table.map((entry, i) => ({
+      group_name: group.group.replace('GROUP_', ''),
+      position: i + 1,
+      team: entry.team.name,
+      played: entry.playedGames,
+      wins: entry.won,
+      draws: entry.draw,
+      losses: entry.lost,
+      goals_for: entry.goalsScored,
+      goals_against: entry.goalsConceded,
+      goal_difference: entry.goalDifference,
+      points: entry.points,
+      updated_at: now,
+    }))
+  );
+
+  await supaUpsert('wc_standings_2026', rows, 'group_name,team');
+  console.log(`✅ Standings sincronizados: ${rows.length} filas`);
+}
+
 // ── Match lookup ──────────────────────────────────────────────────────────────
 
 function findFdMatch(fdMatches: FdMatch[], our: OurMatch): FdMatch | undefined {
@@ -92,10 +151,8 @@ async function main() {
 
   if (!pending.length) {
     console.log('No hay partidos pendientes de resultado.');
-    return;
-  }
-
-  console.log(`${pending.length} partido(s) pendiente(s) de resultado.`);
+  } else {
+    console.log(`${pending.length} partido(s) pendiente(s) de resultado.`);
 
   // 2. Fetch finished matches from football-data.org
   const fdRes = await fetch(
@@ -146,6 +203,14 @@ async function main() {
         console.log(`✅ Propuesta enviada: ${match.home_team} vs ${match.away_team} (${result.proposal_id})`);
       }
     }
+  } // end for (match of pending)
+  } // end else (pending.length > 0)
+
+  // Sync standings regardless of pending matches
+  try {
+    await syncStandings();
+  } catch (err) {
+    console.error('standings sync error (non-fatal):', err);
   }
 }
 
