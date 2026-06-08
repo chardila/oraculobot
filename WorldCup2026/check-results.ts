@@ -103,7 +103,7 @@ async function syncStandings(): Promise<void> {
     group.table.map((entry, i) => ({
       group_name: group.group.replace('GROUP_', ''),
       position: i + 1,
-      team: entry.team.name,
+      team: norm(entry.team.name),
       played: entry.playedGames,
       wins: entry.won,
       draws: entry.draw,
