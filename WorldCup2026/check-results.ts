@@ -168,7 +168,6 @@ async function main() {
     { headers: { 'X-Auth-Token': FOOTBALL_DATA_TOKEN } }
   );
   if (!fdRes.ok) throw new Error(`football-data.org: ${fdRes.status} ${await fdRes.text()}`);
-  console.log(`football-data.org status=${fdRes.status} X-Requests-Available-Minute=${fdRes.headers.get('x-requests-available-minute')}`);
   const { matches: fdMatches } = await fdRes.json() as { matches: FdMatch[] };
   console.log(`football-data.org reporta ${fdMatches.length} partido(s) terminado(s).`);
 
@@ -192,7 +191,11 @@ async function main() {
       continue;
     }
 
-    console.log(`${match.home_team} vs ${match.away_team}: score=${JSON.stringify(fdMatch.score)}`);
+    // football-data.org sometimes returns FINISHED matches with null scores due to CDN caching delays
+    if (!fdMatch.score.winner || fdMatch.score.fullTime.home === null || fdMatch.score.fullTime.away === null) {
+      console.log(`${match.home_team} vs ${match.away_team}: marcador aún no disponible (score incompleto), se reintentará`);
+      continue;
+    }
 
     // Send proposal to worker
     const proposeRes = await fetch(`${WORKER_URL}/api/admin/propose-result`, {
