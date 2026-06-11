@@ -236,6 +236,86 @@ describe('generate', () => {
     expect(html).toContain('Ceros: 1');
   });
 
+  it('personalidades: shows section heading', () => {
+    const match = { ...baseFinishedMatch, id: 'm1' };
+    const leaderboard = [{ user_id: 'u1', username: 'Alice', total_points: 5, telegram_id: null }];
+    const predictions = [{ points: 5, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 }];
+    const html = generateStats(leaderboard, predictions, [match]);
+    expect(html).toContain('Personalidades');
+  });
+
+  it('personalidades: assigns El Adivino to user with most exactos', () => {
+    const matches = [
+      { ...baseFinishedMatch, id: 'm1' },
+      { ...baseFinishedMatch, id: 'm2' },
+    ];
+    const leaderboard = [
+      { user_id: 'u1', username: 'Alice', total_points: 10, telegram_id: null },
+      { user_id: 'u2', username: 'Bob',   total_points: 5,  telegram_id: null },
+    ];
+    const predictions = [
+      { points: 5, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 },
+      { points: 5, user_id: 'u1', match_id: 'm2', home_score: 2, away_score: 1 },
+      { points: 5, user_id: 'u2', match_id: 'm1', home_score: 2, away_score: 1 },
+      { points: 0, user_id: 'u2', match_id: 'm2', home_score: 0, away_score: 0 },
+    ];
+    const html = generateStats(leaderboard, predictions, matches);
+    expect(html).toContain('El Adivino');
+  });
+
+  it('personalidades: assigns El Atrevido to highest avg goals', () => {
+    const match = { ...baseFinishedMatch, id: 'm1' };
+    const leaderboard = [
+      { user_id: 'u1', username: 'Alice', total_points: 3, telegram_id: null },
+      { user_id: 'u2', username: 'Bob',   total_points: 0, telegram_id: null },
+    ];
+    const predictions = [
+      { points: 3, user_id: 'u1', match_id: 'm1', home_score: 4, away_score: 3 }, // avg=7
+      { points: 0, user_id: 'u2', match_id: 'm1', home_score: 1, away_score: 0 }, // avg=1
+    ];
+    const html = generateStats(leaderboard, predictions, [match]);
+    expect(html).toContain('El Atrevido');
+  });
+
+  it('personalidades: assigns El Conservador to lowest avg goals', () => {
+    const match = { ...baseFinishedMatch, id: 'm1' };
+    const leaderboard = [
+      { user_id: 'u1', username: 'Alice', total_points: 3, telegram_id: null },
+      { user_id: 'u2', username: 'Bob',   total_points: 0, telegram_id: null },
+    ];
+    const predictions = [
+      { points: 3, user_id: 'u1', match_id: 'm1', home_score: 4, away_score: 3 },
+      { points: 0, user_id: 'u2', match_id: 'm1', home_score: 1, away_score: 0 },
+    ];
+    const html = generateStats(leaderboard, predictions, [match]);
+    expect(html).toContain('El Conservador');
+  });
+
+  it('personalidades: assigns El Unico to user with most unique predictions', () => {
+    const match = { ...baseFinishedMatch, id: 'm1' };
+    const leaderboard = [
+      { user_id: 'u1', username: 'Alice', total_points: 0, telegram_id: null },
+      { user_id: 'u2', username: 'Bob',   total_points: 0, telegram_id: null },
+      { user_id: 'u3', username: 'Carol', total_points: 0, telegram_id: null },
+    ];
+    const predictions = [
+      { points: 0, user_id: 'u1', match_id: 'm1', home_score: 3, away_score: 3 }, // unique
+      { points: 0, user_id: 'u2', match_id: 'm1', home_score: 1, away_score: 0 },
+      { points: 0, user_id: 'u3', match_id: 'm1', home_score: 1, away_score: 0 },
+    ];
+    const html = generateStats(leaderboard, predictions, [match]);
+    expect(html).toContain('El Único');
+  });
+
+  it('personalidades: hidden when no resolved predictions', () => {
+    const html = generateStats(
+      [{ user_id: 'u1', username: 'Alice', total_points: 0, telegram_id: null }],
+      [],
+      []
+    );
+    expect(html).not.toContain('Personalidades');
+  });
+
   it('generateStats evolución: embebe CDN de Chart.js y datos de usuarios', () => {
     const html = generateStats(
       [

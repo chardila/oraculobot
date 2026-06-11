@@ -407,6 +407,11 @@ export function generateStats(
     .consenso-popular{font-size:.87rem;color:#333;margin-bottom:.25rem;}
     .consenso-counts{font-size:.82rem;color:#555;gap:1rem;display:flex;flex-wrap:wrap;}
     .badge-sorpresa{background:#fff3e0;color:#b96a00;border-radius:8px;padding:1px 8px;font-size:.75rem;font-weight:600;margin-left:.4rem;}
+    .pers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.75rem;margin-top:.5rem;}
+    .pers-card{background:#f8f9fa;border-radius:10px;padding:.9rem;text-align:center;}
+    .pers-name{font-weight:600;font-size:.88rem;margin-bottom:.5rem;color:#1a1a1a;}
+    .pers-badge{display:inline-block;background:#e8f0fe;color:#1a5a8c;border-radius:12px;padding:3px 10px;font-size:.76rem;font-weight:600;margin:2px;}
+    .pers-badge-none{background:#f0f0f0;color:#888;}
   </style>`;
 
   const kpiSection = `
@@ -606,11 +611,81 @@ export function generateStats(
     ${consensoCards || '<p>Sin predicciones aún.</p>'}
   </div>`;
 
+  // ── Sección: Personalidades ────────────────────────────────────────────────
+  interface UserPStats {
+    user_id: string;
+    username: string;
+    exactos: number;
+    avgGoals: number;
+    unicoCount: number;
+  }
+
+  // Per-match score groups needed for El Único (reuse scoresByMatch already computed above)
+  const matchScoreGroups = new Map<string, Map<string, number>>(); // matchId → "h-a" → count
+  for (const p of predictions) {
+    if (p.home_score == null || p.away_score == null || p.points === null) continue;
+    if (!matchScoreGroups.has(p.match_id)) matchScoreGroups.set(p.match_id, new Map());
+    const key = `${p.home_score}-${p.away_score}`;
+    const g = matchScoreGroups.get(p.match_id)!;
+    g.set(key, (g.get(key) ?? 0) + 1);
+  }
+
+  const persStats: UserPStats[] = [];
+  for (const u of leaderboard) {
+    const up = predictions.filter(p =>
+      p.user_id === u.user_id && p.points !== null && p.home_score != null && p.away_score != null
+    );
+    if (!up.length) continue;
+
+    const exactos = up.filter(p => p.points === 5).length;
+    const avgGoals = up.reduce((s, p) => s + (p.home_score ?? 0) + (p.away_score ?? 0), 0) / up.length;
+
+    let unicoCount = 0;
+    for (const p of up) {
+      const key = `${p.home_score}-${p.away_score}`;
+      if ((matchScoreGroups.get(p.match_id)?.get(key) ?? 0) === 1) unicoCount++;
+    }
+
+    persStats.push({ user_id: u.user_id, username: u.username ?? 'Anónimo', exactos, avgGoals, unicoCount });
+  }
+
+  let personalidadesSection = '';
+  if (persStats.length > 0) {
+    const maxExactos = Math.max(...persStats.map(s => s.exactos));
+    const maxAvg     = Math.max(...persStats.map(s => s.avgGoals));
+    const minAvg     = Math.min(...persStats.map(s => s.avgGoals));
+    const maxUnico   = Math.max(...persStats.map(s => s.unicoCount));
+
+    const getBadges = (s: UserPStats): string[] => {
+      const b: string[] = [];
+      if (s.exactos > 0 && s.exactos === maxExactos)   b.push('🎯 El Adivino');
+      if (s.avgGoals === maxAvg)                         b.push('😤 El Atrevido');
+      if (s.avgGoals === minAvg && maxAvg !== minAvg)    b.push('🛡️ El Conservador');
+      if (s.unicoCount > 0 && s.unicoCount === maxUnico) b.push('🎲 El Único');
+      return b;
+    };
+
+    const cards = persStats.map(s => {
+      const bs = getBadges(s);
+      const badgeHtml = bs.length
+        ? bs.map(b => `<span class="pers-badge">${b}</span>`).join('')
+        : '<span class="pers-badge pers-badge-none">😐 Sin badge aún</span>';
+      return `<div class="pers-card"><div class="pers-name">${s.username}</div><div>${badgeHtml}</div></div>`;
+    }).join('');
+
+    personalidadesSection = `
+    <div class="stats-section">
+      <h2>🎭 Personalidades</h2>
+      <div class="pers-grid">${cards}</div>
+    </div>`;
+  }
+
   return layout('Estadísticas', `
     ${statsStyles}
     <h1>📊 Estadísticas — Mundial 2026</h1>
     ${kpiSection}
     ${consensoSection}
+    ${personalidadesSection}
     ${chartSection}
     ${userTable}
     ${diffTable}
