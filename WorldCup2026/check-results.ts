@@ -168,6 +168,7 @@ async function main() {
     { headers: { 'X-Auth-Token': FOOTBALL_DATA_TOKEN } }
   );
   if (!fdRes.ok) throw new Error(`football-data.org: ${fdRes.status} ${await fdRes.text()}`);
+  console.log(`football-data.org status=${fdRes.status} X-Requests-Available-Minute=${fdRes.headers.get('x-requests-available-minute')}`);
   const { matches: fdMatches } = await fdRes.json() as { matches: FdMatch[] };
   console.log(`football-data.org reporta ${fdMatches.length} partido(s) terminado(s).`);
 
