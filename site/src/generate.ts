@@ -402,6 +402,11 @@ export function generateStats(
     .mini-bar-fill{height:100%;border-radius:4px;}
     .part-frac{font-size:.72rem;color:#888;}
     @media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
+    .consenso-card{border:1px solid #e5e5e5;border-radius:10px;padding:.9rem 1rem;margin-bottom:.75rem;background:#fafafa;}
+    .consenso-match{font-weight:700;font-size:.95rem;margin-bottom:.35rem;}
+    .consenso-popular{font-size:.87rem;color:#333;margin-bottom:.25rem;}
+    .consenso-counts{font-size:.82rem;color:#555;gap:1rem;display:flex;flex-wrap:wrap;}
+    .badge-sorpresa{background:#fff3e0;color:#b96a00;border-radius:8px;padding:1px 8px;font-size:.75rem;font-weight:600;margin-left:.4rem;}
   </style>`;
 
   const kpiSection = `
@@ -563,10 +568,49 @@ export function generateStats(
           </table>`}
     </div>`;
 
+  // ── Sección: Consenso por partido ─────────────────────────────────────────
+  interface PredScore { home: number; away: number; count: number; }
+
+  const scoresByMatch = new Map<string, Map<string, PredScore>>();
+  for (const p of predictions) {
+    if (p.home_score == null || p.away_score == null || p.points === null) continue;
+    if (!scoresByMatch.has(p.match_id)) scoresByMatch.set(p.match_id, new Map());
+    const key = `${p.home_score}-${p.away_score}`;
+    const sm = scoresByMatch.get(p.match_id)!;
+    if (!sm.has(key)) sm.set(key, { home: p.home_score, away: p.away_score, count: 0 });
+    sm.get(key)!.count++;
+  }
+
+  const consensoCards = finishedMatches.map(m => {
+    const sm = scoresByMatch.get(m.id);
+    if (!sm?.size) return '';
+
+    const popular = [...sm.values()].sort((a, b) => b.count - a.count)[0];
+    const mp = predByMatch.get(m.id) ?? [];
+    const uExactos  = mp.filter(p => p.points === 5).length;
+    const uCorrec   = mp.filter(p => (p.points ?? 0) > 0 && (p.points ?? 0) < 5).length;
+    const uCeros    = mp.filter(p => p.points === 0).length;
+    const nadie     = uExactos === 0 && mp.length > 0;
+    const personStr = popular.count === 1 ? 'persona' : 'personas';
+
+    return `<div class="consenso-card">
+    <div class="consenso-match">${m.home_team} ${m.home_score} – ${m.away_score} ${m.away_team}</div>
+    <div class="consenso-popular">Predicción más popular: <b>${popular.home}-${popular.away}</b> (${popular.count} ${personStr})${nadie ? '<span class="badge-sorpresa">😱 Nadie lo vio venir</span>' : ''}</div>
+    <div class="consenso-counts"><span>🎯 Exactos: ${uExactos}</span><span>✅ Correctos: ${uCorrec}</span><span>❌ Ceros: ${uCeros}</span></div>
+  </div>`;
+  }).filter(Boolean).join('');
+
+  const consensoSection = finishedMatches.length === 0 ? '' : `
+  <div class="stats-section">
+    <h2>🗳️ Consenso por partido</h2>
+    ${consensoCards || '<p>Sin predicciones aún.</p>'}
+  </div>`;
+
   return layout('Estadísticas', `
     ${statsStyles}
     <h1>📊 Estadísticas — Mundial 2026</h1>
     ${kpiSection}
+    ${consensoSection}
     ${chartSection}
     ${userTable}
     ${diffTable}

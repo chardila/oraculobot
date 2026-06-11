@@ -191,6 +191,51 @@ describe('generate', () => {
     expect(html).toContain('Consenso por partido');
   });
 
+  it('consenso: shows most popular predicted score and count', () => {
+    const match = { ...baseFinishedMatch, id: 'm1', home_team: 'Mexico', away_team: 'South Africa' };
+    const predictions = [
+      { points: 0, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 },
+      { points: 0, user_id: 'u2', match_id: 'm1', home_score: 2, away_score: 1 },
+      { points: 5, user_id: 'u3', match_id: 'm1', home_score: 2, away_score: 0 },
+    ];
+    const html = generateStats([], predictions, [match]);
+    expect(html).toContain('2-1');          // most popular
+    expect(html).toContain('2 personas');   // count
+  });
+
+  it('consenso: shows nadie lo vio venir when no exactos', () => {
+    const match = { ...baseFinishedMatch, id: 'm1' };
+    const predictions = [
+      { points: 0, user_id: 'u1', match_id: 'm1', home_score: 1, away_score: 0 },
+      { points: 3, user_id: 'u2', match_id: 'm1', home_score: 3, away_score: 1 },
+    ];
+    const html = generateStats([], predictions, [match]);
+    expect(html).toContain('Nadie lo vio venir');
+  });
+
+  it('consenso: does NOT show nadie when there are exactos', () => {
+    const match = { ...baseFinishedMatch, id: 'm1' };
+    const predictions = [
+      { points: 5, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 },
+      { points: 0, user_id: 'u2', match_id: 'm1', home_score: 1, away_score: 0 },
+    ];
+    const html = generateStats([], predictions, [match]);
+    expect(html).not.toContain('Nadie lo vio venir');
+  });
+
+  it('consenso: counts exactos, correctos, ceros per match', () => {
+    const match = { ...baseFinishedMatch, id: 'm1' };
+    const predictions = [
+      { points: 5, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 },
+      { points: 3, user_id: 'u2', match_id: 'm1', home_score: 2, away_score: 0 },
+      { points: 0, user_id: 'u3', match_id: 'm1', home_score: 0, away_score: 0 },
+    ];
+    const html = generateStats([], predictions, [match]);
+    expect(html).toContain('Exactos: 1');
+    expect(html).toContain('Correctos: 1');
+    expect(html).toContain('Ceros: 1');
+  });
+
   it('generateStats evolución: embebe CDN de Chart.js y datos de usuarios', () => {
     const html = generateStats(
       [
