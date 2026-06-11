@@ -181,6 +181,16 @@ describe('generate', () => {
     expect(html).not.toContain('Colombia vs Brasil');
   });
 
+  it('consenso: renders section heading', () => {
+    const match = { ...baseFinishedMatch, id: 'm1' };
+    const predictions = [
+      { points: 5, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 },
+      { points: 0, user_id: 'u2', match_id: 'm1', home_score: 1, away_score: 0 },
+    ];
+    const html = generateStats([], predictions, [match]);
+    expect(html).toContain('Consenso por partido');
+  });
+
   it('generateStats evolución: embebe CDN de Chart.js y datos de usuarios', () => {
     const html = generateStats(
       [

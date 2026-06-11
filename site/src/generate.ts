@@ -48,6 +48,8 @@ interface PredictionDetail {
   points: number | null;
   user_id: string;
   match_id: string;
+  home_score?: number | null;
+  away_score?: number | null;
 }
 
 const VENUE_MAP: Record<string, { name: string; city: string; country: string }> = {
@@ -586,7 +588,7 @@ async function main() {
   const [leagues, matches, predictions] = await Promise.all([
     query<League[]>('leagues', { order: 'created_at.asc', select: 'id,name' }),
     query<Match[]>('matches', { order: 'kickoff_at.asc' }),
-    query<PredictionDetail[]>('predictions', { select: 'points,user_id,match_id' }),
+    query<PredictionDetail[]>('predictions', { select: 'points,user_id,match_id,home_score,away_score' }),
   ]);
 
   // Build ground lookup from worldcup.json (for backfill until DB has ground column)
