@@ -202,7 +202,12 @@ async function main() {
     });
 
     if (!proposeRes.ok) {
-      console.error(`Error proponiendo ${match.home_team} vs ${match.away_team}: ${proposeRes.status} ${await proposeRes.text()}`);
+      const body = await proposeRes.text();
+      if (proposeRes.status === 422 && body.includes('score_not_available_yet')) {
+        console.log(`${match.home_team} vs ${match.away_team}: marcador aún no disponible en football-data.org, se reintentará`);
+      } else {
+        console.error(`Error proponiendo ${match.home_team} vs ${match.away_team}: ${proposeRes.status} ${body}`);
+      }
     } else {
       const result = await proposeRes.json() as { ok: boolean; skipped?: string; proposal_id?: string };
       if (result.skipped) {

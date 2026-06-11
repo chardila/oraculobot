@@ -45,11 +45,16 @@ export async function handleProposeResult(request: Request, env: Env): Promise<R
 
   // Score at 90 min is what goes into the polla
   const home90 = isRegular
-    ? score.fullTime.home!
-    : (score.regularTime?.home ?? score.fullTime.home!);
+    ? score.fullTime.home
+    : (score.regularTime?.home ?? score.fullTime.home);
   const away90 = isRegular
-    ? score.fullTime.away!
-    : (score.regularTime?.away ?? score.fullTime.away!);
+    ? score.fullTime.away
+    : (score.regularTime?.away ?? score.fullTime.away);
+
+  // football-data.org sometimes returns null scores for FINISHED matches briefly after the game ends
+  if (home90 === null || home90 === undefined || away90 === null || away90 === undefined) {
+    return Response.json({ ok: false, error: 'score_not_available_yet' }, { status: 422 });
+  }
 
   const homeET = (isET || isPenalties) ? (score.overtime?.home ?? null) : null;
   const awayET = (isET || isPenalties) ? (score.overtime?.away ?? null) : null;
