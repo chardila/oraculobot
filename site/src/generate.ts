@@ -620,16 +620,6 @@ export function generateStats(
     unicoCount: number;
   }
 
-  // Per-match score groups needed for El Único (reuse scoresByMatch already computed above)
-  const matchScoreGroups = new Map<string, Map<string, number>>(); // matchId → "h-a" → count
-  for (const p of predictions) {
-    if (p.home_score == null || p.away_score == null || p.points === null) continue;
-    if (!matchScoreGroups.has(p.match_id)) matchScoreGroups.set(p.match_id, new Map());
-    const key = `${p.home_score}-${p.away_score}`;
-    const g = matchScoreGroups.get(p.match_id)!;
-    g.set(key, (g.get(key) ?? 0) + 1);
-  }
-
   const persStats: UserPStats[] = [];
   for (const u of leaderboard) {
     const up = predictions.filter(p =>
@@ -643,14 +633,14 @@ export function generateStats(
     let unicoCount = 0;
     for (const p of up) {
       const key = `${p.home_score}-${p.away_score}`;
-      if ((matchScoreGroups.get(p.match_id)?.get(key) ?? 0) === 1) unicoCount++;
+      if ((scoresByMatch.get(p.match_id)?.get(key)?.count ?? 0) === 1) unicoCount++;
     }
 
     persStats.push({ user_id: u.user_id, username: u.username ?? 'Anónimo', exactos, avgGoals, unicoCount });
   }
 
   let personalidadesSection = '';
-  if (persStats.length > 0) {
+  if (finishedMatches.length > 0 && persStats.length > 0) {
     const maxExactos = Math.max(...persStats.map(s => s.exactos));
     const maxAvg     = Math.max(...persStats.map(s => s.avgGoals));
     const minAvg     = Math.min(...persStats.map(s => s.avgGoals));
