@@ -191,6 +191,8 @@ async function main() {
       continue;
     }
 
+    console.log(`${match.home_team} vs ${match.away_team}: score=${JSON.stringify(fdMatch.score.fullTime)} duration=${fdMatch.score.duration}`);
+
     // Send proposal to worker
     const proposeRes = await fetch(`${WORKER_URL}/api/admin/propose-result`, {
       method: 'POST',
