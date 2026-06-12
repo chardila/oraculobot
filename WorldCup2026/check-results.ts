@@ -40,6 +40,12 @@ interface FdScore {
   penalties: { home: number | null; away: number | null } | null;
 }
 
+interface FdReferee {
+  name: string;
+  type: string;
+  nationality: string;
+}
+
 interface FdMatch {
   id: number;
   utcDate: string;
@@ -47,6 +53,7 @@ interface FdMatch {
   homeTeam: { name: string };
   awayTeam: { name: string };
   score: FdScore;
+  referees: FdReferee[];
 }
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
@@ -75,6 +82,48 @@ async function supaUpsert(path: string, rows: Record<string, unknown>[], onConfl
     body: JSON.stringify(rows),
   });
   if (!res.ok) throw new Error(`Supabase upsert ${path}: ${res.status} ${await res.text()}`);
+}
+
+async function supaPatch(path: string, id: string, data: Record<string, unknown>): Promise<void> {
+  const url = new URL(`${SUPABASE_URL}/rest/v1/${path}`);
+  url.searchParams.set('id', `eq.${id}`);
+  const res = await fetch(url.toString(), {
+    method: 'PATCH',
+    headers: {
+      'apikey': SERVICE_KEY,
+      'Authorization': `Bearer ${SERVICE_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) throw new Error(`Supabase PATCH ${path}: ${res.status} ${await res.text()}`);
+}
+
+async function syncReferees(): Promise<void> {
+  const res = await fetch(
+    'https://api.football-data.org/v4/competitions/WC/matches?season=2026',
+    { headers: { 'X-Auth-Token': FOOTBALL_DATA_TOKEN } }
+  );
+  if (!res.ok) {
+    console.error(`referee sync fetch failed: ${res.status}`);
+    return;
+  }
+  const { matches: fdMatches } = await res.json() as { matches: FdMatch[] };
+
+  const ourMatches = await supaGet<OurMatch[]>('matches', {
+    select: 'id,home_team,away_team,kickoff_at,phase',
+  });
+
+  let updated = 0;
+  for (const our of ourMatches) {
+    const fd = findFdMatch(fdMatches, our);
+    if (!fd) continue;
+    const main = fd.referees?.find(r => r.type === 'REFEREE');
+    if (!main) continue;
+    await supaPatch('matches', our.id, { referee: main.name });
+    updated++;
+  }
+  console.log(`✅ Árbitros sincronizados: ${updated} partido(s) actualizados`);
 }
 
 async function syncStandings(): Promise<void> {
@@ -230,6 +279,13 @@ async function main() {
     await syncStandings();
   } catch (err) {
     console.error('standings sync error (non-fatal):', err);
+  }
+
+  // Sync referee assignments regardless of pending matches
+  try {
+    await syncReferees();
+  } catch (err) {
+    console.error('referee sync error (non-fatal):', err);
   }
 }
 

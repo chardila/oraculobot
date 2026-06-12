@@ -8,6 +8,7 @@ const ALLOWED_TABLES = [
   'wc_squads_2026',
   'wc_coaches_2026',
   'wc_standings_2026',
+  'matches',
 ];
 
 export const WC_SCHEMA_PROMPT = `
@@ -120,6 +121,24 @@ Ejemplos:
 - Cómo va Colombia en el grupo: SELECT group_name, position, points, played, wins, draws, losses FROM wc_standings_2026 WHERE team = 'Colombia'
 - Top 2 de cada grupo (clasificados directos): SELECT group_name, position, team, points FROM wc_standings_2026 WHERE position <= 2 ORDER BY group_name, position
 - Grupos donde todos han jugado al menos 1 partido: SELECT group_name, MIN(played) as min_played FROM wc_standings_2026 GROUP BY group_name HAVING MIN(played) >= 1 ORDER BY group_name
+
+matches(id, home_team, away_team, kickoff_at, phase, group_name, home_score, away_score, status, ground, match_num, winner, referee)
+  - Partidos del Mundial 2026 (los 104 partidos del torneo)
+  - status: 'scheduled' (pendiente) | 'finished' (finalizado)
+  - phase: 'grupos' | 'treintaidosavos' | 'octavos' | 'cuartos' | 'semis' | 'final' | 'tercer_lugar'
+  - group_name: 'A'..'L' en fase de grupos, null en eliminatorias
+  - home_score/away_score: goles a los 90 min, null si aún no hay resultado
+  - winner: 'home' | 'away' | null (solo en eliminatorias, incluye resultado de penales)
+  - referee: árbitro principal asignado por FIFA (null si aún no asignado)
+  - ground: clave de sede — cruzar con contexto "Estadios 2026:" para obtener nombre y ciudad
+  - kickoff_at: hora UTC del partido
+  - Todos los equipos usan el mismo nombre que en wc_squads_2026 y wc_coaches_2026
+
+Ejemplos:
+- Árbitro del partido de hoy: SELECT home_team, away_team, referee FROM matches WHERE DATE(kickoff_at) = CURRENT_DATE AND referee IS NOT NULL
+- Árbitros de todos los partidos de hoy: SELECT home_team, away_team, kickoff_at, referee FROM matches WHERE DATE(kickoff_at) = CURRENT_DATE ORDER BY kickoff_at
+- Partidos de Colombia en el Mundial 2026: SELECT home_team, away_team, kickoff_at, home_score, away_score, status FROM matches WHERE home_team = 'Colombia' OR away_team = 'Colombia' ORDER BY kickoff_at
+- Próximos partidos sin resultado: SELECT home_team, away_team, kickoff_at FROM matches WHERE status = 'scheduled' ORDER BY kickoff_at LIMIT 5
 `.trim();
 
 export function validateWcSql(sql: string): { valid: boolean; error?: string } {
