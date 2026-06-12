@@ -16,6 +16,6 @@ export async function triggerSiteBuild(pat: string, repo: string): Promise<void>
 
   if (!res.ok) {
     const text = await res.text();
-    console.error(`GitHub Actions trigger failed: ${res.status} ${text}`);
+    throw new Error(`GitHub Actions trigger failed: ${res.status} ${text}`);
   }
 }

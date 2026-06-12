@@ -142,7 +142,11 @@ export async function handleAdminResultText(
     `🔄 Regenerando sitio web...`
   );
 
-  triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO).catch(console.error);
+  triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO).catch(async (err) => {
+    console.error(err);
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
+      '⚠️ Error al regenerar el sitio web. Disparalo manualmente en GitHub Actions.');
+  });
 }
 
 export async function handleAdminPenaltyWinner(
@@ -172,5 +176,9 @@ export async function handleAdminPenaltyWinner(
     `🏆 <b>${winnerName}</b> avanzó en penales.\n\n🔄 Regenerando sitio web...`
   );
 
-  triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO).catch(console.error);
+  triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO).catch(async (err) => {
+    console.error(err);
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
+      '⚠️ Error al regenerar el sitio web. Disparalo manualmente en GitHub Actions.');
+  });
 }

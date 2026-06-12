@@ -3,7 +3,7 @@ import type { SupabaseClient } from '../../supabase';
 import { calculatePoints } from '../../services/scoring';
 import { triggerSiteBuild } from '../../services/github';
 import { propagateBracket } from '../../services/bracket';
-import { editMenu } from '../../telegram';
+import { sendMessage, editMenu } from '../../telegram';
 
 export async function handleProposeDecision(
   decision: 'confirm' | 'reject',
@@ -78,5 +78,9 @@ export async function handleProposeDecision(
     []
   );
 
-  triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO).catch(console.error);
+  triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO).catch(async (err) => {
+    console.error(err);
+    await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
+      '⚠️ Error al regenerar el sitio web. Disparalo manualmente en GitHub Actions.');
+  });
 }
