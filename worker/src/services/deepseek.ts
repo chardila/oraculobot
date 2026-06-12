@@ -1,4 +1,4 @@
-export async function askDeepSeek(apiKey: string, systemPrompt: string, userQuestion: string): Promise<string> {
+export async function askDeepSeek(apiKey: string, systemPrompt: string, userQuestion: string, maxTokens = 1500): Promise<string> {
   const res = await fetch('https://api.deepseek.com/chat/completions', {
     method: 'POST',
     headers: {
@@ -11,7 +11,7 @@ export async function askDeepSeek(apiKey: string, systemPrompt: string, userQues
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userQuestion },
       ],
-      max_tokens: 300,
+      max_tokens: maxTokens,
       temperature: 0.1,
     }),
   });
@@ -21,5 +21,5 @@ export async function askDeepSeek(apiKey: string, systemPrompt: string, userQues
   }
 
   const data = await res.json() as { choices: Array<{ message: { content: string } }> };
-  return data.choices[0]?.message?.content ?? 'No pude generar una respuesta.';
+  return data.choices[0]?.message?.content || 'No pude generar una respuesta.';
 }

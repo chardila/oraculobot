@@ -107,6 +107,7 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       `REGLA IMPORTANTE: Si la pregunta es sobre Mundiales de fútbol (historia, partidos, goles, goleadores, grupos, clasificaciones, estadios, eliminatorias, penales, shootout, tarjetas, sustituciones, árbitros, alineaciones, jugadores, técnicos, entrenadores, premios, Golden Boot, Golden Ball, tabla de posiciones, resultados, convocados, nómina, plantel, jugadores de un equipo, porteros, delanteros, clubes representados) O menciona un nombre propio que pueda ser un jugador, técnico o selección del Mundial 2026, responde ÚNICAMENTE con:\n` +
       `SQL: <consulta SQL aquí>\n` +
       `No añadas nada más. El SQL debe usar solo las tablas disponibles.\n\n` +
+      `EXCEPCIÓN: Si la pregunta es sobre estadios, ciudades sede, sedes o lugares del Mundial 2026, NO generes SQL. Responde directamente usando la sección "Estadios 2026:" de este prompt.\n\n` +
       `Si la pregunta es sobre la polla (predicciones, puntos, ranking), responde directamente usando el contexto.\n\n` +
       `${WC_SCHEMA_PROMPT}\n\n` +
       `CONTEXTO POLLA:\n` +
@@ -118,7 +119,7 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
       `Resultados recientes:\n${recentText || 'Sin resultados aún.'}\n\n` +
       `Estadios 2026:\n${VENUE_CONTEXT}`;
 
-    const response1 = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt1, body.question);
+    const response1 = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt1, body.question, 600);
 
     // ── Si el modelo generó SQL, ejecutarlo y hacer segunda llamada ──────────
     if (response1.trimStart().toUpperCase().startsWith('SQL:')) {
