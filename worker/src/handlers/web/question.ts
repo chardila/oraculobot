@@ -75,9 +75,10 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
         timeZone: 'America/Bogota',
       });
       const label = `${phaseLabel(m.phase)}${m.group_name ? ' Grupo ' + m.group_name : ''}`;
+      const venue = m.ground ? ` Sede: ${m.ground}` : '';
       return m.status === 'finished'
-        ? `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team} (${d}) [${label} - finalizado]`
-        : `${m.home_team} vs ${m.away_team} (${d}) [${label}]`;
+        ? `${m.home_team} ${m.home_score}-${m.away_score} ${m.away_team} (${d}) [${label} - finalizado]${venue}`
+        : `${m.home_team} vs ${m.away_team} (${d}) [${label}]${venue}`;
     }).join('\n');
 
     const recentText = recent
@@ -154,7 +155,8 @@ export async function handleWebQuestion(request: Request, env: Env): Promise<Res
         `Eres el asistente del torneo de predicciones del Mundial 2026. Responde en español, breve y directo. No uses markdown.\n` +
         `El usuario preguntó: "${body.question}"\n` +
         `Los datos de la base de datos son:\n${resultsText}\n` +
-        `Responde la pregunta usando solo esos datos.`;
+        `${VENUE_CONTEXT}\n` +
+        `Responde la pregunta usando esos datos. Si los datos incluyen un campo "ground", úsalo para buscar el estadio en la sección de estadios de arriba.`;
 
       const answer = await askDeepSeek(env.DEEPSEEK_API_KEY, systemPrompt2, body.question);
       await db.insertQuestionLog(user.id, body.question, 'answered', answer).catch(() => {});

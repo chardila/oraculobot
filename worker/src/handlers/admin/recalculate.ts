@@ -177,11 +177,13 @@ export async function handleAdminRecalcConfirm(
     `🔄 Regenerando sitio web...`
   );
 
-  triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO).catch(async (err) => {
+  try {
+    await triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO);
+  } catch (err) {
     console.error(err);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
       '⚠️ Error al regenerar el sitio web. Disparalo manualmente en GitHub Actions.');
-  });
+  }
 }
 
 export async function handleAdminRecalcPenaltyWinner(
@@ -206,9 +208,11 @@ export async function handleAdminRecalcPenaltyWinner(
   await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
     `🏆 <b>${winnerName}</b> mantiene el avance en penales.\n🔄 Regenerando sitio web...`
   );
-  triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO).catch(async (err) => {
+  try {
+    await triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO);
+  } catch (err) {
     console.error(err);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
       '⚠️ Error al regenerar el sitio web. Disparalo manualmente en GitHub Actions.');
-  });
+  }
 }
