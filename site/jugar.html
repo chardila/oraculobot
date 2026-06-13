@@ -688,6 +688,36 @@
       showButtons([[backButton()]]);
     }
 
+    function classifyPrediction(ph, pa, ah, aa) {
+      if (ph === ah && pa === aa) return { emoji: '⭐', label: 'Marcador exacto', points: 5 };
+      const predResult = Math.sign(ph - pa);
+      const actualResult = Math.sign(ah - aa);
+      if (predResult !== actualResult) return { emoji: '❌', label: 'Resultado equivocado', points: 0 };
+      if (Math.abs(ph - pa) === Math.abs(ah - aa)) return { emoji: '✅', label: 'Resultado correcto · Diferencia exacta', points: 4 };
+      return { emoji: '✅', label: 'Resultado correcto', points: 3 };
+    }
+
+    function renderFinishedMatch(p) {
+      if (p.actual_home === null) {
+        return `${p.home_team} vs ${p.away_team}\n   Tu pred: ${p.predicted_home}-${p.predicted_away}\n   pts pendientes`;
+      }
+      const { emoji, label } = classifyPrediction(p.predicted_home, p.predicted_away, p.actual_home, p.actual_away);
+      const pts = p.points ?? 0;
+      return `${emoji} ${p.home_team} vs ${p.away_team}\n   Tu pred: ${p.predicted_home}-${p.predicted_away} · Resultado: ${p.actual_home}-${p.actual_away}\n   ${label} · ${pts} pts`;
+    }
+
+    function showFinishedPage(finished, offset) {
+      const page = finished.slice(offset, offset + 8);
+      addBotMsg(page.map(p => renderFinishedMatch(p)).join('\n\n'));
+      const remaining = finished.length - (offset + 8);
+      const btns = [];
+      if (remaining > 0) {
+        btns.push([{ label: `Ver más (${remaining} restantes)`, action: () => showFinishedPage(finished, offset + 8) }]);
+      }
+      btns.push([backButton()]);
+      showButtons(btns);
+    }
+
     // ── Mis predicciones ──
     async function showMyPredictions() {
       addUserMsg('📋 Mis predicciones');
@@ -701,23 +731,53 @@
           showButtons([[backButton()]]);
           return;
         }
-        const lines = predictions.map(p => {
-          const match = `${p.home_team} vs ${p.away_team}`;
-          const pred = `Tu predicción: ${p.predicted_home}-${p.predicted_away}`;
-          if (p.status === 'finished') {
-            const pts = p.points !== null ? `${p.points} pts` : 'pts pendientes';
-            return `✅ ${match}\n   ${pred}\n   Resultado: ${p.actual_home}-${p.actual_away} · ${pts}`;
-          }
-          return `🕐 ${match} (${formatDate(p.kickoff_at)})\n   ${pred}`;
-        });
-        for (let i = 0; i < lines.length; i += 8) {
-          addBotMsg(lines.slice(i, i + 8).join('\n\n'));
+        const finished = predictions
+          .filter(p => p.status === 'finished')
+          .sort((a, b) => b.kickoff_at.localeCompare(a.kickoff_at));
+        const pending = predictions
+          .filter(p => p.status !== 'finished')
+          .sort((a, b) => a.kickoff_at.localeCompare(b.kickoff_at));
+
+        const totalPts = finished.reduce((sum, p) => sum + (p.points ?? 0), 0);
+        const classified = finished
+          .filter(p => p.actual_home !== null)
+          .map(p => p.points ?? 0);
+        const exactos = classified.filter(pts => pts === 5).length;
+        const correctos = classified.filter(pts => pts === 3 || pts === 4).length;
+        const fallidos = classified.filter(pts => pts === 0).length;
+
+        let summary = `📊 Mis predicciones\n\n${totalPts} pts · ${finished.length} partidos terminados`;
+        if (finished.length > 0) {
+          summary += `\n⭐ Exactos: ${exactos}   ✅ Correctos: ${correctos}   ❌ Fallidos: ${fallidos}`;
         }
+        if (pending.length > 0) {
+          summary += `\n\n🕐 ${pending.length} predicciones pendientes`;
+        }
+        addBotMsg(summary);
+
+        if (finished.length > 0) {
+          addBotMsg(finished.slice(0, 8).map(p => renderFinishedMatch(p)).join('\n\n'));
+        }
+
+        if (pending.length > 0) {
+          const lines = pending.map(p =>
+            `${p.home_team} vs ${p.away_team} (${formatDate(p.kickoff_at)}) · ${p.predicted_home}-${p.predicted_away}`
+          );
+          addBotMsg('🕐 Próximas con predicción\n\n' + lines.join('\n'));
+        }
+
+        const btns = [];
+        if (finished.length > 8) {
+          const remaining = finished.length - 8;
+          btns.push([{ label: `Ver más (${remaining} restantes)`, action: () => showFinishedPage(finished, 8) }]);
+        }
+        btns.push([backButton()]);
+        showButtons(btns);
       } catch (e) {
         loading.remove();
         addBotMsg(`❌ ${e.message}`);
+        showButtons([[backButton()]]);
       }
-      showButtons([[backButton()]]);
     }
 
     // ── Preguntar ──
