@@ -145,9 +145,9 @@ export async function handleAdminResultText(
   try {
     await triggerSiteBuild(env.GITHUB_PAT, env.GITHUB_REPO);
   } catch (err) {
-    console.error(err);
+    const msg = err instanceof Error ? err.message : String(err);
     await sendMessage(env.TELEGRAM_BOT_TOKEN, chatId,
-      '⚠️ Error al regenerar el sitio web. Disparalo manualmente en GitHub Actions.');
+      `⚠️ Error al regenerar el sitio web:\n<code>${msg}</code>`);
   }
 }
 
