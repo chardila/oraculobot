@@ -21,6 +21,22 @@ function norm(name: string): string {
   return TEAM_NAME_MAP[name] ?? name;
 }
 
+// FIFA API name → our DB name (only differences from FIFA naming)
+const FIFA_TEAM_MAP: Record<string, string> = {
+  'Korea Republic':          'South Korea',
+  'Czechia':                 'Czech Republic',
+  'Bosnia and Herzegovina':  'Bosnia & Herzegovina',
+  'Türkiye':                 'Turkey',
+  "Côte d'Ivoire":           'Ivory Coast',
+  'Cabo Verde':              'Cape Verde',
+  'IR Iran':                 'Iran',
+  'Congo DR':                'DR Congo',
+};
+
+function normFifa(name: string): string {
+  return FIFA_TEAM_MAP[name] ?? name;
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface OurMatch {
@@ -54,6 +70,23 @@ interface FdMatch {
   awayTeam: { name: string };
   score: FdScore;
   referees: FdReferee[];
+}
+
+// Minimal shape of what propose-result.ts expects in fd_match
+type ProposeMatchPayload = {
+  score: FdScore;
+  homeTeam: { name: string };
+  awayTeam: { name: string };
+};
+
+// Fields returned by the undocumented FIFA calendar API that we use
+interface FifaApiMatch {
+  IdCompetition: string;
+  IdSeason: string;
+  IdMatch: string;
+  MatchStatus: number; // 0 = finished
+  Home: { TeamName: Array<{ Description: string }>; Score: number | null } | null;
+  Away: { TeamName: Array<{ Description: string }>; Score: number | null } | null;
 }
 
 // ── Supabase helpers ──────────────────────────────────────────────────────────
@@ -190,6 +223,82 @@ function findFdMatch(fdMatches: FdMatch[], our: OurMatch): FdMatch | undefined {
   });
 }
 
+// ── FIFA fallback ─────────────────────────────────────────────────────────────
+// Queries the undocumented FIFA calendar API when football-data.org has no data yet.
+// Returns null on any failure (all errors logged but swallowed).
+
+async function tryFifaFallback(match: OurMatch): Promise<{
+  payload: ProposeMatchPayload;
+  source: 'fifa';
+} | null> {
+  const matchDate = match.kickoff_at.slice(0, 10); // 'YYYY-MM-DD' in UTC
+
+  try {
+    const url = new URL('https://api.fifa.com/api/v3/calendar/matches');
+    url.searchParams.set('count', '500');
+    url.searchParams.set('language', 'en');
+    url.searchParams.set('from', `${matchDate}T00:00:00Z`);
+    url.searchParams.set('to', `${matchDate}T23:59:59Z`);
+
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      console.warn(`[FIFA] HTTP ${res.status} buscando ${match.home_team} vs ${match.away_team} (${matchDate})`);
+      return null;
+    }
+
+    const data = await res.json() as { Results?: FifaApiMatch[] };
+    const fifaMatch = (data.Results ?? []).find(m =>
+      m.IdCompetition === '17' &&
+      m.IdSeason === '285023' &&
+      normFifa(m.Home?.TeamName?.[0]?.Description ?? '') === match.home_team &&
+      normFifa(m.Away?.TeamName?.[0]?.Description ?? '') === match.away_team
+    );
+
+    if (!fifaMatch) {
+      console.log(`[FIFA] ${match.home_team} vs ${match.away_team}: no encontrado en respuesta FIFA (${matchDate})`);
+      return null;
+    }
+
+    if (fifaMatch.MatchStatus !== 0) {
+      console.log(`[FIFA] ${match.home_team} vs ${match.away_team}: MatchStatus=${fifaMatch.MatchStatus} (aún no terminado)`);
+      return null;
+    }
+
+    const homeScore = fifaMatch.Home?.Score;
+    const awayScore = fifaMatch.Away?.Score;
+
+    if (homeScore === null || homeScore === undefined || awayScore === null || awayScore === undefined) {
+      console.log(`[FIFA] ${match.home_team} vs ${match.away_team}: marcador nulo (matchId: ${fifaMatch.IdMatch})`);
+      return null;
+    }
+
+    const winner: FdScore['winner'] =
+      homeScore > awayScore ? 'HOME_TEAM' :
+      awayScore > homeScore ? 'AWAY_TEAM' : 'DRAW';
+
+    console.log(`[FIFA] ✅ ${match.home_team} ${homeScore}-${awayScore} ${match.away_team} (matchId: ${fifaMatch.IdMatch})`);
+
+    return {
+      payload: {
+        score: {
+          winner,
+          duration: 'REGULAR',
+          fullTime:    { home: homeScore, away: awayScore },
+          regularTime: null,
+          overtime:    null,
+          penalties:   null,
+        },
+        homeTeam: { name: match.home_team },
+        awayTeam: { name: match.away_team },
+      },
+      source: 'fifa',
+    };
+  } catch (err) {
+    console.warn(`[FIFA] Error inesperado para ${match.home_team} vs ${match.away_team}:`, err);
+    return null;
+  }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -235,15 +344,26 @@ async function main() {
     }
 
     const fdMatch = findFdMatch(fdMatches, match);
-    if (!fdMatch) {
-      console.log(`${match.home_team} vs ${match.away_team}: no encontrado en football-data.org todavía`);
-      continue;
-    }
 
-    // football-data.org sometimes returns FINISHED matches with null scores due to CDN caching delays
-    if (!fdMatch.score.winner || fdMatch.score.fullTime.home === null || fdMatch.score.fullTime.away === null) {
-      console.log(`${match.home_team} vs ${match.away_team}: marcador aún no disponible (score incompleto), se reintentará`);
-      continue;
+    let proposePayload: ProposeMatchPayload | null = null;
+    let proposeSource = 'football-data';
+
+    if (fdMatch) {
+      // football-data.org sometimes returns FINISHED matches with null scores due to CDN caching delays
+      if (!fdMatch.score.winner || fdMatch.score.fullTime.home === null || fdMatch.score.fullTime.away === null) {
+        console.log(`${match.home_team} vs ${match.away_team}: marcador aún no disponible en football-data.org, se reintentará`);
+        continue;
+      }
+      proposePayload = fdMatch;
+    } else {
+      console.log(`${match.home_team} vs ${match.away_team}: no en football-data.org, probando FIFA...`);
+      const fifaResult = await tryFifaFallback(match);
+      if (!fifaResult) {
+        console.log(`${match.home_team} vs ${match.away_team}: sin datos en ninguna fuente todavía`);
+        continue;
+      }
+      proposePayload = fifaResult.payload;
+      proposeSource  = fifaResult.source;
     }
 
     // Send proposal to worker
@@ -253,7 +373,7 @@ async function main() {
         'Content-Type': 'application/json',
         'X-Admin-Secret': WORKER_ADMIN_SECRET,
       },
-      body: JSON.stringify({ match_id: match.id, fd_match: fdMatch }),
+      body: JSON.stringify({ match_id: match.id, fd_match: proposePayload, source: proposeSource }),
     });
 
     if (!proposeRes.ok) {

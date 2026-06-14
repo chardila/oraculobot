@@ -19,6 +19,7 @@ interface ProposeResultBody {
     homeTeam: { name: string };
     awayTeam: { name: string };
   };
+  source?: string; // 'football-data' | 'fifa'
 }
 
 export async function handleProposeResult(request: Request, env: Env): Promise<Response> {
@@ -77,8 +78,12 @@ export async function handleProposeResult(request: Request, env: Env): Promise<R
   });
 
   // Build Telegram message with all details
+  const sourceLabel = body.source === 'fifa' ? 'FIFA' : 'football-data.org';
+  const isKnockout = match.phase !== 'grupos';
+  const isTied = home90 === away90;
+
   const lines: string[] = [
-    `⚽ <b>Resultado disponible (football-data.org)</b>`,
+    `⚽ <b>Resultado disponible (${sourceLabel})</b>`,
     ``,
     `<b>${match.home_team} vs ${match.away_team}</b>`,
     `🕐 90 min: <code>${home90} - ${away90}</code>`,
@@ -88,6 +93,9 @@ export async function handleProposeResult(request: Request, env: Env): Promise<R
   if (penaltyWinner) {
     const winnerName = penaltyWinner === 'home' ? match.home_team : match.away_team;
     lines.push(`🏆 Avanza: <b>${winnerName}</b>`);
+  }
+  if (body.source === 'fifa' && isKnockout && isTied) {
+    lines.push(``, `⚠️ <b>Fase eliminatoria empatada — FIFA no informa ET/penales. Verificar antes de confirmar.</b>`);
   }
   lines.push(``, `¿Aplicar el marcador <code>${home90}-${away90}</code> a los 90 min?`);
 
