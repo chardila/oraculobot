@@ -274,7 +274,7 @@ export function generateIndex(): string {
 const PHASE_ORDER = ['grupos', 'treintaidosavos', 'octavos', 'cuartos', 'semis', 'tercer_lugar', 'final'];
 const PHASE_LABELS: Record<string, string> = {
   grupos: 'Fase de Grupos',
-  treintaidosavos: 'Treintaidosavos de Final',
+  treintaidosavos: 'Dieciseisavos de Final',
   octavos: 'Octavos de Final',
   cuartos: 'Cuartos de Final',
   semis: 'Semifinales',
