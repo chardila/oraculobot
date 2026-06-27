@@ -9,6 +9,9 @@ concurrency:
   group: check-results
   cancel-in-progress: true
 
+permissions:
+  actions: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -27,3 +30,4 @@ jobs:
           FOOTBALL_DATA_TOKEN: ${{ secrets.FOOTBALL_DATA_TOKEN }}
           WORKER_URL: ${{ secrets.WORKER_URL }}
           WORKER_ADMIN_SECRET: ${{ secrets.WORKER_ADMIN_SECRET }}
+          GITHUB_TOKEN: ${{ github.token }}
