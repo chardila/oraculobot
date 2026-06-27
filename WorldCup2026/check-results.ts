@@ -85,6 +85,8 @@ interface FifaApiMatch {
   IdSeason: string;
   IdMatch: string;
   MatchStatus: number; // 0 = finished
+  Date: string;        // UTC ISO string e.g. "2026-06-28T19:00:00Z"
+  StageName: Array<{ Locale: string; Description: string }> | null;
   Home: { TeamName: Array<{ Description: string }>; Score: number | null } | null;
   Away: { TeamName: Array<{ Description: string }>; Score: number | null } | null;
 }
@@ -299,6 +301,103 @@ async function tryFifaFallback(match: OurMatch): Promise<{
   }
 }
 
+// ── Knockout bracket sync ─────────────────────────────────────────────────────
+
+function isPlaceholder(name: string): boolean {
+  // e.g. "2A", "1E", "3A/B/C/D/F", "W73", "L101"
+  return /^[123][A-L](\/[A-L])*$/.test(name) || /^[WL]\d+$/.test(name);
+}
+
+function getFifaTeamName(team: FifaApiMatch['Home']): string | null {
+  if (!team?.TeamName?.length) return null;
+  const entry = team.TeamName.find(t => t?.Locale?.toLowerCase().includes('en')) ?? team.TeamName[0];
+  return entry?.Description ?? null;
+}
+
+async function triggerSiteRebuild(): Promise<void> {
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) return;
+  const res = await fetch(
+    'https://api.github.com/repos/chardila/oraculobot/actions/workflows/build-site.yml/dispatches',
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ ref: 'main' }),
+    }
+  );
+  if (!res.ok) {
+    console.warn(`[Bracket] site rebuild trigger failed: ${res.status}`);
+  } else {
+    console.log('[Bracket] ✅ Site rebuild triggered');
+  }
+}
+
+async function syncKnockoutTeams(): Promise<void> {
+  const url = new URL('https://api.fifa.com/api/v3/calendar/matches');
+  url.searchParams.set('count', '500');
+  url.searchParams.set('language', 'en');
+  url.searchParams.set('from', '2026-06-27T00:00:00Z');
+  url.searchParams.set('to', '2026-07-05T00:00:00Z');
+
+  const res = await fetch(url.toString());
+  if (!res.ok) {
+    console.error(`[Bracket] FIFA API error: ${res.status}`);
+    return;
+  }
+
+  const data = await res.json() as { Results?: FifaApiMatch[] };
+  const fifaR32 = (data.Results ?? []).filter(m =>
+    m.IdCompetition === '17' &&
+    m.IdSeason === '285023' &&
+    (m.StageName ?? []).some(s => s.Description?.includes('32'))
+  );
+
+  if (fifaR32.length === 0) {
+    console.log('[Bracket] No R32 matches found in FIFA API yet');
+    return;
+  }
+
+  const ourMatches = await supaGet<OurMatch[]>('matches', {
+    select: 'id,home_team,away_team,kickoff_at,phase',
+    phase: 'eq.treintaidosavos',
+  });
+
+  const pending = ourMatches.filter(m => isPlaceholder(m.home_team) || isPlaceholder(m.away_team));
+  if (pending.length === 0) {
+    console.log('[Bracket] R32: todos los equipos ya definidos');
+    return;
+  }
+
+  let updated = 0;
+  for (const fifa of fifaR32) {
+    const homeTeam = getFifaTeamName(fifa.Home);
+    const awayTeam = getFifaTeamName(fifa.Away);
+    if (!homeTeam || !awayTeam) continue; // TBD
+
+    const fifaTime = (fifa.Date ?? '').slice(0, 16); // "2026-06-28T19:00"
+    const ourMatch = pending.find(m => m.kickoff_at.slice(0, 16) === fifaTime);
+    if (!ourMatch) continue;
+
+    await supaPatch('matches', ourMatch.id, {
+      home_team: normFifa(homeTeam),
+      away_team: normFifa(awayTeam),
+    });
+    console.log(`[Bracket] ✅ ${normFifa(homeTeam)} vs ${normFifa(awayTeam)} (${fifaTime})`);
+    updated++;
+  }
+
+  const remaining = pending.length - updated;
+  console.log(`[Bracket] R32: ${updated} actualizado(s), ${remaining} aún TBD`);
+
+  if (updated > 0) {
+    await triggerSiteRebuild();
+  }
+}
+
 // ── Main ──────────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -406,6 +505,13 @@ async function main() {
     await syncReferees();
   } catch (err) {
     console.error('referee sync error (non-fatal):', err);
+  }
+
+  // Fill in real team names for Round of 32 as groups conclude
+  try {
+    await syncKnockoutTeams();
+  } catch (err) {
+    console.error('bracket sync error (non-fatal):', err);
   }
 }
 
