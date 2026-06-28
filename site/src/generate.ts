@@ -433,11 +433,6 @@ export function generateStats(
     .pers-name{font-weight:600;font-size:.88rem;margin-bottom:.5rem;color:#1a1a1a;}
     .pers-badge{display:inline-block;background:#e8f0fe;color:#1a5a8c;border-radius:12px;padding:3px 10px;font-size:.76rem;font-weight:600;margin:2px;}
     .pers-badge-none{background:#f0f0f0;color:#888;}
-    #evolution-chart{height:280px;}
-    .chart-legend{display:flex;flex-wrap:wrap;gap:.4rem .8rem;margin-top:.75rem;font-size:.78rem;}
-    .legend-item{display:flex;align-items:center;gap:.3rem;}
-    .legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
-    @media(max-width:600px){#evolution-chart{height:220px;}}
   </style>`;
 
   const kpiSection = `
@@ -467,7 +462,7 @@ export function generateStats(
       return acc;
     });
     return { label: u.username ?? 'Anónimo', data, borderColor: color,
-             backgroundColor: 'transparent', borderWidth, pointRadius: borderWidth > 1 ? 2 : 0, tension: 0.3 };
+             backgroundColor: 'transparent', borderWidth, pointRadius: 0, tension: 0.3 };
   };
 
   const datasets = [
@@ -479,16 +474,10 @@ export function generateStats(
     .replace(/<\//g, '<\\/');
 
 
-  const legendItems = [
-    ...top5.map((u, i) => `<span class="legend-item"><span class="legend-dot" style="background:${COLORS[i]}"></span>${u.username ?? 'Anónimo'}</span>`),
-    ...(rest.length > 0 ? [`<span class="legend-item"><span class="legend-dot" style="background:#e0e0e0"></span>Otros</span>`] : []),
-  ].join('');
-
   const chartSection = `
     <div class="stats-section">
       <h2>📈 Evolución de puntos acumulados</h2>
-      <canvas id="evolution-chart"></canvas>
-      <div class="chart-legend">${legendItems}</div>
+      <canvas id="evolution-chart" height="80"></canvas>
       <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
       <script>
         (function(){
@@ -498,13 +487,9 @@ export function generateStats(
             data: ${chartJson},
             options: {
               responsive: true,
-              maintainAspectRatio: false,
               interaction: { mode: 'index', intersect: false },
               plugins: { legend: { display: false } },
-              scales: {
-                x: { ticks: { maxTicksLimit: 8 } },
-                y: { beginAtZero: true }
-              }
+              scales: { y: { beginAtZero: true } }
             }
           });
         })();
