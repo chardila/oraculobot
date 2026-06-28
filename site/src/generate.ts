@@ -379,6 +379,25 @@ export function generateStats(
   const COLORS = ['#0070f3', '#00c896', '#ff9800', '#e040fb', '#f44336'];
   const MEDALS = ['🥇', '🥈', '🥉'];
 
+  const matchById = new Map(matches.map(m => [m.id, m]));
+
+  // Phase-aware exact: predicted score matches actual score exactly
+  const isExactPred = (p: PredictionDetail): boolean => {
+    const m = matchById.get(p.match_id);
+    if (!m || m.home_score == null || m.away_score == null) return false;
+    if (p.home_score == null || p.away_score == null) return false;
+    return p.home_score === m.home_score && p.away_score === m.away_score;
+  };
+
+  // Correct result direction (win/draw/loss) but not exact score
+  const isCorrectPred = (p: PredictionDetail): boolean => {
+    if (isExactPred(p)) return false;
+    const m = matchById.get(p.match_id);
+    if (!m || m.home_score == null || m.away_score == null) return false;
+    if (p.home_score == null || p.away_score == null) return false;
+    return Math.sign(p.home_score - p.away_score) === Math.sign(m.home_score - m.away_score);
+  };
+
   const finishedMatches = matches
     .filter(m => m.status === 'finished')
     .sort((a, b) => new Date(a.kickoff_at).getTime() - new Date(b.kickoff_at).getTime());
@@ -387,8 +406,8 @@ export function generateStats(
   const total = resolved.length;
   const pct = (n: number) => total ? `${Math.round(n / total * 100)}%` : '—';
 
-  const exact = resolved.filter(p => p.points === 5).length;
-  const correct = resolved.filter(p => (p.points ?? 0) > 0 && (p.points ?? 0) < 5).length;
+  const exact = resolved.filter(p => isExactPred(p)).length;
+  const correct = resolved.filter(p => isCorrectPred(p)).length;
   const zero = resolved.filter(p => p.points === 0).length;
 
   const statsStyles = `<style>
@@ -485,8 +504,8 @@ export function generateStats(
   const userRows = leaderboard.map((u, i) => {
     const userPreds = predByUser.get(u.user_id) ?? [];
     const played = userPreds.length;
-    const uExact = userPreds.filter(p => p.points === 5).length;
-    const uCorrect = userPreds.filter(p => (p.points ?? 0) > 0 && (p.points ?? 0) < 5).length;
+    const uExact = userPreds.filter(p => isExactPred(p)).length;
+    const uCorrect = userPreds.filter(p => isCorrectPred(p)).length;
     const uZero = userPreds.filter(p => p.points === 0).length;
     const avg = played > 0 ? (Number(u.total_points) / played).toFixed(1) : '—';
     const pctPlayed = finishedCount > 0 ? Math.round(played / finishedCount * 100) : 0;
@@ -592,8 +611,8 @@ export function generateStats(
 
     const popular = [...sm.values()].sort((a, b) => b.count - a.count)[0];
     const mp = predByMatch.get(m.id) ?? [];
-    const uExactos  = mp.filter(p => p.points === 5).length;
-    const uCorrec   = mp.filter(p => (p.points ?? 0) > 0 && (p.points ?? 0) < 5).length;
+    const uExactos  = mp.filter(p => isExactPred(p)).length;
+    const uCorrec   = mp.filter(p => isCorrectPred(p)).length;
     const uCeros    = mp.filter(p => p.points === 0).length;
     const nadie     = uExactos === 0 && mp.length > 0;
     const personStr = popular.count === 1 ? 'persona' : 'personas';
@@ -627,7 +646,7 @@ export function generateStats(
     );
     if (!up.length) continue;
 
-    const exactos = up.filter(p => p.points === 5).length;
+    const exactos = up.filter(p => isExactPred(p)).length;
     const avgGoals = up.reduce((s, p) => s + (p.home_score ?? 0) + (p.away_score ?? 0), 0) / up.length;
 
     let unicoCount = 0;
