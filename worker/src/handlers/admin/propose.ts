@@ -1,6 +1,6 @@
 import type { Env, DbUser } from '../../types';
 import type { SupabaseClient } from '../../supabase';
-import { calculatePoints } from '../../services/scoring';
+import { calculatePoints, calculatePointsBreakdown } from '../../services/scoring';
 import { triggerSiteBuild } from '../../services/github';
 import { propagateBracket } from '../../services/bracket';
 import { sendMessage, editMenu } from '../../telegram';
@@ -50,11 +50,13 @@ export async function handleProposeDecision(
   await Promise.all(predictions.map(async (pred) => {
     const points = calculatePoints(
       { home: pred.home_score, away: pred.away_score },
-      { home: homeScore, away: awayScore }
+      { home: homeScore, away: awayScore },
+      match.phase
     );
     await db.updatePredictionPoints(pred.id, points);
-    if (points === 5) exactCount++;
-    else if (points >= 3) resultCount++;
+    const bd = calculatePointsBreakdown({ home: pred.home_score, away: pred.away_score }, { home: homeScore, away: awayScore }, match.phase);
+    if (bd.home > 0 && bd.away > 0 && bd.result > 0) exactCount++;
+    else if (bd.result > 0) resultCount++;
   }));
 
   const isDraw = homeScore === awayScore;

@@ -114,12 +114,14 @@ export interface UserPredictionItem {
   home_team: string;
   away_team: string;
   kickoff_at: string;
+  phase: string;
   status: 'scheduled' | 'finished';
   predicted_home: number;
   predicted_away: number;
   actual_home: number | null;
   actual_away: number | null;
   points: number | null;
+  breakdown?: { result: number; diff: number; home: number; away: number; total: number; multiplier: number } | null;
 }
 
 export interface ReminderMatch {

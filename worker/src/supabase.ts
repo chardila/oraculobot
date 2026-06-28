@@ -234,13 +234,14 @@ export class SupabaseClient {
       points: number | null;
       matches: {
         home_team: string; away_team: string; kickoff_at: string;
+        phase: string;
         status: 'scheduled' | 'finished';
         home_score: number | null; away_score: number | null;
       };
     };
     const rows = await this.req<RawRow[]>('predictions', {}, {
       user_id: `eq.${userId}`,
-      select: 'match_id,home_score,away_score,points,matches(home_team,away_team,kickoff_at,status,home_score,away_score)',
+      select: 'match_id,home_score,away_score,points,matches(home_team,away_team,kickoff_at,phase,status,home_score,away_score)',
     });
     return rows
       .map(r => ({
@@ -248,6 +249,7 @@ export class SupabaseClient {
         home_team: r.matches.home_team,
         away_team: r.matches.away_team,
         kickoff_at: r.matches.kickoff_at,
+        phase: r.matches.phase,
         status: r.matches.status,
         predicted_home: r.home_score,
         predicted_away: r.away_score,

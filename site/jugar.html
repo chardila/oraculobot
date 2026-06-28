@@ -697,9 +697,25 @@
       return { emoji: '✅', label: 'Resultado correcto', points: 3 };
     }
 
+    function renderKnockoutBreakdown(p) {
+      const bd = p.breakdown;
+      const parts = [];
+      if (bd.result > 0) parts.push(`Resultado +${bd.result}`);
+      if (bd.diff > 0) parts.push(`Diferencia +${bd.diff}`);
+      if (bd.home > 0) parts.push(`${p.home_team.split(' ')[0]} +${bd.home}`);
+      if (bd.away > 0) parts.push(`${p.away_team.split(' ')[0]} +${bd.away}`);
+      const emoji = bd.total === 0 ? '❌' : (bd.home > 0 && bd.away > 0 && bd.result > 0 ? '⭐' : '✅');
+      const maxPts = 5 * bd.multiplier;
+      const breakdown = parts.length > 0 ? parts.join(' · ') : 'Sin aciertos';
+      return `${emoji} ${p.home_team} vs ${p.away_team}\n   Tu pred: ${p.predicted_home}-${p.predicted_away} · Resultado: ${p.actual_home}-${p.actual_away} (90')\n   ${breakdown} = ${bd.total} / ${maxPts} pts`;
+    }
+
     function renderFinishedMatch(p) {
       if (p.actual_home === null) {
         return `${p.home_team} vs ${p.away_team}\n   Tu pred: ${p.predicted_home}-${p.predicted_away}\n   pts pendientes`;
+      }
+      if (p.breakdown) {
+        return renderKnockoutBreakdown(p);
       }
       const { emoji, label } = classifyPrediction(p.predicted_home, p.predicted_away, p.actual_home, p.actual_away);
       const pts = p.points ?? 0;
@@ -739,12 +755,17 @@
           .sort((a, b) => a.kickoff_at.localeCompare(b.kickoff_at));
 
         const totalPts = finished.reduce((sum, p) => sum + (p.points ?? 0), 0);
-        const classified = finished
-          .filter(p => p.actual_home !== null)
-          .map(p => p.points ?? 0);
-        const exactos = classified.filter(pts => pts === 5).length;
-        const correctos = classified.filter(pts => pts === 3 || pts === 4).length;
-        const fallidos = classified.filter(pts => pts === 0).length;
+        const classified = finished.filter(p => p.actual_home !== null);
+        const exactos = classified.filter(p => {
+          if (p.breakdown) return p.breakdown.result > 0 && p.breakdown.home > 0 && p.breakdown.away > 0;
+          return (p.points ?? 0) === 5;
+        }).length;
+        const correctos = classified.filter(p => {
+          const pts = p.points ?? 0;
+          if (p.breakdown) return p.breakdown.result > 0 && !(p.breakdown.home > 0 && p.breakdown.away > 0);
+          return pts === 3 || pts === 4;
+        }).length;
+        const fallidos = classified.filter(p => (p.points ?? 0) === 0).length;
 
         let summary = `📊 Mis predicciones\n\n${totalPts} pts · ${finished.length} partidos terminados`;
         if (finished.length > 0) {
