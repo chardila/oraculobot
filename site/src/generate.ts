@@ -389,9 +389,14 @@ export function generateStats(
     return p.home_score === m.home_score && p.away_score === m.away_score;
   };
 
-  // Correct result direction (win/draw/loss) but not exact score
+  // Non-exact but scored any points (works for group stage and knockout)
   const isCorrectPred = (p: PredictionDetail): boolean => {
     if (isExactPred(p)) return false;
+    return (p.points ?? 0) > 0;
+  };
+
+  // Correct result direction (win/draw/loss) — used for difficulty metric only
+  const isResultCorrect = (p: PredictionDetail): boolean => {
     const m = matchById.get(p.match_id);
     if (!m || m.home_score == null || m.away_score == null) return false;
     if (p.home_score == null || p.away_score == null) return false;
@@ -440,8 +445,8 @@ export function generateStats(
       <h2>🌐 Resumen global</h2>
       <div class="kpi-grid">
         <div class="kpi"><div class="kpi-value">${finishedCount}</div><div class="kpi-label">Partidos jugados</div></div>
-        <div class="kpi"><div class="kpi-value kpi-green">${pct(exact)}</div><div class="kpi-label">🎯 Exactos (5 pts)</div></div>
-        <div class="kpi"><div class="kpi-value kpi-orange">${pct(correct)}</div><div class="kpi-label">✔️ Con puntos (1–4 pts)</div></div>
+        <div class="kpi"><div class="kpi-value kpi-green">${pct(exact)}</div><div class="kpi-label">🎯 Exactos</div></div>
+        <div class="kpi"><div class="kpi-value kpi-orange">${pct(correct)}</div><div class="kpi-label">✔️ Con puntos</div></div>
         <div class="kpi"><div class="kpi-value kpi-red">${pct(zero)}</div><div class="kpi-label">❌ Sin puntos (0 pts)</div></div>
       </div>
     </div>`;
@@ -519,7 +524,7 @@ export function generateStats(
       <td data-label="Participante">${u.username ?? 'Anónimo'}</td>
       <td data-label="Pts"><b>${u.total_points}</b></td>
       <td data-label="🎯 Exactos">${uExact}</td>
-      <td data-label="✔️ Correctos">${uCorrect}</td>
+      <td data-label="✔️ Con puntos">${uCorrect}</td>
       <td data-label="❌ Ceros">${uZero}</td>
       <td data-label="Promedio">${avg}</td>
       <td data-label="Participación">
@@ -535,7 +540,7 @@ export function generateStats(
       <table>
         <thead><tr>
           <th>#</th><th>Participante</th><th>Pts</th>
-          <th>🎯 Exactos</th><th>✔️ Correctos</th><th>❌ Ceros</th>
+          <th>🎯 Exactos</th><th>✔️ Con puntos</th><th>❌ Ceros</th>
           <th>Promedio</th><th>Participación</th>
         </tr></thead>
         <tbody>${userRows}</tbody>
@@ -555,7 +560,7 @@ export function generateStats(
     .map(m => {
       const mp = predByMatch.get(m.id) ?? [];
       if (!mp.length) return null;
-      const hits = mp.filter(p => (p.points ?? 0) >= 3).length;
+      const hits = mp.filter(p => isResultCorrect(p)).length;
       return { m, pct: Math.round(hits / mp.length * 100), total: mp.length };
     })
     .filter((x): x is DiffEntry => x !== null);

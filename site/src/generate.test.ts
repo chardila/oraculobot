@@ -137,15 +137,15 @@ describe('generate', () => {
   });
 
   it('generateStats dificultad: identifica partido fácil y difícil', () => {
-    // m1: 2 aciertos de 2 → 100% (fácil)
+    // m1: 2 aciertos de 2 → 100% (fácil) — baseFinishedMatch: 2-1 home win
     // m2: 0 aciertos de 2 → 0%  (difícil)
     const html = generateStats(
       [],
       [
-        { points: 5, user_id: 'u1', match_id: 'm1' },
-        { points: 3, user_id: 'u2', match_id: 'm1' },
-        { points: 0, user_id: 'u1', match_id: 'm2' },
-        { points: 0, user_id: 'u2', match_id: 'm2' },
+        { points: 5, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 }, // exact, same dir
+        { points: 3, user_id: 'u2', match_id: 'm1', home_score: 3, away_score: 0 }, // correct dir
+        { points: 0, user_id: 'u1', match_id: 'm2', home_score: 0, away_score: 2 }, // wrong dir
+        { points: 0, user_id: 'u2', match_id: 'm2', home_score: 0, away_score: 2 }, // wrong dir
       ],
       [
         { ...baseFinishedMatch, id: 'm1', home_team: 'España', away_team: 'Alemania' },
@@ -159,7 +159,8 @@ describe('generate', () => {
   });
 
   it('generateStats dificultad: no duplica filas cuando hay pocos partidos', () => {
-    // Solo 1 partido con predicciones — no debe aparecer 2 veces
+    // Solo 1 partido con predicciones — no debe aparecer 2 veces en la tabla de dificultad.
+    // Sin home_score/away_score para que el consenso no genere fila adicional.
     const html = generateStats(
       [],
       [
@@ -168,7 +169,7 @@ describe('generate', () => {
       ],
       [{ ...baseFinishedMatch, id: 'm1', home_team: 'Chile', away_team: 'Peru' }]
     );
-    // 'Chile vs Peru' should appear exactly once (not twice — once for easy, once for hard)
+    // 'Chile vs Peru' should appear exactly once in the difficulty table (not twice)
     const occurrences = html.match(/Chile vs Peru/g) ?? [];
     expect(occurrences.length).toBe(1);
   });
@@ -181,6 +182,39 @@ describe('generate', () => {
     );
     // Sin predicciones, la tabla muestra el mensaje vacío
     expect(html).not.toContain('Colombia vs Brasil');
+  });
+
+  it('exactos + con-puntos + ceros = total (invariante para grupos)', () => {
+    // Grupo: predicción 0-1 vs resultado 1-0 → 1 pt (diff correcto, dirección incorrecta)
+    // Con el sistema nuevo cae en "Con puntos", no en "Ceros"
+    const match = { ...baseFinishedMatch, id: 'm1', home_score: 1, away_score: 0 };
+    const leaderboard = [{ user_id: 'u1', username: 'Test', total_points: 1, telegram_id: null }];
+    const predictions = [
+      { points: 1, user_id: 'u1', match_id: 'm1', home_score: 0, away_score: 1 }, // diff ok, dir wrong
+    ];
+    const html = generateStats(leaderboard, predictions, [match]);
+    // La predicción con 1pt debe clasificarse como "Con puntos", no quedar suelta
+    // La tabla tiene columna "Con puntos" (no "Correctos")
+    expect(html).toContain('Con puntos');
+  });
+
+  it('exactos + con-puntos + ceros = total (invariante para knockout)', () => {
+    // Knockout octavos: resultado 0-1, predicción 2-1 → away component (1=1) + resto mal → 1*4=4 pts
+    // Dirección incorrecta (predijo home win, ganó away) → NO es "correcto" de dirección
+    const knockoutMatch = {
+      ...baseFinishedMatch, id: 'm1', phase: 'octavos', group_name: null,
+      home_score: 0, away_score: 1,
+    };
+    const leaderboard = [{ user_id: 'u1', username: 'Test', total_points: 4, telegram_id: null }];
+    const predictions = [
+      { points: 4, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 }, // away gol ok, dir wrong
+    ];
+    const html = generateStats(leaderboard, predictions, [knockoutMatch]);
+    // Debe clasificarse como "Con puntos" (4 pts pero no exacto ni dirección correcta)
+    expect(html).toContain('Con puntos');
+    // No debe ser un "acierto" en dificultad (dirección incorrecta)
+    // La única predicción no tiene dirección correcta → 0% aciertos → partido difícil
+    expect(html).toContain('0%');
   });
 
   it('consenso: renders section heading', () => {
