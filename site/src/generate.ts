@@ -421,11 +421,13 @@ export function generateStats(
     .mini-bar-fill{height:100%;border-radius:4px;}
     .part-frac{font-size:.72rem;color:#888;}
     @media(max-width:600px){.kpi-grid{grid-template-columns:repeat(2,1fr);}}
-    .consenso-card{border:1px solid #e5e5e5;border-radius:10px;padding:.9rem 1rem;margin-bottom:.75rem;background:#fafafa;}
-    .consenso-match{font-weight:700;font-size:.95rem;margin-bottom:.35rem;}
-    .consenso-popular{font-size:.87rem;color:#333;margin-bottom:.25rem;}
-    .consenso-counts{font-size:.82rem;color:#555;gap:1rem;display:flex;flex-wrap:wrap;}
-    .badge-sorpresa{background:#fff3e0;color:#b96a00;border-radius:8px;padding:1px 8px;font-size:.75rem;font-weight:600;margin-left:.4rem;}
+    .table-scroll-wrap{max-height:420px;overflow-y:auto;border:1px solid #e5e5e5;border-radius:10px;}
+    .consenso-table{width:100%;border-collapse:collapse;font-size:.84rem;}
+    .consenso-table th{background:#f5f5f5;padding:.45rem .6rem;text-align:left;font-size:.75rem;text-transform:uppercase;color:#888;position:sticky;top:0;z-index:1;}
+    .consenso-table td{padding:.4rem .6rem;border-bottom:1px solid #f0f0f0;white-space:nowrap;}
+    .consenso-table td.partido-col{white-space:normal;}
+    .consenso-phase-row td{background:#f0f0f0;font-weight:700;font-size:.76rem;color:#555;padding:.3rem .6rem;text-transform:uppercase;letter-spacing:.04em;}
+    .badge-sorpresa{background:#fff3e0;color:#b96a00;border-radius:6px;padding:1px 6px;font-size:.72rem;font-weight:600;margin-left:.3rem;}
     .pers-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.75rem;margin-top:.5rem;}
     .pers-card{background:#f8f9fa;border-radius:10px;padding:.9rem;text-align:center;}
     .pers-name{font-weight:600;font-size:.88rem;margin-bottom:.5rem;color:#1a1a1a;}
@@ -605,9 +607,15 @@ export function generateStats(
     sm.get(key)!.count++;
   }
 
-  const consensoCards = finishedMatches.map(m => {
+  const PHASE_LABELS: Record<string, string> = {
+    treintaidosavos: 'Round of 32', octavos: 'Round of 16', cuartos: 'Cuartos de final',
+    semis: 'Semifinales', tercer_lugar: 'Tercer lugar', final: 'Final',
+  };
+
+  let currentPhaseKey = '';
+  const consensoRows = finishedMatches.flatMap(m => {
     const sm = scoresByMatch.get(m.id);
-    if (!sm?.size) return '';
+    if (!sm?.size) return [];
 
     const popular = [...sm.values()].sort((a, b) => b.count - a.count)[0];
     const mp = predByMatch.get(m.id) ?? [];
@@ -617,17 +625,33 @@ export function generateStats(
     const nadie     = uExactos === 0 && mp.length > 0;
     const personStr = popular.count === 1 ? 'persona' : 'personas';
 
-    return `<div class="consenso-card">
-    <div class="consenso-match">${m.home_team} ${m.home_score} – ${m.away_score} ${m.away_team}</div>
-    <div class="consenso-popular">Predicción más popular: <b>${popular.home}-${popular.away}</b> (${popular.count} ${personStr})${nadie ? '<span class="badge-sorpresa">😱 Nadie lo vio venir</span>' : ''}</div>
-    <div class="consenso-counts"><span>🎯 Exactos: ${uExactos}</span><span>✅ Correctos: ${uCorrec}</span><span>❌ Ceros: ${uCeros}</span></div>
-  </div>`;
-  }).filter(Boolean).join('');
+    const phaseKey = m.group_name ?? m.phase;
+    const phaseLabel = m.group_name ?? PHASE_LABELS[m.phase] ?? m.phase;
+    const rows: string[] = [];
+    if (phaseKey !== currentPhaseKey) {
+      currentPhaseKey = phaseKey;
+      rows.push(`<tr class="consenso-phase-row"><td colspan="5">${phaseLabel}</td></tr>`);
+    }
+    rows.push(`<tr>
+      <td class="partido-col">${m.home_team} vs ${m.away_team}</td>
+      <td><b>${m.home_score} – ${m.away_score}</b></td>
+      <td>${popular.home}-${popular.away} (${popular.count} ${personStr})${nadie ? '<span class="badge-sorpresa">😱 Nadie lo vio venir</span>' : ''}</td>
+      <td>🎯 ${uExactos}</td>
+      <td>✅ ${uCorrec} &nbsp;❌ ${uCeros}</td>
+    </tr>`);
+    return rows;
+  });
 
   const consensoSection = finishedMatches.length === 0 ? '' : `
   <div class="stats-section">
     <h2>🗳️ Consenso por partido</h2>
-    ${consensoCards || '<p>Sin predicciones aún.</p>'}
+    ${consensoRows.length === 0 ? '<p>Sin predicciones aún.</p>' : `
+    <div class="table-scroll-wrap">
+      <table class="consenso-table">
+        <thead><tr><th>Partido</th><th>Resultado</th><th>Pred. popular</th><th>🎯</th><th>✅ / ❌</th></tr></thead>
+        <tbody>${consensoRows.join('')}</tbody>
+      </table>
+    </div>`}
   </div>`;
 
   // ── Sección: Personalidades ────────────────────────────────────────────────

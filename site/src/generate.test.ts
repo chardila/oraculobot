@@ -74,19 +74,21 @@ describe('generate', () => {
   it('generateStats KPI: muestra partidos jugados y porcentajes', () => {
     // 10 predicciones resueltas: 2 exactas(5pts), 5 correctas(3-4pts), 3 ceros
     // exactos = 20%, correctos(3-4) = 50%, ceros = 30% — todos distintos
+    // baseFinishedMatch: home_score=2, away_score=1 (home win)
+    // exact: home_score=2, away_score=1 | correct: home_score=3, away_score=0 | zero: home_score=0, away_score=2
     const html = generateStats(
       [],
       [
-        { points: 5, user_id: 'u1', match_id: 'm1' },
-        { points: 5, user_id: 'u2', match_id: 'm1' },
-        { points: 4, user_id: 'u1', match_id: 'm2' },
-        { points: 4, user_id: 'u2', match_id: 'm2' },
-        { points: 3, user_id: 'u1', match_id: 'm3' },
-        { points: 3, user_id: 'u2', match_id: 'm3' },
-        { points: 3, user_id: 'u1', match_id: 'm4' },
-        { points: 0, user_id: 'u2', match_id: 'm4' },
-        { points: 0, user_id: 'u1', match_id: 'm5' },
-        { points: 0, user_id: 'u2', match_id: 'm5' },
+        { points: 5, user_id: 'u1', match_id: 'm1', home_score: 2, away_score: 1 },
+        { points: 5, user_id: 'u2', match_id: 'm1', home_score: 2, away_score: 1 },
+        { points: 4, user_id: 'u1', match_id: 'm2', home_score: 3, away_score: 0 },
+        { points: 4, user_id: 'u2', match_id: 'm2', home_score: 3, away_score: 0 },
+        { points: 3, user_id: 'u1', match_id: 'm3', home_score: 3, away_score: 0 },
+        { points: 3, user_id: 'u2', match_id: 'm3', home_score: 3, away_score: 0 },
+        { points: 3, user_id: 'u1', match_id: 'm4', home_score: 3, away_score: 0 },
+        { points: 0, user_id: 'u2', match_id: 'm4', home_score: 0, away_score: 2 },
+        { points: 0, user_id: 'u1', match_id: 'm5', home_score: 0, away_score: 2 },
+        { points: 0, user_id: 'u2', match_id: 'm5', home_score: 0, away_score: 2 },
       ],
       [
         { ...baseFinishedMatch, id: 'm1' },
@@ -231,9 +233,9 @@ describe('generate', () => {
       { points: 0, user_id: 'u3', match_id: 'm1', home_score: 0, away_score: 0 },
     ];
     const html = generateStats([], predictions, [match]);
-    expect(html).toContain('Exactos: 1');
-    expect(html).toContain('Correctos: 1');
-    expect(html).toContain('Ceros: 1');
+    expect(html).toContain('🎯 1');
+    expect(html).toContain('✅ 1');
+    expect(html).toContain('❌ 1');
   });
 
   it('personalidades: shows section heading', () => {
