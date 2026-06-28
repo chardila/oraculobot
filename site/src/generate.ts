@@ -477,7 +477,7 @@ export function generateStats(
   const chartSection = `
     <div class="stats-section">
       <h2>📈 Evolución de puntos acumulados</h2>
-      <canvas id="evolution-chart" height="80"></canvas>
+      <canvas id="evolution-chart"></canvas>
       <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
       <script>
         (function(){
@@ -487,6 +487,7 @@ export function generateStats(
             data: ${chartJson},
             options: {
               responsive: true,
+              aspectRatio: 2,
               interaction: { mode: 'index', intersect: false },
               plugins: { legend: { display: false } },
               scales: { y: { beginAtZero: true } }
