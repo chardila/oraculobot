@@ -75,19 +75,32 @@ function getVenue(ground: string): { name: string; city: string; country: string
   return VENUE_MAP[ground] ?? { name: ground, city: ground, country: '' };
 }
 
-async function query<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
+const PAGE_SIZE = 1000; // PostgREST's default max-rows limit
+
+// Fetches all rows for an endpoint, paginating past PostgREST's default
+// max-rows limit (1000) so tables like `predictions` aren't silently truncated.
+async function query<T extends unknown[]>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
   const supabaseUrl = process.env.SUPABASE_URL!;
   const supabaseKey = process.env.SUPABASE_SERVICE_KEY!;
-  const url = new URL(`${supabaseUrl}/rest/v1/${endpoint}`);
-  Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-  const res = await fetch(url.toString(), {
-    headers: {
-      apikey: supabaseKey,
-      Authorization: `Bearer ${supabaseKey}`,
-    },
-  });
-  if (!res.ok) throw new Error(`Supabase ${endpoint}: ${res.status} ${await res.text()}`);
-  return res.json() as Promise<T>;
+  const allRows: unknown[] = [];
+  let offset = 0;
+  while (true) {
+    const url = new URL(`${supabaseUrl}/rest/v1/${endpoint}`);
+    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    const res = await fetch(url.toString(), {
+      headers: {
+        apikey: supabaseKey,
+        Authorization: `Bearer ${supabaseKey}`,
+        Range: `${offset}-${offset + PAGE_SIZE - 1}`,
+      },
+    });
+    if (!res.ok) throw new Error(`Supabase ${endpoint}: ${res.status} ${await res.text()}`);
+    const page = await res.json() as unknown[];
+    allRows.push(...page);
+    if (page.length < PAGE_SIZE) break;
+    offset += PAGE_SIZE;
+  }
+  return allRows as T;
 }
 
 async function rpc<T>(fn: string, body: Record<string, unknown> = {}): Promise<T> {
