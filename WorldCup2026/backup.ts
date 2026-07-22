@@ -10,7 +10,18 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
   process.exit(1);
 }
 
-const TABLES = ['users', 'predictions', 'leagues', 'invite_codes'];
+const TABLES = [
+  // Tablas de usuario
+  'users', 'predictions', 'leagues', 'invite_codes',
+  // Tablas operacionales
+  'matches', 'knockout_bracket', 'proposed_results', 'question_logs',
+  // Tablas WC históricas
+  'wc_matches', 'wc_goals', 'wc_referees', 'wc_referee_appearances',
+  'wc_bookings', 'wc_substitutions', 'wc_player_appearances',
+  'wc_penalty_kicks', 'wc_group_standings', 'wc_award_winners',
+  'wc_standings_2026', 'wc_squads_2026', 'wc_coaches_2026',
+  'wc_teams', 'wc_stadiums',
+];
 const PAGE_SIZE = 1000;
 
 async function fetchAllRows(table: string): Promise<unknown[]> {
